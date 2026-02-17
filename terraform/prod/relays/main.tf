@@ -56,9 +56,6 @@ locals {
     "google.frankfurt.1",
     "google.frankfurt.2",
     "google.frankfurt.3",
-    "amazon.frankfurt.1",
-    "amazon.frankfurt.2",
-    "amazon.frankfurt.3",
 
     "i3d.losangeles",
     "datapacket.losangeles",
@@ -793,12 +790,6 @@ locals {
       public_address = "89.222.124.57"
     }
 
-    "datapacket.frankfurt.b" = {
-      datacenter_name = "datapacket.frankfurt"
-      ssh_address = "89.222.124.31"
-      public_address = "89.222.124.31"
-    }
-
     "datapacket.santiago" = {
       datacenter_name = "datapacket.santiago"
       ssh_address = "79.127.209.147"
@@ -899,9 +890,19 @@ locals {
 
   latitude_relays = {
 
+    "latitude.bogota" = {
+      datacenter_name = "latitude.bogota"
+      public_address  = "103.219.169.121"
+    },
+
     "latitude.buenosaires" = {
       datacenter_name = "latitude.buenosaires"
       public_address  = "103.106.58.67"
+    },
+
+    "latitude.buenosaires.b" = {
+      datacenter_name = "latitude.buenosaires"
+      public_address  = "103.106.58.63"
     },
 
     "latitude.dallas" = {
