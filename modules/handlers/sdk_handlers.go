@@ -7,11 +7,11 @@ import (
 	"github.com/networknext/next/modules/common"
 	"github.com/networknext/next/modules/constants"
 	"github.com/networknext/next/modules/core"
+	"github.com/networknext/next/modules/crypto"
 	"github.com/networknext/next/modules/database"
 	"github.com/networknext/next/modules/encoding"
 	"github.com/networknext/next/modules/messages"
 	"github.com/networknext/next/modules/packets"
-	"github.com/networknext/next/modules/crypto"
 )
 
 const (
@@ -664,7 +664,7 @@ func SDK_ProcessClientRelayRequestPacket(handler *SDK_Handler, conn *net.UDPConn
 	clientAddressWithoutPort := requestPacket.ClientAddress
 	clientAddressWithoutPort.Port = 0
 
-	for i := 0; i < numClientRelays; i++ {
+	for i := range numClientRelays {
 		responsePacket.ClientRelayIds[i] = clientRelayIds[i]
 		responsePacket.ClientRelayAddresses[i] = clientRelayAddresses[i]
 
@@ -730,7 +730,7 @@ func SDK_ProcessServerRelayRequestPacket(handler *SDK_Handler, conn *net.UDPConn
 	responsePacket.NumServerRelays = int32(numServerRelays)
 	responsePacket.ExpireTimestamp = uint64(time.Now().Unix()) + 15
 
-	for i := 0; i < numServerRelays; i++ {
+	for i := range numServerRelays {
 		relay := handler.Database.GetRelay(datacenterRelays[i])
 		if relay == nil {
 			core.Debug("unknown relay %x", datacenterRelays[i])

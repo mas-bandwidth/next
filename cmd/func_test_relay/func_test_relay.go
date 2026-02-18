@@ -621,8 +621,8 @@ func test_basic_packet_filter() {
 		panic("could not create udp socket")
 	}
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 			packet := make([]byte, common.RandomInt(1, constants.MaxPacketBytes))
 			common.RandomBytes(packet[:])
 			conn.Write(packet)
@@ -669,8 +669,8 @@ func test_advanced_packet_filter() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 			packet := make([]byte, common.RandomInt(18, constants.MaxPacketBytes))
 			common.RandomBytes(packet[:])
 			var magic [8]byte
@@ -786,8 +786,8 @@ func test_client_ping_packet_wrong_size() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 			packet := make([]byte, common.RandomInt(18, constants.MaxPacketBytes))
 			common.RandomBytes(packet[:])
 			packet[0] = CLIENT_PING_PACKET
@@ -848,8 +848,8 @@ func test_client_ping_packet_expired() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 			packet := make([]byte, 18+8+8+8+32)
 			packet[0] = CLIENT_PING_PACKET
 			var magic [constants.MagicBytes]byte
@@ -909,9 +909,9 @@ func test_client_ping_packet_did_not_verify() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		expireTimestamp := time.Now().Unix() + 10
-		for j := 0; j < 1000; j++ {
+		for range 1000 {
 			packet := make([]byte, 18+8+8+8+32)
 			packet[0] = CLIENT_PING_PACKET
 			binary.LittleEndian.PutUint64(packet[18+8+8:], uint64(expireTimestamp))
@@ -993,7 +993,7 @@ func test_client_ping_packet_responded_with_pong() {
 		}
 	}()
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 
 		expireTimestamp := uint64(time.Now().Unix()) + 10
 
@@ -1004,7 +1004,7 @@ func test_client_ping_packet_responded_with_pong() {
 
 		core.GeneratePingToken(expireTimestamp, &clientAddressWithoutPort, &serverAddress, pingKey, pingToken)
 
-		for j := 0; j < 1000; j++ {
+		for range 1000 {
 			packet := make([]byte, 18+8+8+8+32)
 			packet[0] = CLIENT_PING_PACKET
 			binary.LittleEndian.PutUint64(packet[18:], sequence)
@@ -1076,8 +1076,8 @@ func test_server_ping_packet_wrong_size() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 			packet := make([]byte, common.RandomInt(18, constants.MaxPacketBytes))
 			common.RandomBytes(packet[:])
 			packet[0] = SERVER_PING_PACKET
@@ -1138,8 +1138,8 @@ func test_server_ping_packet_expired() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 			packet := make([]byte, 18+8+8+32)
 			packet[0] = SERVER_PING_PACKET
 			var magic [constants.MagicBytes]byte
@@ -1199,9 +1199,9 @@ func test_server_ping_packet_did_not_verify() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		expireTimestamp := time.Now().Unix() + 10
-		for j := 0; j < 1000; j++ {
+		for range 1000 {
 			packet := make([]byte, 18+8+8+32)
 			packet[0] = SERVER_PING_PACKET
 			binary.LittleEndian.PutUint64(packet[18+8:], uint64(expireTimestamp))
@@ -1282,7 +1282,7 @@ func test_server_ping_packet_responded_with_pong() {
 		}
 	}()
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 
 		expireTimestamp := uint64(time.Now().Unix()) + 10
 
@@ -1290,7 +1290,7 @@ func test_server_ping_packet_responded_with_pong() {
 
 		core.GeneratePingToken(expireTimestamp, &clientAddress, &serverAddress, pingKey, pingToken)
 
-		for j := 0; j < 1000; j++ {
+		for range 1000 {
 			packet := make([]byte, 18+8+8+32)
 			packet[0] = SERVER_PING_PACKET
 			binary.LittleEndian.PutUint64(packet[18:], sequence)
@@ -1361,8 +1361,8 @@ func test_relay_pong_packet_wrong_size() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 			packet := make([]byte, common.RandomInt(18, constants.MaxPacketBytes))
 			common.RandomBytes(packet[:])
 			packet[0] = RELAY_PONG_PACKET
@@ -1423,8 +1423,8 @@ func test_relay_ping_packet_wrong_size() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 			packet := make([]byte, common.RandomInt(18, constants.MaxPacketBytes))
 			common.RandomBytes(packet[:])
 			packet[0] = RELAY_PING_PACKET
@@ -1485,8 +1485,8 @@ func test_relay_ping_packet_expired() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 			packet := make([]byte, 18+8+8+1+32)
 			packet[0] = RELAY_PING_PACKET
 			var magic [constants.MagicBytes]byte
@@ -1546,9 +1546,9 @@ func test_relay_ping_packet_did_not_verify() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		expireTimestamp := time.Now().Unix() + 10
-		for j := 0; j < 1000; j++ {
+		for range 1000 {
 			packet := make([]byte, 18+8+8+1+32)
 			packet[0] = RELAY_PING_PACKET
 			binary.LittleEndian.PutUint64(packet[18+8:], uint64(expireTimestamp))
@@ -1611,8 +1611,8 @@ func test_route_request_packet_wrong_size() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 			packet := make([]byte, common.RandomInt(18, constants.MaxPacketBytes))
 			common.RandomBytes(packet[:])
 			packet[0] = ROUTE_REQUEST_PACKET
@@ -1673,8 +1673,8 @@ func test_route_request_packet_could_not_decrypt_route_token() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 			packet := make([]byte, 18+111*2)
 			common.RandomBytes(packet[:])
 			packet[0] = ROUTE_REQUEST_PACKET
@@ -1741,8 +1741,8 @@ func test_route_request_packet_token_expired() {
 
 	testSecretKey, _ := crypto.SecretKey_GenerateLocal(testRelayPublicKey, testRelayPrivateKey, testRelayBackendPublicKey)
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 			packet := make([]byte, 18+111*2)
 			common.RandomBytes(packet[:])
 			packet[0] = ROUTE_REQUEST_PACKET
@@ -1829,8 +1829,8 @@ func test_route_request_packet_forward_to_next_hop() {
 
 	testSecretKey, _ := crypto.SecretKey_GenerateLocal(testRelayPublicKey, testRelayPrivateKey, testRelayBackendPublicKey)
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 			packet := make([]byte, 18+111*2)
 			common.RandomBytes(packet[:])
 			packet[0] = ROUTE_REQUEST_PACKET
@@ -1903,8 +1903,8 @@ func test_route_response_packet_wrong_size() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 			packet := make([]byte, common.RandomInt(18, constants.MaxPacketBytes))
 			common.RandomBytes(packet[:])
 			packet[0] = ROUTE_RESPONSE_PACKET
@@ -1965,8 +1965,8 @@ func test_route_response_packet_could_not_find_session() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 			packet := make([]byte, 18+25)
 			packet[0] = ROUTE_RESPONSE_PACKET
 			var magic [constants.MagicBytes]byte
@@ -2052,8 +2052,8 @@ func test_route_response_packet_already_received() {
 	// now send a bunch of route response packets with sequence number 0, they will trigger already received
 	// (sequence number starts at zero...)
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 			packet := make([]byte, 18+25)
 			packet[0] = ROUTE_RESPONSE_PACKET
 			var magic [constants.MagicBytes]byte
@@ -2338,8 +2338,8 @@ func test_continue_request_packet_wrong_size() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 			packet := make([]byte, common.RandomInt(18, constants.MaxPacketBytes))
 			common.RandomBytes(packet[:])
 			packet[0] = CONTINUE_REQUEST_PACKET
@@ -2400,8 +2400,8 @@ func test_continue_request_packet_could_not_decrypt_continue_token() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 			packet := make([]byte, 18+57*2)
 			common.RandomBytes(packet[:])
 			packet[0] = CONTINUE_REQUEST_PACKET
@@ -2468,8 +2468,8 @@ func test_continue_request_packet_token_expired() {
 
 	testSecretKey, _ := crypto.SecretKey_GenerateLocal(testRelayPublicKey, testRelayPrivateKey, testRelayBackendPublicKey)
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 			packet := make([]byte, 18+57*2)
 			common.RandomBytes(packet[:])
 			packet[0] = CONTINUE_REQUEST_PACKET
@@ -2538,8 +2538,8 @@ func test_continue_request_packet_could_not_find_session() {
 
 	testSecretKey, _ := crypto.SecretKey_GenerateLocal(testRelayPublicKey, testRelayPrivateKey, testRelayBackendPublicKey)
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 			packet := make([]byte, 18+57*2)
 			common.RandomBytes(packet[:])
 			packet[0] = CONTINUE_REQUEST_PACKET
@@ -2646,8 +2646,8 @@ func test_continue_request_packet_forward_to_next_hop() {
 		}
 	}()
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 			packet := make([]byte, 18+57*2)
 			common.RandomBytes(packet[:])
 			packet[0] = CONTINUE_REQUEST_PACKET
@@ -2719,8 +2719,8 @@ func test_continue_response_packet_wrong_size() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 			packet := make([]byte, common.RandomInt(18, constants.MaxPacketBytes))
 			common.RandomBytes(packet[:])
 			packet[0] = CONTINUE_RESPONSE_PACKET
@@ -2781,8 +2781,8 @@ func test_continue_response_packet_could_not_find_session() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 			packet := make([]byte, 18+25)
 			packet[0] = CONTINUE_RESPONSE_PACKET
 			var magic [constants.MagicBytes]byte
@@ -2868,8 +2868,8 @@ func test_continue_response_packet_already_received() {
 	// now send a bunch of continue response packets with sequence number 0, they will trigger already received
 	// (sequence number starts at zero...)
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 			packet := make([]byte, 18+25)
 			packet[0] = CONTINUE_RESPONSE_PACKET
 			var magic [constants.MagicBytes]byte
@@ -3138,8 +3138,8 @@ func test_client_to_server_packet_too_small() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
-	for i := 0; i < 30; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 30 {
+		for range 1000 {
 			packet := make([]byte, common.RandomInt(18, 18+25-1))
 			common.RandomBytes(packet[:])
 			packet[0] = CLIENT_TO_SERVER_PACKET
@@ -3200,8 +3200,8 @@ func test_client_to_server_packet_too_big() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
-	for i := 0; i < 30; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 30 {
+		for range 1000 {
 			packet := make([]byte, common.RandomInt(constants.MaxPacketBytes, 4095))
 			common.RandomBytes(packet[:])
 			packet[0] = CLIENT_TO_SERVER_PACKET
@@ -3262,8 +3262,8 @@ func test_client_to_server_packet_could_not_find_session() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 			packet := make([]byte, 18+25+256)
 			packet[0] = CLIENT_TO_SERVER_PACKET
 			var magic [constants.MagicBytes]byte
@@ -3349,8 +3349,8 @@ func test_client_to_server_packet_already_received() {
 	// now send a bunch of client to server packets with sequence number 0, they will trigger already received
 	// (sequence number starts at zero...)
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 			packet := make([]byte, 18+25+256)
 			packet[0] = CLIENT_TO_SERVER_PACKET
 			var magic [constants.MagicBytes]byte
@@ -3558,8 +3558,8 @@ func test_client_to_server_packet_forward_to_next_hop() {
 
 	sequenceNumber := uint64(1)
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 
 			packet := make([]byte, 18+25+256)
 
@@ -3641,8 +3641,8 @@ func test_server_to_client_packet_too_small() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
-	for i := 0; i < 30; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 30 {
+		for range 1000 {
 			packet := make([]byte, common.RandomInt(18, 18+25-1))
 			common.RandomBytes(packet[:])
 			packet[0] = SERVER_TO_CLIENT_PACKET
@@ -3703,8 +3703,8 @@ func test_server_to_client_packet_too_big() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
-	for i := 0; i < 30; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 30 {
+		for range 1000 {
 			packet := make([]byte, common.RandomInt(constants.MaxPacketBytes, 4095))
 			common.RandomBytes(packet[:])
 			packet[0] = SERVER_TO_CLIENT_PACKET
@@ -3765,8 +3765,8 @@ func test_server_to_client_packet_could_not_find_session() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 			packet := make([]byte, 18+25+256)
 			packet[0] = SERVER_TO_CLIENT_PACKET
 			var magic [constants.MagicBytes]byte
@@ -3852,8 +3852,8 @@ func test_server_to_client_packet_already_received() {
 	// now send a bunch of server to client packets with sequence number 0, they will trigger already received
 	// (sequence number starts at zero...)
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 			packet := make([]byte, 18+25+256)
 			packet[0] = SERVER_TO_CLIENT_PACKET
 			var magic [constants.MagicBytes]byte
@@ -4061,8 +4061,8 @@ func test_server_to_client_packet_forward_to_previous_hop() {
 
 	sequenceNumber := uint64(1)
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 
 			packet := make([]byte, 18+25+256)
 
@@ -4144,8 +4144,8 @@ func test_session_ping_packet_wrong_size() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 			packet := make([]byte, common.RandomInt(18, constants.MaxPacketBytes))
 			common.RandomBytes(packet[:])
 			packet[0] = SESSION_PING_PACKET
@@ -4206,8 +4206,8 @@ func test_session_ping_packet_could_not_find_session() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 			packet := make([]byte, 18+25+8)
 			packet[0] = SESSION_PING_PACKET
 			var magic [constants.MagicBytes]byte
@@ -4293,8 +4293,8 @@ func test_session_ping_packet_already_received() {
 	// now send a bunch of session ping packets with sequence number 0, they will trigger already received
 	// (sequence number starts at zero...)
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 			packet := make([]byte, 18+25+8)
 			packet[0] = SESSION_PING_PACKET
 			var magic [constants.MagicBytes]byte
@@ -4502,8 +4502,8 @@ func test_session_ping_packet_forward_to_next_hop() {
 
 	sequenceNumber := uint64(1)
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 
 			packet := make([]byte, 18+25+8)
 
@@ -4585,8 +4585,8 @@ func test_session_pong_packet_wrong_size() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 			packet := make([]byte, common.RandomInt(18, constants.MaxPacketBytes))
 			common.RandomBytes(packet[:])
 			packet[0] = SESSION_PONG_PACKET
@@ -4647,8 +4647,8 @@ func test_session_pong_packet_could_not_find_session() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 			packet := make([]byte, 18+25+8)
 			packet[0] = SESSION_PONG_PACKET
 			var magic [constants.MagicBytes]byte
@@ -4734,8 +4734,8 @@ func test_session_pong_packet_already_received() {
 	// now send a bunch of session ping packets with sequence number 0, they will trigger already received
 	// (sequence number starts at zero...)
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 			packet := make([]byte, 18+25+8)
 			packet[0] = SESSION_PONG_PACKET
 			var magic [constants.MagicBytes]byte
@@ -4943,8 +4943,8 @@ func test_session_pong_packet_forward_to_previous_hop() {
 
 	sequenceNumber := uint64(1)
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 
 			packet := make([]byte, 18+25+8)
 
@@ -5070,8 +5070,8 @@ func test_session_expired_route_response_packet() {
 
 	sequenceNumber := uint64(1)
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 
 			packet := make([]byte, 18+25)
 
@@ -5186,8 +5186,8 @@ func test_session_expired_continue_request_packet() {
 
 	// now throw a bunch of packets at the relay, and verify that the session is expired
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1; j++ {
+	for range 10 {
+		for range 1 {
 			packet := make([]byte, 18+57*2)
 			common.RandomBytes(packet[:])
 			packet[0] = CONTINUE_REQUEST_PACKET
@@ -5294,8 +5294,8 @@ func test_session_expired_continue_response_packet() {
 
 	sequenceNumber := uint64(1)
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 
 			packet := make([]byte, 18+25)
 
@@ -5412,8 +5412,8 @@ func test_session_expired_client_to_server_packet() {
 
 	sequenceNumber := uint64(1)
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 
 			packet := make([]byte, 18+25+100)
 
@@ -5530,8 +5530,8 @@ func test_session_expired_server_to_client_packet() {
 
 	sequenceNumber := uint64(1)
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 
 			packet := make([]byte, 18+25+100)
 
@@ -5648,8 +5648,8 @@ func test_session_expired_session_ping_packet() {
 
 	sequenceNumber := uint64(1)
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 
 			packet := make([]byte, 18+25+8)
 
@@ -5768,8 +5768,8 @@ func test_session_expired_session_pong_packet() {
 
 	sequenceNumber := uint64(1)
 
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 1000; j++ {
+	for range 10 {
+		for range 1000 {
 
 			packet := make([]byte, 18+25+8)
 
@@ -5957,7 +5957,7 @@ func test_relay_backend_counters() {
 
 	// verify that we see the session created counter on the relay backned
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		time.Sleep(time.Second)
 	}
 
@@ -6227,7 +6227,7 @@ func initCounterNames() {
 
 	counterHash = make(map[string]int)
 
-	for i := 0; i < constants.NumRelayCounters; i++ {
+	for i := range constants.NumRelayCounters {
 		if counterNames[i] != "" {
 			counterHash[counterNames[i]] = i
 		}

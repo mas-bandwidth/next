@@ -201,7 +201,7 @@ func (stream *WriteStream) SerializeAddress(addr *net.UDPAddr) {
 		stream.SerializeBits(&port, 16)
 	} else if addrType == uint32(IPAddressIPv6) {
 		addr.IP = make([]byte, 16)
-		for i := 0; i < 8; i++ {
+		for i := range 8 {
 			uint32Value := uint32(binary.BigEndian.Uint16(addr.IP[i*2:]))
 			stream.SerializeBits(&uint32Value, 16)
 			if stream.err != nil {

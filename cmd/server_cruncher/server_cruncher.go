@@ -79,9 +79,9 @@ func main() {
 
 func TestThread() {
 	for {
-		for index := 0; index < constants.NumBuckets; index++ {
+		for index := range constants.NumBuckets {
 			batch := make([]ServerUpdate, 1000)
-			for i := 0; i < len(batch); i++ {
+			for i := range batch {
 				batch[i].serverId = rand.Uint64()
 			}
 			buckets[index].serverUpdateChannel <- batch
@@ -142,16 +142,16 @@ func TopSessionsThread() {
 
 		servers := make([]*SortedSet, constants.NumBuckets)
 
-		for i := 0; i < constants.NumBuckets; i++ {
+		for i := range constants.NumBuckets {
 			buckets[i].mutex.Lock()
 		}
 
-		for i := 0; i < constants.NumBuckets; i++ {
+		for i := range constants.NumBuckets {
 			servers[i] = buckets[i].servers
 			buckets[i].servers = NewSortedSet()
 		}
 
-		for i := 0; i < constants.NumBuckets; i++ {
+		for i := range constants.NumBuckets {
 			buckets[i].mutex.Unlock()
 		}
 
@@ -168,7 +168,7 @@ func TopSessionsThread() {
 
 		topServers := make([]Server, 0, TopServersCount)
 
-		for i := 0; i < constants.NumBuckets; i++ {
+		for i := range constants.NumBuckets {
 			bucketServers := servers[i].GetByRankRange(1, -1)
 			for j := range bucketServers {
 				if _, exists := serversMap[bucketServers[j].Key]; !exists {
@@ -225,7 +225,7 @@ func serverBatchHandler(w http.ResponseWriter, r *http.Request) {
 	body = body[8:]
 
 	index := 0
-	for j := 0; j < constants.NumBuckets; j++ {
+	for j := range constants.NumBuckets {
 		var numUpdates uint32
 		encoding.ReadUint32(body[:], &index, &numUpdates)
 		batch := make([]ServerUpdate, numUpdates)
@@ -353,7 +353,7 @@ func (this *SortedSet) insertNode(score uint32, key uint64) *SortedSetNode {
 	}
 
 	x = createNode(level, score, key)
-	for i := 0; i < level; i++ {
+	for i := range level {
 		x.level[i].forward = update[i].level[i].forward
 		update[i].level[i].forward = x
 

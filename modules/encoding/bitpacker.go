@@ -116,10 +116,7 @@ func (writer *BitWriter) WriteAlign() error {
 
 func (writer *BitWriter) WriteBytes(data []byte) error {
 
-	headBytes := (4 - (writer.bitsWritten%32)/8) % 4
-	if headBytes > len(data) {
-		headBytes = len(data)
-	}
+	headBytes := min((4-(writer.bitsWritten%32)/8)%4, len(data))
 
 	for i := 0; i < headBytes; i++ {
 		writer.WriteBits(uint32(data[i]), 8)
@@ -135,7 +132,7 @@ func (writer *BitWriter) WriteBytes(data []byte) error {
 
 	numWords := (len(data) - headBytes) / 4
 
-	for i := 0; i < numWords; i++ {
+	for i := range numWords {
 		*(*uint32)(unsafe.Pointer(&writer.buffer[writer.wordIndex*4])) = *(*uint32)(unsafe.Pointer(&data[headBytes+i*4]))
 		writer.bitsWritten += 32
 		writer.wordIndex += 1
@@ -146,7 +143,7 @@ func (writer *BitWriter) WriteBytes(data []byte) error {
 	tailStart := headBytes + numWords*4
 	tailBytes := len(data) - tailStart
 
-	for i := 0; i < tailBytes; i++ {
+	for i := range tailBytes {
 		err := writer.WriteBits(uint32(data[tailStart+i]), 8)
 		if err != nil {
 			return err
@@ -254,10 +251,7 @@ func (reader *BitReader) ReadBytes(buffer []byte) error {
 		return fmt.Errorf("would read past end of buffer")
 	}
 
-	headBytes := (4 - (reader.bitsRead%32)/8) % 4
-	if headBytes > len(buffer) {
-		headBytes = len(buffer)
-	}
+	headBytes := min((4-(reader.bitsRead%32)/8)%4, len(buffer))
 	for i := 0; i < headBytes; i++ {
 		value, err := reader.ReadBits(8)
 		if err != nil {
@@ -271,7 +265,7 @@ func (reader *BitReader) ReadBytes(buffer []byte) error {
 
 	numWords := (len(buffer) - headBytes) / 4
 
-	for i := 0; i < numWords; i++ {
+	for i := range numWords {
 		*(*uint32)(unsafe.Pointer(&buffer[headBytes+i*4])) = *(*uint32)(unsafe.Pointer(&reader.buffer[reader.wordIndex*4]))
 		reader.bitsRead += 32
 		reader.wordIndex += 1
@@ -282,7 +276,7 @@ func (reader *BitReader) ReadBytes(buffer []byte) error {
 	tailStart := headBytes + numWords*4
 	tailBytes := len(buffer) - tailStart
 
-	for i := 0; i < tailBytes; i++ {
+	for i := range tailBytes {
 		value, err := reader.ReadBits(8)
 		if err != nil {
 			return err

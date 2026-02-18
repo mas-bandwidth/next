@@ -156,7 +156,7 @@ func soak_test_relay(run_forever bool) {
 
 	_ = testSecretKey
 
-	for i := 0; i < NumSockets; i++ {
+	for i := range NumSockets {
 		lc := net.ListenConfig{}
 		lp, err := lc.ListenPacket(context.Background(), "udp", "127.0.0.1:0")
 		if err != nil {
@@ -210,7 +210,7 @@ func soak_test_relay(run_forever bool) {
 
 		// send valid route request packets
 
-		for i := 0; i < NumSockets; i++ {
+		for i := range NumSockets {
 			if rand.Intn(1000) == 0 {
 				packet := make([]byte, 18+111*2)
 				common.RandomBytes(packet[:])
@@ -239,7 +239,7 @@ func soak_test_relay(run_forever bool) {
 
 		// send valid route response packets
 
-		for i := 0; i < NumSockets; i++ {
+		for i := range NumSockets {
 
 			if rand.Intn(100) == 0 {
 
@@ -271,7 +271,7 @@ func soak_test_relay(run_forever bool) {
 
 		// send valid continue request packets
 
-		for i := 0; i < NumSockets; i++ {
+		for i := range NumSockets {
 			if rand.Intn(100) == 0 {
 				packet := make([]byte, 18+57*2)
 				common.RandomBytes(packet[:])
@@ -294,7 +294,7 @@ func soak_test_relay(run_forever bool) {
 
 		// send valid continue response packets
 
-		for i := 0; i < NumSockets; i++ {
+		for i := range NumSockets {
 
 			if rand.Intn(100) == 0 {
 
@@ -326,7 +326,7 @@ func soak_test_relay(run_forever bool) {
 
 		// send valid client to server packets
 
-		for i := 0; i < NumSockets; i++ {
+		for i := range NumSockets {
 
 			if rand.Intn(10) == 0 {
 
@@ -358,7 +358,7 @@ func soak_test_relay(run_forever bool) {
 
 		// send valid server to client packets
 
-		for i := 0; i < NumSockets; i++ {
+		for i := range NumSockets {
 
 			if rand.Intn(10) == 0 {
 
@@ -397,7 +397,7 @@ func soak_test_relay(run_forever bool) {
 	backend_cmd.Wait()
 	relay_cmd.Wait()
 
-	for i := 0; i < NumSockets; i++ {
+	for i := range NumSockets {
 		conn[i].Close()
 	}
 

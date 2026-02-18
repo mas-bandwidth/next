@@ -220,9 +220,9 @@ func UpdateAcceleratedPercent(service *common.Service) {
 
 func TestThread() {
 	for {
-		for index := 0; index < constants.NumBuckets; index++ {
+		for index := range constants.NumBuckets {
 			batch := make([]SessionUpdate, 1000)
-			for i := 0; i < len(batch); i++ {
+			for i := range batch {
 				batch[i].sessionId = rand.Uint64()
 				batch[i].next = uint8(i % 2)
 				batch[i].latitude = rand.Float32()
@@ -308,18 +308,18 @@ func TopSessionsThread() {
 		totalSessions := make([]*SortedSet, constants.NumBuckets)
 		mapEntries := make([]map[uint64]MapEntry, constants.NumBuckets)
 
-		for i := 0; i < constants.NumBuckets; i++ {
+		for i := range constants.NumBuckets {
 			buckets[i].mutex.Lock()
 		}
 
-		for i := 0; i < constants.NumBuckets; i++ {
+		for i := range constants.NumBuckets {
 			totalSessions[i] = buckets[i].totalSessions
 			mapEntries[i] = buckets[i].mapEntries
 			buckets[i].totalSessions = NewSortedSet()
 			buckets[i].mapEntries = make(map[uint64]MapEntry, TopSessionsCount)
 		}
 
-		for i := 0; i < constants.NumBuckets; i++ {
+		for i := range constants.NumBuckets {
 			buckets[i].mutex.Unlock()
 		}
 
@@ -336,7 +336,7 @@ func TopSessionsThread() {
 
 		sessions := make([]Session, 0, TopSessionsCount)
 
-		for i := 0; i < constants.NumBuckets; i++ {
+		for i := range constants.NumBuckets {
 			bucketTotalSessions := totalSessions[i].GetByRankRange(1, -1)
 			for j := range bucketTotalSessions {
 				if _, exists := totalSessionsMap[bucketTotalSessions[j].Key]; !exists {
@@ -411,7 +411,7 @@ func sessionBatchHandler(w http.ResponseWriter, r *http.Request) {
 	body = body[8:]
 
 	index := 0
-	for j := 0; j < constants.NumBuckets; j++ {
+	for j := range constants.NumBuckets {
 		var numUpdates uint32
 		encoding.ReadUint32(body[:], &index, &numUpdates)
 		batch := make([]SessionUpdate, numUpdates)
@@ -549,7 +549,7 @@ func (this *SortedSet) insertNode(score uint32, key uint64) *SortedSetNode {
 	}
 
 	x = createNode(level, score, key)
-	for i := 0; i < level; i++ {
+	for i := range level {
 		x.level[i].forward = update[i].level[i].forward
 		update[i].level[i].forward = x
 

@@ -12,7 +12,7 @@ const NumIterations = 1
 
 func TestSessionData(t *testing.T) {
 	t.Parallel()
-	for i := 0; i < NumIterations; i++ {
+	for range NumIterations {
 		writeData := portal.GenerateRandomSessionData()
 		value := writeData.Value()
 		readData := portal.SessionData{}
@@ -23,7 +23,7 @@ func TestSessionData(t *testing.T) {
 
 func TestSliceData(t *testing.T) {
 	t.Parallel()
-	for i := 0; i < NumIterations; i++ {
+	for range NumIterations {
 		writeData := portal.GenerateRandomSliceData()
 		value := writeData.Value()
 		readData := portal.SliceData{}
@@ -34,7 +34,7 @@ func TestSliceData(t *testing.T) {
 
 func TestClientRelayData(t *testing.T) {
 	t.Parallel()
-	for i := 0; i < NumIterations; i++ {
+	for range NumIterations {
 		writeData := portal.GenerateRandomClientRelayData()
 		value := writeData.Value()
 		readData := portal.ClientRelayData{}
@@ -45,7 +45,7 @@ func TestClientRelayData(t *testing.T) {
 
 func TestServerRelayData(t *testing.T) {
 	t.Parallel()
-	for i := 0; i < NumIterations; i++ {
+	for range NumIterations {
 		writeData := portal.GenerateRandomServerRelayData()
 		value := writeData.Value()
 		readData := portal.ServerRelayData{}
@@ -56,7 +56,7 @@ func TestServerRelayData(t *testing.T) {
 
 func TestServerData(t *testing.T) {
 	t.Parallel()
-	for i := 0; i < NumIterations; i++ {
+	for range NumIterations {
 		writeData := portal.GenerateRandomServerData()
 		value := writeData.Value()
 		readData := portal.ServerData{}
@@ -67,7 +67,7 @@ func TestServerData(t *testing.T) {
 
 func TestRelayData(t *testing.T) {
 	t.Parallel()
-	for i := 0; i < NumIterations; i++ {
+	for range NumIterations {
 		writeData := portal.GenerateRandomRelayData()
 		value := writeData.Value()
 		readData := portal.RelayData{}
@@ -78,7 +78,7 @@ func TestRelayData(t *testing.T) {
 
 func TestRelaySample(t *testing.T) {
 	t.Parallel()
-	for i := 0; i < NumIterations; i++ {
+	for range NumIterations {
 		writeData := portal.GenerateRandomRelaySample()
 		value := writeData.Value()
 		readData := portal.RelaySample{}

@@ -375,7 +375,7 @@ func (watcher *RedisCountersWatcher) GetFloatValue(key string) float64 {
 		// In this wase, walk back up to 5 samples to find a non-zero sample and return that. Without this
 		// the session counts in the portal (driven by counters) flicker to zero occasionally.
 		lastIndex := len(watcher.values[index]) - 1
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			if lastIndex-i < 0 {
 				break
 			}

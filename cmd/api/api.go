@@ -399,7 +399,7 @@ func isAdminAuthorized(endpoint func(http.ResponseWriter, *http.Request)) func(w
 
 			claims := Claims{}
 
-			token, err := jwt.ParseWithClaims(apiKey, &claims, func(token *jwt.Token) (interface{}, error) {
+			token, err := jwt.ParseWithClaims(apiKey, &claims, func(token *jwt.Token) (any, error) {
 				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 					return nil, fmt.Errorf("There was an error")
 				}
@@ -437,7 +437,7 @@ func isPortalAuthorized(endpoint func(http.ResponseWriter, *http.Request)) func(
 
 			claims := Claims{}
 
-			token, err := jwt.ParseWithClaims(apiKey, &claims, func(token *jwt.Token) (interface{}, error) {
+			token, err := jwt.ParseWithClaims(apiKey, &claims, func(token *jwt.Token) (any, error) {
 				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 					return nil, fmt.Errorf("There was an error")
 				}
@@ -467,9 +467,9 @@ func pingHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "text/plain")
 	if service.Tag != "" {
-		w.Write([]byte(fmt.Sprintf("pong [%s]", service.Tag)))
+		w.Write(fmt.Appendf(nil, "pong [%s]", service.Tag))
 	} else {
-		w.Write([]byte(fmt.Sprintf("pong [%s]", service.Env)))
+		w.Write(fmt.Appendf(nil, "pong [%s]", service.Env))
 	}
 }
 
@@ -2633,17 +2633,17 @@ func debugRoutesHandler(w http.ResponseWriter, r *http.Request) {
 	index := core.TriMatrixIndex(src_index, dest_index)
 	entry := routeMatrix.RouteEntries[index]
 	for i := 0; i < int(entry.NumRoutes); i++ {
-		routeRelays := ""
+		var routeRelays strings.Builder
 		numRouteRelays := int(entry.RouteNumRelays[i])
-		for j := 0; j < numRouteRelays; j++ {
+		for j := range numRouteRelays {
 			routeRelayIndex := entry.RouteRelays[i][j]
 			routeRelayName := routeMatrix.RelayNames[routeRelayIndex]
-			routeRelays += routeRelayName
+			routeRelays.WriteString(routeRelayName)
 			if j != numRouteRelays-1 {
-				routeRelays += " - "
+				routeRelays.WriteString(" - ")
 			}
 		}
-		fmt.Fprintf(w, "<tr><td>%d</td><td>%0x</td><td>%s</td></tr>", entry.RouteCost[i], entry.RouteHash[i], routeRelays)
+		fmt.Fprintf(w, "<tr><td>%d</td><td>%0x</td><td>%s</td></tr>", entry.RouteCost[i], entry.RouteHash[i], routeRelays.String())
 	}
 	fmt.Fprintf(w, "<tr><td>%d</td><td></td><td>%s</td></tr>", entry.DirectCost, "direct")
 	fmt.Fprintf(w, "</table>\n")

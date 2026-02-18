@@ -56,7 +56,7 @@ type Update struct {
 
 func RunSessionUpdateThreads(threadCount int, updateChannels []chan *Update) {
 
-	for k := 0; k < threadCount; k++ {
+	for k := range threadCount {
 
 		go func(thread int) {
 
@@ -87,7 +87,7 @@ func RunSessionUpdateThreads(threadCount int, updateChannels []chan *Update) {
 
 			for {
 
-				for j := 0; j < NumSessions; j++ {
+				for j := range NumSessions {
 
 					packet := packets.SDK_SessionUpdateRequestPacket{
 						Version:             packets.SDKVersion{1, 0, 0},
@@ -113,13 +113,13 @@ func RunSessionUpdateThreads(threadCount int, updateChannels []chan *Update) {
 					copy(packet.ServerRoutePublicKey[:], ServerPublicKey)
 
 					packet.NumClientRelays = constants.MaxClientRelays
-					for i := 0; i < constants.MaxClientRelays; i++ {
+					for i := range constants.MaxClientRelays {
 						packet.ClientRelayIds[i] = uint64((j + i) % NumRelays)
 						packet.ClientRelayRTT[i] = int32(common.RandomInt(0, 10))
 					}
 
 					packet.NumServerRelays = constants.MaxServerRelays
-					for i := 0; i < constants.MaxServerRelays; i++ {
+					for i := range constants.MaxServerRelays {
 						packet.ServerRelayIds[i] = uint64((j + i) % NumRelays)
 						packet.ServerRelayRTT[i] = int32(common.RandomInt(0, 1))
 					}
@@ -206,7 +206,7 @@ func RunHandlerThreads(threadCount int, updateChannels []chan *Update, numSessio
 	costs := make([]uint8, size)
 	var entries []core.RouteEntry
 	{
-		for i := 0; i < NumRelays; i++ {
+		for i := range NumRelays {
 			for j := 0; j < i; j++ {
 				index := core.TriMatrixIndex(i, j)
 				costs[index] = uint8(common.RandomInt(0, 255))
@@ -239,7 +239,7 @@ func RunHandlerThreads(threadCount int, updateChannels []chan *Update, numSessio
 	routeMatrix.RelayDatacenterIds = make([]uint64, NumRelays)
 	routeMatrix.DestRelays = make([]bool, NumRelays)
 	routeMatrix.RouteEntries = entries
-	for i := 0; i < NumRelays; i++ {
+	for i := range NumRelays {
 		routeMatrix.RelayIds[i] = uint64(i)
 		routeMatrix.RelayIdToIndex[uint64(i)] = int32(i)
 		routeMatrix.RelayAddresses[i] = core.ParseAddress(fmt.Sprintf("127.0.0.1:%d", 2000+i))
@@ -263,7 +263,7 @@ func RunHandlerThreads(threadCount int, updateChannels []chan *Update, numSessio
 		return [constants.MagicBytes]byte{}, [constants.MagicBytes]byte{}, [constants.MagicBytes]byte{}
 	}
 
-	for k := 0; k < threadCount; k++ {
+	for k := range threadCount {
 
 		go func(thread int) {
 

@@ -1456,7 +1456,7 @@ func test_server_under_load() {
 	relay_3_cmd, relay_3_stdout := relay("relay.3", 2002)
 
 	relaysInited := false
-	for i := 0; i < 60; i++ {
+	for range 60 {
 		if strings.Contains(relay_1_stdout.String(), "Relay initialized") && strings.Contains(relay_2_stdout.String(), "Relay initialized") && strings.Contains(relay_3_stdout.String(), "Relay initialized") {
 			relaysInited = true
 			break
@@ -1482,19 +1482,19 @@ func test_server_under_load() {
 	client_cmd := make([]*exec.Cmd, MaxClients)
 	client_stdout := make([]*bytes.Buffer, MaxClients)
 	client_stderr := make([]*bytes.Buffer, MaxClients)
-	for i := 0; i < MaxClients; i++ {
+	for i := range MaxClients {
 		client_cmd[i], client_stdout[i], client_stderr[i] = client(clientConfig)
 	}
 
 	time.Sleep(time.Second * 60)
 
-	for i := 0; i < MaxClients; i++ {
+	for range MaxClients {
 		server_cmd.Process.Signal(os.Interrupt)
 	}
 
 	server_cmd.Wait()
 
-	for i := 0; i < MaxClients; i++ {
+	for i := range MaxClients {
 		client_cmd[i].Process.Signal(os.Interrupt)
 		client_cmd[i].Wait()
 	}
@@ -1509,7 +1509,7 @@ func test_server_under_load() {
 	relay_2_cmd.Wait()
 	relay_3_cmd.Wait()
 
-	for i := 0; i < MaxClients; i++ {
+	for i := range MaxClients {
 
 		client_counters := read_client_counters(client_stderr[i].String())
 

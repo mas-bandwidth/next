@@ -7,7 +7,7 @@ import (
 	"io"
 	"math/rand"
 	"net/http"
-	"sort"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -42,7 +42,8 @@ type SessionData struct {
 }
 
 func (data *SessionData) Value() string {
-	value := fmt.Sprintf("%x|%x|%s|%s|%d|%d|%.2f|%.2f|%d|%d|%x|%x|%x|%d|",
+	var value strings.Builder
+	value.WriteString(fmt.Sprintf("%x|%x|%s|%s|%d|%d|%.2f|%.2f|%d|%d|%x|%x|%x|%d|",
 		data.SessionId,
 		data.StartTime,
 		data.ISP,
@@ -57,11 +58,11 @@ func (data *SessionData) Value() string {
 		data.ServerId,
 		data.DatacenterId,
 		data.NumRouteRelays,
-	)
+	))
 	for i := 0; i < data.NumRouteRelays; i++ {
-		value += fmt.Sprintf("%x|", data.RouteRelays[i])
+		value.WriteString(fmt.Sprintf("%x|", data.RouteRelays[i]))
 	}
-	return value
+	return value.String()
 }
 
 func (data *SessionData) Parse(value string) {
@@ -384,11 +385,12 @@ type ClientRelayData struct {
 }
 
 func (data *ClientRelayData) Value() string {
-	output := fmt.Sprintf("%x|%d", data.Timestamp, data.NumClientRelays)
+	var output strings.Builder
+	output.WriteString(fmt.Sprintf("%x|%d", data.Timestamp, data.NumClientRelays))
 	for i := 0; i < int(data.NumClientRelays); i++ {
-		output += fmt.Sprintf("|%x|%d|%d|%.2f", data.ClientRelayId[i], data.ClientRelayRTT[i], data.ClientRelayJitter[i], data.ClientRelayPacketLoss[i])
+		output.WriteString(fmt.Sprintf("|%x|%d|%d|%.2f", data.ClientRelayId[i], data.ClientRelayRTT[i], data.ClientRelayJitter[i], data.ClientRelayPacketLoss[i]))
 	}
-	return output
+	return output.String()
 }
 
 func (data *ClientRelayData) Parse(value string) {
@@ -465,11 +467,12 @@ type ServerRelayData struct {
 }
 
 func (data *ServerRelayData) Value() string {
-	output := fmt.Sprintf("%x|%d", data.Timestamp, data.NumServerRelays)
+	var output strings.Builder
+	output.WriteString(fmt.Sprintf("%x|%d", data.Timestamp, data.NumServerRelays))
 	for i := 0; i < int(data.NumServerRelays); i++ {
-		output += fmt.Sprintf("|%x|%d|%d|%.2f", data.ServerRelayId[i], data.ServerRelayRTT[i], data.ServerRelayJitter[i], data.ServerRelayPacketLoss[i])
+		output.WriteString(fmt.Sprintf("|%x|%d|%d|%.2f", data.ServerRelayId[i], data.ServerRelayRTT[i], data.ServerRelayJitter[i], data.ServerRelayPacketLoss[i]))
 	}
-	return output
+	return output.String()
 }
 
 func (data *ServerRelayData) Parse(value string) {
@@ -916,10 +919,7 @@ func (publisher *SessionCruncherPublisher) sendBatch() {
 	batchSize := make([]uint32, constants.NumBuckets)
 
 	for i := range publisher.batchMessages {
-		batchIndex := int(publisher.batchMessages[i].Score)
-		if batchIndex > constants.NumBuckets-1 {
-			batchIndex = constants.NumBuckets - 1
-		}
+		batchIndex := min(int(publisher.batchMessages[i].Score), constants.NumBuckets-1)
 		batchSize[batchIndex]++
 	}
 
@@ -930,10 +930,7 @@ func (publisher *SessionCruncherPublisher) sendBatch() {
 	}
 
 	for i := range publisher.batchMessages {
-		batchIndex := int(publisher.batchMessages[i].Score)
-		if batchIndex > constants.NumBuckets-1 {
-			batchIndex = constants.NumBuckets - 1
-		}
+		batchIndex := min(int(publisher.batchMessages[i].Score), constants.NumBuckets-1)
 		batch[batchIndex] = append(batch[batchIndex], publisher.batchMessages[i])
 	}
 
@@ -948,7 +945,7 @@ func (publisher *SessionCruncherPublisher) sendBatch() {
 
 	encoding.WriteUint64(data[:], &index, SessionBatchVersion_Write)
 
-	for i := 0; i < constants.NumBuckets; i++ {
+	for i := range constants.NumBuckets {
 		encoding.WriteUint32(data[:], &index, uint32(batchSize[i]))
 		for j := range batch[i] {
 			encoding.WriteUint64(data[:], &index, batch[i][j].SessionId)
@@ -1132,7 +1129,7 @@ func (watcher *TopSessionsWatcher) watchTopSessions() {
 
 			numSessions := (len(data) - 8) / 8
 			sessions := make([]uint64, numSessions)
-			for i := 0; i < numSessions; i++ {
+			for i := range numSessions {
 				encoding.ReadUint64(data[:], &index, &sessions[i])
 			}
 
@@ -1278,17 +1275,17 @@ func GetSessionData(ctx context.Context, redisClient redis.Cmdable, sessionId ui
 	sessionData.Parse(redis_session_data)
 
 	sliceData := make([]SliceData, len(redis_slice_data))
-	for i := 0; i < len(redis_slice_data); i++ {
+	for i := range redis_slice_data {
 		sliceData[i].Parse(redis_slice_data[i])
 	}
 
 	clientRelayData := make([]ClientRelayData, len(redis_client_relay_data))
-	for i := 0; i < len(redis_client_relay_data); i++ {
+	for i := range redis_client_relay_data {
 		clientRelayData[i].Parse(redis_client_relay_data[i])
 	}
 
 	serverRelayData := make([]ServerRelayData, len(redis_server_relay_data))
-	for i := 0; i < len(redis_server_relay_data); i++ {
+	for i := range redis_server_relay_data {
 		serverRelayData[i].Parse(redis_server_relay_data[i])
 	}
 
@@ -1498,10 +1495,7 @@ func (publisher *ServerCruncherPublisher) sendBatch() {
 	batchSize := make([]uint32, constants.NumBuckets)
 
 	for i := range publisher.batchMessages {
-		batchIndex := int(publisher.batchMessages[i].Score)
-		if batchIndex > constants.NumBuckets-1 {
-			batchIndex = constants.NumBuckets - 1
-		}
+		batchIndex := min(int(publisher.batchMessages[i].Score), constants.NumBuckets-1)
 		batchSize[batchIndex]++
 	}
 
@@ -1512,10 +1506,7 @@ func (publisher *ServerCruncherPublisher) sendBatch() {
 	}
 
 	for i := range publisher.batchMessages {
-		batchIndex := int(publisher.batchMessages[i].Score)
-		if batchIndex > constants.NumBuckets-1 {
-			batchIndex = constants.NumBuckets - 1
-		}
+		batchIndex := min(int(publisher.batchMessages[i].Score), constants.NumBuckets-1)
 		batch[batchIndex] = append(batch[batchIndex], publisher.batchMessages[i])
 	}
 
@@ -1527,7 +1518,7 @@ func (publisher *ServerCruncherPublisher) sendBatch() {
 
 	encoding.WriteUint64(data[:], &index, ServerBatchVersion_Write)
 
-	for i := 0; i < constants.NumBuckets; i++ {
+	for i := range constants.NumBuckets {
 		encoding.WriteUint32(data[:], &index, uint32(batchSize[i]))
 		for j := range batch[i] {
 			encoding.WriteUint64(data, &index, batch[i][j].ServerId)
@@ -1683,7 +1674,7 @@ func GetServerData(ctx context.Context, redisClient redis.Cmdable, serverId uint
 		index++
 	}
 
-	sort.Slice(serverSessionIds, func(i, j int) bool { return serverSessionIds[i] < serverSessionIds[j] })
+	slices.Sort(serverSessionIds)
 
 	serverSessionData := GetSessionList(ctx, redisClient, serverSessionIds)
 
@@ -1884,10 +1875,7 @@ func GetRelayCount(ctx context.Context, redisClient redis.Cmdable, minutes int64
 	totalRelayCount_a += total_a
 	totalRelayCount_b += total_b
 
-	totalRelayCount := totalRelayCount_a
-	if totalRelayCount_b > totalRelayCount {
-		totalRelayCount = totalRelayCount_b
-	}
+	totalRelayCount := max(totalRelayCount_b, totalRelayCount_a)
 
 	return totalRelayCount
 }

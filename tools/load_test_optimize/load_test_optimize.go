@@ -33,7 +33,7 @@ func RunOptimizeThread(ctx context.Context) {
 
 				costs := make([]uint8, size)
 
-				for i := 0; i < numRelays; i++ {
+				for i := range numRelays {
 					for j := 0; j < i; j++ {
 						index := core.TriMatrixIndex(i, j)
 						costs[index] = uint8(common.RandomInt(0, 255))

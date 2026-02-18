@@ -23,7 +23,7 @@ func main() {
 
 	fmt.Printf("\nstarting redis cluster\n\n")
 
-	for i := 0; i < 6; i++ {
+	for i := range 6 {
 		bash(fmt.Sprintf("cd redis/%03d && redis-server ./redis.conf", 10000+i))
 	}
 

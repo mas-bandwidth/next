@@ -248,7 +248,7 @@ func (stream *ReadStream) SerializeAddress(addr *net.UDPAddr) {
 		addr.Port = int(port)
 	} else if addrType == uint32(IPAddressIPv6) {
 		addr.IP = make([]byte, 16)
-		for i := 0; i < 8; i++ {
+		for i := range 8 {
 			uint32Value := uint32(0)
 			stream.SerializeBits(&uint32Value, 16)
 			if stream.err != nil {

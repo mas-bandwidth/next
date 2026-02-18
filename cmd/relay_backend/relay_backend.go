@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	_ "embed"
 	"encoding/gob"
 	"encoding/json"
@@ -12,7 +13,6 @@ import (
 	"runtime"
 	"sync"
 	"time"
-	"context"
 
 	"github.com/gorilla/mux"
 
@@ -24,9 +24,9 @@ import (
 	"github.com/networknext/next/modules/packets"
 	"github.com/networknext/next/modules/portal"
 
+	"cloud.google.com/go/compute/metadata"
 	"github.com/hamba/avro"
 	"github.com/redis/go-redis/v9"
-	"cloud.google.com/go/compute/metadata"
 )
 
 var maxJitter int32
@@ -484,7 +484,7 @@ func PostRelayUpdateRequest(service *common.Service) {
 
 		timestamp := time.Now().UnixNano() / 1000 // nano -> microseconds
 
-		for i := 0; i < numSamples; i++ {
+		for i := range numSamples {
 
 			rtt := relayUpdateRequest.SampleRTT[i]
 			jitter := relayUpdateRequest.SampleJitter[i]

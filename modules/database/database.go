@@ -12,7 +12,9 @@ import (
 	"io"
 	"net"
 	"os"
+	"slices"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/networknext/next/modules/core"
@@ -318,13 +320,7 @@ func (database *Database) Validate() error {
 		relayId := database.Relays[i].Id
 		datacenterId := database.Relays[i].Datacenter.Id
 		datacenterRelays := database.GetDatacenterRelays(datacenterId)
-		found := false
-		for j := range datacenterRelays {
-			if datacenterRelays[j] == relayId {
-				found = true
-				break
-			}
-		}
+		found := slices.Contains(datacenterRelays, relayId)
 		if !found {
 			return fmt.Errorf("datacenter relays map is invalid")
 		}
@@ -469,7 +465,8 @@ func (database *Database) GetDatacenterRelays(datacenterId uint64) []uint64 {
 
 func (database *Database) String() string {
 
-	output := "Headers:\n\n"
+	var output strings.Builder
+	output.WriteString("Headers:\n\n")
 
 	// header
 
@@ -482,11 +479,11 @@ func (database *Database) String() string {
 
 	header[0] = HeaderRow{Creator: database.Creator, CreationTime: database.CreationTime}
 
-	output += table.Table(header[:])
+	output.WriteString(table.Table(header[:]))
 
 	// buyers
 
-	output += "\n\nBuyers:\n\n"
+	output.WriteString("\n\nBuyers:\n\n")
 
 	type BuyerRow struct {
 		Name            string
@@ -517,11 +514,11 @@ func (database *Database) String() string {
 
 	sort.SliceStable(buyers, func(i, j int) bool { return buyers[i].Name < buyers[j].Name })
 
-	output += table.Table(buyers)
+	output.WriteString(table.Table(buyers))
 
 	// sellers
 
-	output += "\n\nSellers:\n\n"
+	output.WriteString("\n\nSellers:\n\n")
 
 	type SellerRow struct {
 		Name string
@@ -542,11 +539,11 @@ func (database *Database) String() string {
 
 	sort.SliceStable(sellers, func(i, j int) bool { return sellers[i].Id < sellers[j].Id })
 
-	output += table.Table(sellers)
+	output.WriteString(table.Table(sellers))
 
 	// datacenters
 
-	output += "\n\nDatacenters:\n\n"
+	output.WriteString("\n\nDatacenters:\n\n")
 
 	type DatacenterRow struct {
 		Id        string
@@ -575,11 +572,11 @@ func (database *Database) String() string {
 
 	sort.SliceStable(datacenters, func(i, j int) bool { return datacenters[i].Name < datacenters[j].Name })
 
-	output += table.Table(datacenters)
+	output.WriteString(table.Table(datacenters))
 
 	// relays
 
-	output += "\n\nRelays:\n\n"
+	output.WriteString("\n\nRelays:\n\n")
 
 	type RelayRow struct {
 		Name            string
@@ -619,7 +616,7 @@ func (database *Database) String() string {
 
 	sort.SliceStable(relays, func(i, j int) bool { return relays[i].Name < relays[j].Name })
 
-	output += table.Table(relays)
+	output.WriteString(table.Table(relays))
 
 	// route shaders
 
@@ -630,7 +627,7 @@ func (database *Database) String() string {
 
 	for _, v := range database.BuyerMap {
 
-		output += fmt.Sprintf("\n\nRoute Shader for '%s'\n\n", v.Name)
+		output.WriteString(fmt.Sprintf("\n\nRoute Shader for '%s'\n\n", v.Name))
 
 		routeShader := v.RouteShader
 
@@ -649,12 +646,12 @@ func (database *Database) String() string {
 		properties = append(properties, PropertyRow{"Route Switch Threshold", fmt.Sprintf("%dms", routeShader.RouteSwitchThreshold)})
 		properties = append(properties, PropertyRow{"Max Latency Trade Off", fmt.Sprintf("%dms", routeShader.MaxLatencyTradeOff)})
 
-		output += table.Table(properties)
+		output.WriteString(table.Table(properties))
 	}
 
 	// destination datacenters
 
-	output += "\n\nDestination datacenters:\n\n"
+	output.WriteString("\n\nDestination datacenters:\n\n")
 
 	type DestinationDatacenterRow struct {
 		Datacenter string
@@ -691,9 +688,9 @@ func (database *Database) String() string {
 		return destinationDatacenters[i].Datacenter < destinationDatacenters[j].Datacenter
 	})
 
-	output += table.Table(destinationDatacenters)
+	output.WriteString(table.Table(destinationDatacenters))
 
-	return output
+	return output.String()
 }
 
 // ---------------------------------------------------------------------
@@ -1095,19 +1092,19 @@ func ExtractDatabase(config string) (*Database, error) {
 	// route shaders
 
 	type RouteShaderRow struct {
-		route_shader_id                  uint64
-		ab_test                          bool
-		acceptable_latency               int
-		acceptable_packet_loss           float32
-		bandwidth_envelope_down_kbps     int
-		bandwidth_envelope_up_kbps       int
-		disable_network_next             bool
-		latency_reduction_threshold      int
-		selection_percent                int
-		max_latency_trade_off            int
-		route_switch_threshold           int
-		route_select_threshold           int
-		force_next                       bool
+		route_shader_id              uint64
+		ab_test                      bool
+		acceptable_latency           int
+		acceptable_packet_loss       float32
+		bandwidth_envelope_down_kbps int
+		bandwidth_envelope_up_kbps   int
+		disable_network_next         bool
+		latency_reduction_threshold  int
+		selection_percent            int
+		max_latency_trade_off        int
+		route_switch_threshold       int
+		route_select_threshold       int
+		force_next                   bool
 	}
 
 	routeShaderRows := make([]RouteShaderRow, 0)

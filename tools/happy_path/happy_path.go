@@ -104,7 +104,7 @@ func happy_path(wait bool) int {
 
 	session_cruncher_initialized := false
 
-	for i := 0; i < 1000; i++ {
+	for range 1000 {
 		if strings.Contains(session_cruncher_stdout.String(), "starting http server on port 40200") {
 			session_cruncher_initialized = true
 			break
@@ -132,7 +132,7 @@ func happy_path(wait bool) int {
 
 	server_cruncher_initialized := false
 
-	for i := 0; i < 1000; i++ {
+	for range 1000 {
 		if strings.Contains(server_cruncher_stdout.String(), "starting http server on port 40300") {
 			server_cruncher_initialized = true
 			break
@@ -160,7 +160,7 @@ func happy_path(wait bool) int {
 
 	api_initialized := false
 
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		if strings.Contains(api_stdout.String(), "starting http server on port 50000") {
 			api_initialized = true
 			break
@@ -190,7 +190,7 @@ func happy_path(wait bool) int {
 
 	magic_backend_initialized := false
 
-	for i := 0; i < 200; i++ {
+	for range 200 {
 		if strings.Contains(magic_backend_stdout.String(), "starting http server on port 41007") {
 			magic_backend_initialized = true
 			break
@@ -212,7 +212,7 @@ func happy_path(wait bool) int {
 
 	relay_gateway_initialized := false
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		if strings.Contains(relay_gateway_stdout.String(), "loaded database: database.bin") &&
 			strings.Contains(relay_gateway_stdout.String(), "starting http server on port 30000") &&
 			strings.Contains(relay_gateway_stdout.String(), "updated magic values: ") {
@@ -236,7 +236,7 @@ func happy_path(wait bool) int {
 
 	fmt.Printf("verifying relay backend ...")
 
-	for i := 0; i < 300; i++ {
+	for range 300 {
 		if strings.Contains(relay_backend_stdout.String(), "starting http server on port 30001") &&
 			strings.Contains(relay_backend_stdout.String(), "loaded database: database.bin") &&
 			strings.Contains(relay_backend_stdout.String(), "initial delay completed") {
@@ -276,7 +276,7 @@ func happy_path(wait bool) int {
 	relay_4_initialized := false
 	relay_5_initialized := false
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 
 		if !relay_1_initialized && strings.Contains(relay_1_stdout.String(), "Relay initialized") {
 			relay_1_initialized = true
@@ -332,7 +332,7 @@ func happy_path(wait bool) int {
 
 	relay_gateway_sees_relays := false
 
-	for i := 0; i < 200; i++ {
+	for range 200 {
 		if strings.Contains(relay_gateway_stdout.String(), "received update for local.") {
 			relay_gateway_sees_relays = true
 			break
@@ -354,7 +354,7 @@ func happy_path(wait bool) int {
 
 	relay_backend_sees_relays := false
 
-	for i := 0; i < 200; i++ {
+	for range 200 {
 		if strings.Contains(relay_backend_stdout.String(), "received update for local.0") &&
 			strings.Contains(relay_backend_stdout.String(), "received update for local.1") &&
 			strings.Contains(relay_backend_stdout.String(), "received update for local.2") &&
@@ -386,7 +386,7 @@ func happy_path(wait bool) int {
 
 	server_backend_initialized := false
 
-	for i := 0; i < 1000; i++ {
+	for range 1000 {
 		if strings.Contains(server_backend_stdout.String(), "starting http server on port 40000") &&
 			strings.Contains(server_backend_stdout.String(), "starting udp server on port 40000") &&
 			strings.Contains(server_backend_stdout.String(), "updated route matrix: 10 relays") &&
@@ -415,7 +415,7 @@ func happy_path(wait bool) int {
 
 	relay_backend_leader_elected := false
 
-	for i := 0; i < 250; i++ {
+	for range 250 {
 		relay_backend_is_leader := strings.Contains(relay_backend_stdout.String(), "we became the leader")
 		if relay_backend_is_leader {
 			relay_backend_leader_elected = true
@@ -445,7 +445,7 @@ func happy_path(wait bool) int {
 
 	server_initialized := false
 
-	for i := 0; i < 600; i++ {
+	for range 600 {
 		if strings.Contains(server_stdout.String(), "welcome to network next :)") &&
 			strings.Contains(server_stdout.String(), "server is ready to receive client connections") {
 			server_initialized = true
@@ -468,7 +468,7 @@ func happy_path(wait bool) int {
 
 	client_initialized := false
 
-	for i := 0; i < 600; i++ {
+	for range 600 {
 		if strings.Contains(client_stdout.String(), "client next route") &&
 			strings.Contains(client_stdout.String(), "client continues route") {
 			client_initialized = true

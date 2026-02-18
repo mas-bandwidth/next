@@ -29,7 +29,7 @@ func getMagicValues() ([constants.MagicBytes]byte, [constants.MagicBytes]byte, [
 	upcoming := [constants.MagicBytes]byte{}
 	current := [constants.MagicBytes]byte{}
 	previous := [constants.MagicBytes]byte{}
-	for i := 0; i < constants.MagicBytes; i++ {
+	for i := range constants.MagicBytes {
 		upcoming[i] = 1
 		current[i] = 2
 		previous[i] = 3
@@ -681,7 +681,7 @@ func Test_ServerInitHandler_ServerInitResponse_SDK(t *testing.T) {
 
 	iterations := 100
 
-	for i := 0; i < iterations; i++ {
+	for i := range iterations {
 
 		response := atomic.LoadUint64(&receivedResponse)
 		if response != 0 {
@@ -1099,7 +1099,7 @@ func Test_ServerUpdateHandler_ServerUpdateResponse_SDK(t *testing.T) {
 
 	harness.from = clientAddress
 
-	for i := 0; i < 100; i++ {
+	for i := range 100 {
 
 		response := atomic.LoadUint64(&receivedResponse)
 		if response != 0 {
@@ -1615,7 +1615,7 @@ func Test_ClientRelayRequestResponse_SDK(t *testing.T) {
 
 	harness.from = clientAddress
 
-	for i := 0; i < 100; i++ {
+	for i := range 100 {
 
 		response := atomic.LoadUint64(&receivedResponse)
 		if response != 0 {
@@ -2051,7 +2051,7 @@ func Test_ServerRelayRequestResponse_SDK(t *testing.T) {
 
 	harness.from = clientAddress
 
-	for i := 0; i < 100; i++ {
+	for i := range 100 {
 
 		response := atomic.LoadUint64(&receivedResponse)
 		if response != 0 {

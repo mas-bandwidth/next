@@ -30,10 +30,7 @@ func RunCryptoSignThread(ctx context.Context, numMessages int, messageSize int) 
 
 				start := time.Now()
 
-				numThreads := runtime.NumCPU()
-				if numThreads > numMessages {
-					numThreads = numMessages
-				}
+				numThreads := min(runtime.NumCPU(), numMessages)
 
 				numSegments := numMessages / numThreads
 
@@ -42,16 +39,16 @@ func RunCryptoSignThread(ctx context.Context, numMessages int, messageSize int) 
 				waitGroup := sync.WaitGroup{}
 				waitGroup.Add(numSegments)
 
-				for segment := 0; segment < numSegments; segment++ {
+				for range numSegments {
 
 					go func() {
 
 						publicKey, privateKey := crypto.Sign_KeyPair()
 
-						for i := 0; i < messagesPerSegment; i++ {
+						for range messagesPerSegment {
 
 							data := make([]byte, messageSize)
-							for i := 0; i < messageSize; i++ {
+							for i := range messageSize {
 								data[i] = uint8(i)
 							}
 

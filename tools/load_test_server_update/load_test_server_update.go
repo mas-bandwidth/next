@@ -37,7 +37,7 @@ type Update struct {
 
 func RunServerUpdateThreads(threadCount int, updateChannels []chan *Update) {
 
-	for k := 0; k < threadCount; k++ {
+	for k := range threadCount {
 
 		go func(thread int) {
 
@@ -50,7 +50,7 @@ func RunServerUpdateThreads(threadCount int, updateChannels []chan *Update) {
 
 			for {
 
-				for j := 0; j < NumServers; j++ {
+				for j := range NumServers {
 
 					packet := packets.SDK_ServerUpdateRequestPacket{
 						Version:      packets.SDKVersion{1, 0, 0},
@@ -110,7 +110,7 @@ func RunHandlerThreads(threadCount int, updateChannels []chan *Update, numServer
 		return [constants.MagicBytes]byte{}, [constants.MagicBytes]byte{}, [constants.MagicBytes]byte{}
 	}
 
-	for k := 0; k < threadCount; k++ {
+	for k := range threadCount {
 
 		go func(thread int) {
 

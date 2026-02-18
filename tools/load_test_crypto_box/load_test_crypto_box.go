@@ -31,10 +31,7 @@ func RunCryptoBoxThread(ctx context.Context, numMessages int, messageSize int) {
 
 				start := time.Now()
 
-				numThreads := runtime.NumCPU()
-				if numThreads > numMessages {
-					numThreads = numMessages
-				}
+				numThreads := min(runtime.NumCPU(), numMessages)
 
 				numSegments := numMessages / numThreads
 
@@ -43,7 +40,7 @@ func RunCryptoBoxThread(ctx context.Context, numMessages int, messageSize int) {
 				waitGroup := sync.WaitGroup{}
 				waitGroup.Add(numSegments)
 
-				for segment := 0; segment < numSegments; segment++ {
+				for range numSegments {
 
 					go func() {
 
@@ -54,10 +51,10 @@ func RunCryptoBoxThread(ctx context.Context, numMessages int, messageSize int) {
 						nonce := make([]byte, crypto.Box_NonceSize)
 						common.RandomBytes(nonce)
 
-						for i := 0; i < messagesPerSegment; i++ {
+						for range messagesPerSegment {
 
 							data := make([]byte, messageSize)
-							for i := 0; i < messageSize; i++ {
+							for i := range messageSize {
 								data[i] = uint8(i)
 							}
 

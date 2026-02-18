@@ -696,7 +696,7 @@ func generateRelayData(database *db.Database) *RelayData {
 	relayData.RelayDatacenterIds = make([]uint64, numRelays)
 	relayData.RelayPrice = make([]byte, numRelays)
 
-	for i := 0; i < numRelays; i++ {
+	for i := range numRelays {
 		relayData.RelayIds[i] = relayData.RelayArray[i].Id
 		relayData.RelayAddresses[i] = relayData.RelayArray[i].PublicAddress
 		relayData.RelayNames[i] = relayData.RelayArray[i].Name
@@ -710,7 +710,7 @@ func generateRelayData(database *db.Database) *RelayData {
 	// build a mapping from relay id to relay index
 
 	relayData.RelayIdToIndex = make(map[uint64]int)
-	for i := 0; i < numRelays; i++ {
+	for i := range numRelays {
 		relayData.RelayIdToIndex[relayData.RelayIds[i]] = i
 	}
 
@@ -718,7 +718,7 @@ func generateRelayData(database *db.Database) *RelayData {
 
 	relayData.DatacenterRelays = make(map[uint64][]int)
 
-	for i := 0; i < numRelays; i++ {
+	for i := range numRelays {
 		datacenterId := relayData.RelayDatacenterIds[i]
 		relayData.DatacenterRelays[datacenterId] = append(relayData.DatacenterRelays[datacenterId], i)
 	}
@@ -733,7 +733,7 @@ func generateRelayData(database *db.Database) *RelayData {
 					continue
 				}
 				datacenterRelays := relayData.DatacenterRelays[settings.DatacenterId]
-				for j := 0; j < len(datacenterRelays); j++ {
+				for j := range datacenterRelays {
 					relayData.DestRelays[datacenterRelays[j]] = true
 				}
 			}
@@ -1028,7 +1028,7 @@ func (service *Service) updateMagicLoop() {
 	}
 
 	var magicData []byte
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		var err error
 		magicData, err = getMagic(httpClient, magicURL)
 		if err == nil {

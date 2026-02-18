@@ -198,7 +198,7 @@ func TestRouteManager(t *testing.T) {
 
 	numFillers := constants.MaxRoutesPerEntry - routeManager.NumRoutes
 
-	for i := 0; i < numFillers; i++ {
+	for i := range numFillers {
 		routeManager.AddRoute(int32(50+i), 0, int32(100+i), int32(100+i+1), int32(100+i+2))
 		assert.Equal(t, 9+i+1, routeManager.NumRoutes)
 	}
@@ -380,7 +380,7 @@ func TestRouteManagerWithPrice(t *testing.T) {
 
 	numFillers := constants.MaxRoutesPerEntry - routeManager.NumRoutes
 
-	for i := 0; i < numFillers; i++ {
+	for i := range numFillers {
 		routeManager.AddRoute(int32(50+i), int32(50+i), int32(100+i), int32(100+i+1), int32(100+i+2))
 		assert.Equal(t, 9+i+1, routeManager.NumRoutes)
 	}
@@ -493,8 +493,8 @@ func Analyze(numRelays int, routes []core.RouteEntry) []int {
 
 	buckets := make([]int, 8)
 
-	for i := 0; i < numRelays; i++ {
-		for j := 0; j < numRelays; j++ {
+	for i := range numRelays {
+		for j := range numRelays {
 			if j < i {
 				abFlatIndex := core.TriMatrixIndex(i, j)
 				if routes[abFlatIndex].DirectCost != 255 {
@@ -553,9 +553,9 @@ func (env *TestEnvironment) Clear() {
 	numRelays := len(env.relays)
 	env.cost = make([][]uint8, numRelays)
 	env.price = make([]uint8, numRelays)
-	for i := 0; i < numRelays; i++ {
+	for i := range numRelays {
 		env.cost[i] = make([]uint8, numRelays)
-		for j := 0; j < numRelays; j++ {
+		for j := range numRelays {
 			env.cost[i][j] = 255
 		}
 	}
@@ -644,7 +644,7 @@ func (env *TestEnvironment) GetCostMatrix() ([]uint8, int) {
 	numRelays := len(env.relays)
 	entryCount := core.TriMatrixLength(numRelays)
 	costMatrix := make([]uint8, entryCount)
-	for i := 0; i < numRelays; i++ {
+	for i := range numRelays {
 		for j := 0; j < i; j++ {
 			index := core.TriMatrixIndex(i, j)
 			costMatrix[index] = env.cost[i][j]
@@ -1329,7 +1329,7 @@ func TestRouteTokens_PublicAddresses(t *testing.T) {
 
 	// read each token back individually and verify the token data matches what was written
 
-	for i := 0; i < constants.NextMaxNodes; i++ {
+	for i := range constants.NextMaxNodes {
 		var routeToken core.RouteToken
 		result := core.ReadEncryptedRouteToken(&routeToken, tokenData[i*constants.EncryptedRouteTokenBytes:(i+1)*constants.EncryptedRouteTokenBytes], secretKeys[i])
 		assert.True(t, result)
@@ -1395,7 +1395,7 @@ func TestRouteTokens_InternalAddresses(t *testing.T) {
 
 	// read each token back individually and verify the token data matches what was written
 
-	for i := 0; i < constants.NextMaxNodes; i++ {
+	for i := range constants.NextMaxNodes {
 		var routeToken core.RouteToken
 		result := core.ReadEncryptedRouteToken(&routeToken, tokenData[i*constants.EncryptedRouteTokenBytes:], secretKeys[i])
 		assert.True(t, result)
@@ -1477,7 +1477,7 @@ func TestRouteTokens_DifferentSellers(t *testing.T) {
 
 	// read each token back individually and verify the token data matches what was written
 
-	for i := 0; i < constants.NextMaxNodes; i++ {
+	for i := range constants.NextMaxNodes {
 		var routeToken core.RouteToken
 		result := core.ReadEncryptedRouteToken(&routeToken, tokenData[i*constants.EncryptedRouteTokenBytes:], secretKeys[i])
 		assert.True(t, result)
@@ -1546,7 +1546,7 @@ func TestRouteTokens_DifferentGroups(t *testing.T) {
 
 	// read each token back individually and verify the token data matches what was written
 
-	for i := 0; i < constants.NextMaxNodes; i++ {
+	for i := range constants.NextMaxNodes {
 		var routeToken core.RouteToken
 		result := core.ReadEncryptedRouteToken(&routeToken, tokenData[i*constants.EncryptedRouteTokenBytes:], secretKeys[i])
 		assert.True(t, result)
@@ -1627,7 +1627,7 @@ func TestContinueTokens(t *testing.T) {
 
 	// read each token back individually and verify the token data matches what was written
 
-	for i := 0; i < constants.NextMaxNodes; i++ {
+	for i := range constants.NextMaxNodes {
 		var routeToken core.ContinueToken
 		result := core.ReadEncryptedContinueToken(&routeToken, tokenData[i*constants.EncryptedContinueTokenBytes:], secretKeys[i])
 		assert.True(t, result)
@@ -4135,7 +4135,7 @@ func TestStayOnNetworkNext_ForceNext_RouteSwitched(t *testing.T) {
 // -------------------------------------------------------------
 
 func randomBytes(buffer []byte) {
-	for i := 0; i < len(buffer); i++ {
+	for i := range buffer {
 		buffer[i] = byte(rand.Intn(256))
 	}
 }
@@ -4171,7 +4171,7 @@ func TestPittleAndChonkle(t *testing.T) {
 	var output [constants.MaxPacketBytes]byte
 	output[0] = 0x32
 	iterations := 10000
-	for i := 0; i < iterations; i++ {
+	for i := range iterations {
 		var magic [8]byte
 		var fromAddress [4]byte
 		var toAddress [4]byte
@@ -4191,7 +4191,7 @@ func TestBasicPacketFilter(t *testing.T) {
 	var output [256]byte
 	pass := 0
 	iterations := 10000
-	for i := 0; i < iterations; i++ {
+	for i := range iterations {
 		randomBytes(output[:])
 		packetLength := i % len(output)
 		assert.Equal(t, false, core.BasicPacketFilter(output[:], packetLength))
@@ -4203,7 +4203,7 @@ func TestAdvancedBasicPacketFilter(t *testing.T) {
 	rand.Seed(42)
 	var output [constants.MaxPacketBytes]byte
 	iterations := 10000
-	for i := 0; i < iterations; i++ {
+	for i := range iterations {
 		var magic [8]byte
 		var fromAddress [4]byte
 		var toAddress [4]byte
@@ -4247,14 +4247,14 @@ func TestSessionScore(t *testing.T) {
 
 	// test random direct sessions
 
-	for i := 0; i < 10000; i++ {
+	for range 10000 {
 		score := core.GetSessionScore(int32(rand.Intn(5000)-2000), 0)
 		assert.True(t, score <= 999)
 	}
 
 	// test random next sessions
 
-	for i := 0; i < 10000; i++ {
+	for range 10000 {
 		score := core.GetSessionScore(int32(rand.Intn(5000)-2000), 1+int32(rand.Intn(5000)-2000))
 		assert.True(t, score <= 999)
 	}
@@ -4296,7 +4296,7 @@ func TestPagination(t *testing.T) {
 
 	// regular positive get page cases (relative to beginning of list)
 
-	for i := 0; i < 100; i++ {
+	for i := range 100 {
 		begin, end, outputPage, numPages := core.DoPagination(i, 100000)
 		assert.True(t, begin == i*100)
 		assert.True(t, end == (i+1)*100)

@@ -841,7 +841,7 @@ func Test_SessionUpdate_BuildNextTokens_PublicAddresses(t *testing.T) {
 	secretKeys[3], _ = state.Database.RelaySecretKeys[3]
 	secretKeys[4], _ = crypto.SecretKey_GenerateRemote(routingPublicKey, routingPrivateKey, serverPublicKey)
 
-	for i := 0; i < NumTokens; i++ {
+	for i := range NumTokens {
 
 		index := packets.SDK_EncryptedNextRouteTokenSize * i
 
@@ -984,7 +984,7 @@ func Test_SessionUpdate_BuildNextTokens_InternalAddresses(t *testing.T) {
 	secretKeys[3], _ = state.Database.RelaySecretKeys[3]
 	secretKeys[4], _ = crypto.SecretKey_GenerateRemote(routingPublicKey, routingPrivateKey, serverPublicKey)
 
-	for i := 0; i < NumTokens; i++ {
+	for i := range NumTokens {
 
 		index := packets.SDK_EncryptedNextRouteTokenSize * i
 
@@ -1134,7 +1134,7 @@ func Test_SessionUpdate_BuildContinueTokens(t *testing.T) {
 	secretKeys[3], _ = state.Database.RelaySecretKeys[3]
 	secretKeys[4], _ = crypto.SecretKey_GenerateRemote(routingPublicKey, routingPrivateKey, serverPublicKey)
 
-	for i := 0; i < NumTokens; i++ {
+	for i := range NumTokens {
 
 		index := packets.SDK_EncryptedContinueRouteTokenSize * i
 
@@ -1389,7 +1389,7 @@ func Test_SessionUpdate_MakeRouteDecision_TakeNetworkNext(t *testing.T) {
 	secretKeys[3], _ = state.Database.RelaySecretKeys[3]
 	secretKeys[4], _ = crypto.SecretKey_GenerateRemote(routingPublicKey, routingPrivateKey, serverPublicKey)
 
-	for i := 0; i < NumTokens; i++ {
+	for i := range NumTokens {
 
 		index := packets.SDK_EncryptedNextRouteTokenSize * i
 
@@ -1602,7 +1602,7 @@ func Test_SessionUpdate_MakeRouteDecision_RouteContinued(t *testing.T) {
 	secretKeys[3], _ = state.Database.RelaySecretKeys[3]
 	secretKeys[4], _ = crypto.SecretKey_GenerateRemote(routingPublicKey, routingPrivateKey, serverPublicKey)
 
-	for i := 0; i < NumTokens; i++ {
+	for i := range NumTokens {
 
 		index := packets.SDK_EncryptedNextRouteTokenSize * i
 
@@ -1661,7 +1661,7 @@ func Test_SessionUpdate_MakeRouteDecision_RouteContinued(t *testing.T) {
 	assert.Equal(t, state.Response.NumTokens, int32(NumTokens))
 	assert.Equal(t, len(state.Response.Tokens), NumTokens*packets.SDK_EncryptedContinueRouteTokenSize)
 
-	for i := 0; i < NumTokens; i++ {
+	for i := range NumTokens {
 
 		index := packets.SDK_EncryptedContinueRouteTokenSize * i
 
@@ -1830,7 +1830,7 @@ func Test_SessionUpdate_MakeRouteDecision_RouteChanged(t *testing.T) {
 	secretKeys[3], _ = state.Database.RelaySecretKeys[3]
 	secretKeys[4], _ = crypto.SecretKey_GenerateRemote(routingPublicKey, routingPrivateKey, serverPublicKey)
 
-	for i := 0; i < NumTokens; i++ {
+	for i := range NumTokens {
 
 		index := packets.SDK_EncryptedNextRouteTokenSize * i
 
@@ -1918,7 +1918,7 @@ func Test_SessionUpdate_MakeRouteDecision_RouteChanged(t *testing.T) {
 	secretKeys[2], _ = state.Database.RelaySecretKeys[3]
 	secretKeys[3], _ = crypto.SecretKey_GenerateRemote(routingPublicKey, routingPrivateKey, serverPublicKey)
 
-	for i := 0; i < NewTokens; i++ {
+	for i := range NewTokens {
 
 		index := packets.SDK_EncryptedNextRouteTokenSize * i
 
@@ -2112,7 +2112,7 @@ func Test_SessionUpdate_MakeRouteDecision_RouteRelayNoLongerExists(t *testing.T)
 	secretKeys[3], _ = state.Database.RelaySecretKeys[3]
 	secretKeys[4], _ = crypto.SecretKey_GenerateRemote(routingPublicKey, routingPrivateKey, serverPublicKey)
 
-	for i := 0; i < NumTokens; i++ {
+	for i := range NumTokens {
 
 		index := packets.SDK_EncryptedNextRouteTokenSize * i
 
@@ -2335,7 +2335,7 @@ func Test_SessionUpdate_MakeRouteDecision_RouteNoLongerExists_ClientRelays(t *te
 	secretKeys[3], _ = state.Database.RelaySecretKeys[3]
 	secretKeys[4], _ = crypto.SecretKey_GenerateRemote(routingPublicKey, routingPrivateKey, serverPublicKey)
 
-	for i := 0; i < NumTokens; i++ {
+	for i := range NumTokens {
 
 		index := packets.SDK_EncryptedNextRouteTokenSize * i
 
@@ -2552,7 +2552,7 @@ func Test_SessionUpdate_MakeRouteDecision_RouteNoLongerExists_MidRelay(t *testin
 	secretKeys[3], _ = state.Database.RelaySecretKeys[3]
 	secretKeys[4], _ = crypto.SecretKey_GenerateRemote(routingPublicKey, routingPrivateKey, serverPublicKey)
 
-	for i := 0; i < NumTokens; i++ {
+	for i := range NumTokens {
 
 		index := packets.SDK_EncryptedNextRouteTokenSize * i
 

@@ -118,7 +118,7 @@ func OptimizeThread() {
 		relayIds := make([]uint64, numRelays)
 		relayPrice := make([]uint8, numRelays)
 		relayDatacenterIds := make([]uint64, numRelays)
-		for i := 0; i < numRelays; i++ {
+		for i := range numRelays {
 			relayIds[i] = activeRelays[i].Id
 			relayDatacenterIds[i] = common.DatacenterId("local")
 		}
@@ -135,7 +135,7 @@ func OptimizeThread() {
 		}
 
 		destRelays := make([]bool, numRelays)
-		for i := 0; i < numRelays; i++ {
+		for i := range numRelays {
 			destRelays[i] = true
 		}
 
@@ -330,7 +330,7 @@ func RelayUpdateHandler(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	if backend.mode == BACKEND_MODE_ZERO_MAGIC {
-		for i := 0; i < constants.NumRelayCounters; i++ {
+		for i := range constants.NumRelayCounters {
 			if requestPacket.RelayCounters[i] != 0 {
 				fmt.Printf("counter %d: %d\n", i, requestPacket.RelayCounters[i])
 			}
@@ -664,10 +664,7 @@ func ProcessClientRelayRequestPacket(conn *net.UDPConn, from *net.UDPAddr, reque
 
 	relayIds, relayAddresses := backend.GetRelays()
 
-	numRelays := len(relayIds)
-	if numRelays > constants.MaxClientRelays {
-		numRelays = constants.MaxClientRelays
-	}
+	numRelays := min(len(relayIds), constants.MaxClientRelays)
 
 	relayIds = relayIds[:numRelays]
 	relayAddresses = relayAddresses[:numRelays]
@@ -699,10 +696,7 @@ func ProcessServerRelayRequestPacket(conn *net.UDPConn, from *net.UDPAddr, reque
 
 	relayIds, relayAddresses := backend.GetRelays()
 
-	numRelays := len(relayIds)
-	if numRelays > constants.MaxServerRelays {
-		numRelays = constants.MaxServerRelays
-	}
+	numRelays := min(len(relayIds), constants.MaxServerRelays)
 
 	relayIds = relayIds[:numRelays]
 	relayAddresses = relayAddresses[:numRelays]
@@ -912,10 +906,7 @@ func ProcessSessionUpdateRequestPacket(conn *net.UDPConn, from *net.UDPAddr, req
 		var routePublicAddresses [MaxRouteRelays]net.UDPAddr
 		var routePublicKeys [MaxRouteRelays][]byte
 
-		numRouteRelays := numRelays
-		if numRouteRelays > MaxRouteRelays {
-			numRouteRelays = MaxRouteRelays
-		}
+		numRouteRelays := min(numRelays, MaxRouteRelays)
 
 		for i := 0; i < numRouteRelays; i++ {
 			routeRelayIds[i] = relayIds[i]

@@ -20,7 +20,7 @@ func RunRedisLeaderThreads(hostname string, threadCount int) {
 
 	ctx := context.Background()
 
-	for k := 0; k < threadCount; k++ {
+	for k := range threadCount {
 
 		go func(thread int) {
 

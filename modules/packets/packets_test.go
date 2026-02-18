@@ -276,7 +276,7 @@ func GenerateRandomSessionUpdateRequestPacket() packets.SDK_SessionUpdateRequest
 		common.RandomBytes(packet.SessionData[:packet.SessionDataBytes])
 	}
 
-	for i := 0; i < int(crypto.Box_PublicKeySize); i++ {
+	for i := range int(crypto.Box_PublicKeySize) {
 		packet.ClientRoutePublicKey[i] = uint8((i + 7) % 256)
 		packet.ServerRoutePublicKey[i] = uint8((i + 13) % 256)
 	}
@@ -353,7 +353,7 @@ func Test_SDK_ServerInitRequestPacket(t *testing.T) {
 
 	t.Parallel()
 
-	for i := 0; i < NumIterations; i++ {
+	for range NumIterations {
 
 		writePacket := GenerateRandomServerInitRequestPacket()
 
@@ -367,7 +367,7 @@ func Test_SDK_ServerInitResponsePacket(t *testing.T) {
 
 	t.Parallel()
 
-	for i := 0; i < NumIterations; i++ {
+	for range NumIterations {
 
 		writePacket := GenerateRandomServerInitResponsePacket()
 
@@ -381,7 +381,7 @@ func Test_SDK_ServerUpdateRequestPacket(t *testing.T) {
 
 	t.Parallel()
 
-	for i := 0; i < NumIterations; i++ {
+	for range NumIterations {
 
 		writePacket := GenerateRandomServerUpdateRequestPacket()
 
@@ -395,7 +395,7 @@ func Test_SDK_ServerUpdateResponsePacket(t *testing.T) {
 
 	t.Parallel()
 
-	for i := 0; i < NumIterations; i++ {
+	for range NumIterations {
 
 		writePacket := GenerateRandomServerUpdateResponsePacket()
 
@@ -409,7 +409,7 @@ func Test_SDK_ClientRelayRequestPacket(t *testing.T) {
 
 	t.Parallel()
 
-	for i := 0; i < NumIterations; i++ {
+	for range NumIterations {
 
 		writePacket := GenerateRandomClientRelayRequestPacket()
 
@@ -423,7 +423,7 @@ func Test_SDK_ClientRelayResponsePacket(t *testing.T) {
 
 	t.Parallel()
 
-	for i := 0; i < NumIterations; i++ {
+	for range NumIterations {
 
 		writePacket := GenerateRandomClientRelayResponsePacket()
 
@@ -437,7 +437,7 @@ func Test_SDK_ServerRelayRequestPacket(t *testing.T) {
 
 	t.Parallel()
 
-	for i := 0; i < NumIterations; i++ {
+	for range NumIterations {
 
 		writePacket := GenerateRandomServerRelayRequestPacket()
 
@@ -451,7 +451,7 @@ func Test_SDK_ServerRelayResponsePacket(t *testing.T) {
 
 	t.Parallel()
 
-	for i := 0; i < NumIterations; i++ {
+	for range NumIterations {
 
 		writePacket := GenerateRandomServerRelayResponsePacket()
 
@@ -465,7 +465,7 @@ func Test_SDK_SessionUpdateRequestPacket(t *testing.T) {
 
 	t.Parallel()
 
-	for i := 0; i < NumIterations; i++ {
+	for range NumIterations {
 
 		writePacket := GenerateRandomSessionUpdateRequestPacket()
 
@@ -479,7 +479,7 @@ func Test_SDK_SessionUpdateResponsePacket(t *testing.T) {
 
 	t.Parallel()
 
-	for i := 0; i < NumIterations; i++ {
+	for range NumIterations {
 
 		writePacket := GenerateRandomSessionUpdateResponsePacket()
 
@@ -539,7 +539,7 @@ func GenerateRandomRelayUpdateRequestPacket() packets.RelayUpdateRequestPacket {
 	packet.RelayVersion = common.RandomString(constants.MaxRelayVersionLength)
 
 	packet.NumRelayCounters = constants.NumRelayCounters
-	for i := 0; i < constants.NumRelayCounters; i++ {
+	for i := range constants.NumRelayCounters {
 		packet.RelayCounters[i] = rand.Uint64()
 	}
 
@@ -583,7 +583,7 @@ func GenerateRandomRelayUpdateResponsePacket() packets.RelayUpdateResponsePacket
 
 func TestRelayUpdateRequestPacket(t *testing.T) {
 	t.Parallel()
-	for i := 0; i < NumRelayPacketIterations; i++ {
+	for range NumRelayPacketIterations {
 		writeMessage := GenerateRandomRelayUpdateRequestPacket()
 		readMessage := packets.RelayUpdateRequestPacket{}
 		RelayPacketReadWriteTest[*packets.RelayUpdateRequestPacket](&writeMessage, &readMessage, t)
@@ -592,7 +592,7 @@ func TestRelayUpdateRequestPacket(t *testing.T) {
 
 func TestRelayUpdateResponsePacket(t *testing.T) {
 	t.Parallel()
-	for i := 0; i < NumRelayPacketIterations; i++ {
+	for range NumRelayPacketIterations {
 		writeMessage := GenerateRandomRelayUpdateResponsePacket()
 		readMessage := packets.RelayUpdateResponsePacket{}
 		RelayPacketReadWriteTest[*packets.RelayUpdateResponsePacket](&writeMessage, &readMessage, t)
@@ -605,7 +605,7 @@ const NumSessionDataIterations = 1000
 
 func TestSessionUpdate(t *testing.T) {
 	t.Parallel()
-	for i := 0; i < NumSessionDataIterations; i++ {
+	for range NumSessionDataIterations {
 		writeMessage := packets.GenerateRandomSessionData()
 		readMessage := packets.SDK_SessionData{}
 		PacketSerializationTest[*packets.SDK_SessionData](&writeMessage, &readMessage, t)

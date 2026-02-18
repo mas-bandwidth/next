@@ -103,11 +103,11 @@ func test_dev() {
 	ValidateDatabase()
 }
 
-func GetJSON(url string, object interface{}) {
+func GetJSON(url string, object any) {
 
 	var err error
 	var response *http.Response
-	for i := 0; i < 30; i++ {
+	for range 30 {
 		req, err := http.NewRequest("GET", url, bytes.NewBuffer(nil))
 		req.Header.Set("Authorization", "Bearer "+TestAPIKey)
 		client := &http.Client{}
@@ -143,7 +143,7 @@ func GetBinary(url string) []byte {
 
 	var err error
 	var response *http.Response
-	for i := 0; i < 30; i++ {
+	for range 30 {
 		req, err := http.NewRequest("GET", url, bytes.NewBuffer(nil))
 		req.Header.Set("Authorization", "Bearer "+TestAPIKey)
 		client := &http.Client{}
@@ -185,7 +185,7 @@ func test_api() {
 	database.BuyerMap[1] = &db.Buyer{Id: 1, Name: "buyer", Live: true, Debug: true}
 	database.SellerMap[1] = &db.Seller{Id: 1, Name: "seller"}
 	database.DatacenterMap[1] = &db.Datacenter{Id: 1, Name: "local", Latitude: 100, Longitude: 200}
-	for i := 0; i < 1; i++ {
+	for i := range 1 {
 		relayId := uint64(1 + i)
 		relay := db.Relay{
 			Id:            relayId,

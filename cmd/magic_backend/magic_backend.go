@@ -35,8 +35,8 @@ func hashCounter(counter int64) []byte {
 	binary.LittleEndian.PutUint64(inputValue[:], uint64(counter))
 	hash.Write(inputValue[:])
 	hash.Write([]byte("don't worry. be happy. :)"))
-	hash.Write([]byte(fmt.Sprintf("%d", counter)))
-	hash.Write([]byte(fmt.Sprintf("%016x", counter)))
+	hash.Write(fmt.Appendf(nil, "%d", counter))
+	hash.Write(fmt.Appendf(nil, "%016x", counter))
 	hashValue := hash.Sum64()
 	var result [8]byte
 	binary.LittleEndian.PutUint64(result[:], uint64(hashValue))

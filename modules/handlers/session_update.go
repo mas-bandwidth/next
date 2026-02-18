@@ -448,11 +448,11 @@ func SessionUpdate_UpdateClientRelays(state *SessionUpdateState) bool {
 			If we don't find any non-zero client relays, set a flag.
 		*/
 
-	    foundValidRelay := false
+		foundValidRelay := false
 		foundLowLatency := false
 		foundNonZeroRelay := false
 
-		for i := 0; i < len(sourceRelayIds); i++ {
+		for i := range sourceRelayIds {
 			if sourceRelayLatency[i] != 0 || sourceRelayPacketLoss[i] != 0 {
 				foundNonZeroRelay = true
 			}
@@ -477,7 +477,7 @@ func SessionUpdate_UpdateClientRelays(state *SessionUpdateState) bool {
 
 		if !foundNonZeroRelay {
 			core.Debug("session %016x client relays are all zero", state.Request.SessionId)
-			state.Output.AllClientRelaysAreZero = true;
+			state.Output.AllClientRelaysAreZero = true
 		}
 	}
 
@@ -546,8 +546,8 @@ func SessionUpdate_UpdateServerRelays(state *SessionUpdateState) bool {
 			core.Debug("------------------------------------------------------------------------------------------------")
 		}
 
-	    foundValidRelay := false
-		for i := 0; i < len(destRelayIds); i++ {
+		foundValidRelay := false
+		for i := range destRelayIds {
 			if !state.Output.ExcludeServerRelay[i] {
 				foundValidRelay = true
 				break
@@ -607,7 +607,7 @@ func SessionUpdate_BuildNextTokens(state *SessionUpdateState, routeNumRelays int
 
 	numRouteRelays := len(routeRelays)
 
-	for i := 0; i < numRouteRelays; i++ {
+	for i := range numRouteRelays {
 
 		relayIndex := routeRelays[i]
 
@@ -659,7 +659,7 @@ func SessionUpdate_BuildContinueTokens(state *SessionUpdateState, routeNumRelays
 
 	numRouteRelays := len(routeRelays)
 
-	for i := 0; i < numRouteRelays; i++ {
+	for i := range numRouteRelays {
 		relayIndex := routeRelays[i]
 		relay := &state.Database.Relays[relayIndex]
 		relaySecretKeys[i] = state.Database.RelaySecretKeys[relay.Id]

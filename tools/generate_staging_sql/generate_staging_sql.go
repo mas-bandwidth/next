@@ -67,7 +67,7 @@ VALUES(
 	// IMPORTANT: Set random seed because I don't want different random lat/longs generated each time you run "next config". It's annoying!
 	rand.Seed(0x12345)
 
-	for i := 0; i < NumRelays; i++ {
+	for i := range NumRelays {
 		fmt.Fprintf(file, datacenter_format, i, randomLatitude(), randomLongitude())
 	}
 
@@ -89,7 +89,7 @@ VALUES(
 );
 `
 
-	for i := 0; i < NumRelays; i++ {
+	for i := range NumRelays {
 		fmt.Fprintf(file, relay_format, i, 10000+i, RelayPublicKeyBase64, RelayPrivateKeyBase64, i)
 	}
 
@@ -101,7 +101,7 @@ INSERT INTO buyer_datacenter_settings VALUES(
 );
 `
 
-	for i := 0; i < NumRelays; i++ {
+	for i := range NumRelays {
 		fmt.Fprintf(file, settings_format, i)
 	}
 

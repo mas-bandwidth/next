@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/gob"
 	"fmt"
+	"maps"
 	"sort"
 	"sync"
 	"time"
@@ -100,13 +101,9 @@ func getInstanceEntries(ctx context.Context, redisClient redis.Cmdable, service 
 
 	instanceMap := make(map[string]string)
 
-	for k, v := range instances_b {
-		instanceMap[k] = v
-	}
+	maps.Copy(instanceMap, instances_b)
 
-	for k, v := range instances_a {
-		instanceMap[k] = v
-	}
+	maps.Copy(instanceMap, instances_a)
 
 	// convert instance data to instance entries
 

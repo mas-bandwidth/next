@@ -186,7 +186,7 @@ func server_cruncher() *exec.Cmd {
 
 func RunSessionInsertThreads(threadCount int) {
 
-	for k := 0; k < threadCount; k++ {
+	for k := range threadCount {
 
 		go func(thread int) {
 
@@ -202,7 +202,7 @@ func RunSessionInsertThreads(threadCount int) {
 
 			for {
 
-				for j := 0; j < 1000; j++ {
+				for j := range 1000 {
 
 					sessionId := uint64(thread*1000000) + uint64(j) + iteration
 					next := ((uint64(j) + iteration) % 10) == 0
@@ -236,7 +236,7 @@ func RunSessionInsertThreads(threadCount int) {
 
 func RunServerInsertThreads(threadCount int) {
 
-	for k := 0; k < threadCount; k++ {
+	for k := range threadCount {
 
 		go func(thread int) {
 
@@ -260,7 +260,7 @@ func RunServerInsertThreads(threadCount int) {
 
 func RunRelayInsertThreads(threadCount int) {
 
-	for k := 0; k < threadCount; k++ {
+	for k := range threadCount {
 
 		go func(thread int) {
 
@@ -272,7 +272,7 @@ func RunRelayInsertThreads(threadCount int) {
 
 			for {
 
-				for j := 0; j < 10; j++ {
+				for j := range 10 {
 
 					relayData := portal.GenerateRandomRelayData()
 
@@ -291,7 +291,7 @@ func RunRelayInsertThreads(threadCount int) {
 	}
 }
 
-func Get(url string, object interface{}) {
+func Get(url string, object any) {
 
 	fmt.Printf("Get URL: %s\n", url)
 
@@ -310,7 +310,7 @@ func Get(url string, object interface{}) {
 	client := &http.Client{}
 
 	var response *http.Response
-	for i := 0; i < 30; i++ {
+	for range 30 {
 		response, err = client.Do(request)
 		if err == nil {
 			break
@@ -436,7 +436,7 @@ func test_portal() {
 	database.BuyerMap[1] = &db.Buyer{Id: 1, Name: "buyer", Live: true, Debug: true}
 	database.SellerMap[1] = &db.Seller{Id: 1, Name: "seller"}
 	database.DatacenterMap[1] = &db.Datacenter{Id: 1, Name: "local", Latitude: 100, Longitude: 200}
-	for i := 0; i < 1000; i++ {
+	for i := range 1000 {
 		relayId := uint64(1 + i)
 		relay := db.Relay{
 			Id:            relayId,
@@ -488,7 +488,7 @@ func test_portal() {
 
 	var ready bool
 
-	for i := 0; i < 120; i++ {
+	for i := range 120 {
 
 		fmt.Printf("iteration %d\n", i)
 

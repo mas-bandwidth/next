@@ -5,6 +5,7 @@ import (
 	"math"
 	"net"
 	"sort"
+	"strings"
 	"sync"
 
 	"github.com/huandu/go-clone"
@@ -25,7 +26,7 @@ func TriMatrixIndex(i, j int) int {
 
 func historyMax(history []float32) float32 {
 	var max float32
-	for i := 0; i < len(history); i++ {
+	for i := range history {
 		if history[i] > max {
 			max = history[i]
 		}
@@ -35,7 +36,7 @@ func historyMax(history []float32) float32 {
 
 func historyMean(history []float32) float32 {
 	var sum float64
-	for i := 0; i < len(history); i++ {
+	for i := range history {
 		sum += float64(history[i])
 	}
 	return float32(sum / float64(constants.RelayHistorySize))
@@ -112,7 +113,7 @@ func (relayManager *RelayManager) ProcessRelayUpdate(currentTime int64, relayId 
 	sourceEntry.RelayVersion = relayVersion
 	sourceEntry.ShuttingDown = shuttingDown
 
-	for i := 0; i < numSamples; i++ {
+	for i := range numSamples {
 
 		destRelayId := sampleRelayId[i]
 
@@ -121,7 +122,7 @@ func (relayManager *RelayManager) ProcessRelayUpdate(currentTime int64, relayId 
 		if !exists {
 			destEntry = &RelayManagerDestEntry{}
 			sourceEntry.DestEntries[destRelayId] = destEntry
-			for j := 0; j < constants.RelayHistorySize; j++ {
+			for j := range constants.RelayHistorySize {
 				destEntry.HistoryRTT[j] = 1000000000.0
 				destEntry.HistoryJitter[j] = 1000000000.0
 				destEntry.HistoryPacketLoss[j] = 1000000000.0
@@ -153,7 +154,7 @@ func (relayManager *RelayManager) ProcessRelayUpdate(currentTime int64, relayId 
 
 	// update relay counters
 
-	for i := 0; i < constants.NumRelayCounters; i++ {
+	for i := range constants.NumRelayCounters {
 		sourceEntry.Counters[i] = counters[i]
 	}
 
@@ -250,7 +251,7 @@ func (relayManager *RelayManager) GetCosts(currentTime int64, relayIds []uint64,
 
 	relayManager.mutex.RLock()
 
-	for i := 0; i < numRelays; i++ {
+	for i := range numRelays {
 		sourceRelayId := uint64(relayIds[i])
 		_, sourceActive := activeRelayMap[sourceRelayId]
 		if sourceActive {
@@ -340,7 +341,7 @@ func (relayManager *RelayManager) GetRelays(currentTime int64, relayIds []uint64
 
 	// pick up any relays that the relay manager doesn't know about as offline
 
-	for i := 0; i < len(relayIds); i++ {
+	for i := range relayIds {
 
 		_, exists := relayManager.SourceEntries[relayIds[i]]
 		if exists {
@@ -429,22 +430,23 @@ func (relayManager *RelayManager) GetActiveRelayMap(currentTime int64) map[uint6
 
 func (relayManager *RelayManager) GetRelaysCSV(currentTime int64, relayIds []uint64, relayNames []string, relayAddresses []net.UDPAddr) []byte {
 
-	relaysCSV := "name,address,id,status,sessions,version\n"
+	var relaysCSV strings.Builder
+	relaysCSV.WriteString("name,address,id,status,sessions,version\n")
 
 	relays := relayManager.GetRelays(currentTime, relayIds, relayNames, relayAddresses)
 
 	for i := range relays {
 		relay := relays[i]
-		relaysCSV += fmt.Sprintf("%s,%s,%016x,%s,%d,%s\n",
+		relaysCSV.WriteString(fmt.Sprintf("%s,%s,%016x,%s,%d,%s\n",
 			relay.Name,
 			relay.Address.String(),
 			relay.Id,
 			RelayStatusStrings[relay.Status],
 			relay.Sessions,
-			relay.Version)
+			relay.Version))
 	}
 
-	return []byte(relaysCSV)
+	return []byte(relaysCSV.String())
 }
 
 func (relayManager *RelayManager) GetRelayCounters(relayId uint64) []uint64 {

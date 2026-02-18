@@ -140,7 +140,7 @@ func GenerateRandomCostMatrix(numRelays int) CostMatrix {
 
 	costSize := core.TriMatrixLength(numRelays)
 	costMatrix.Costs = make([]uint8, costSize)
-	for i := 0; i < costSize; i++ {
+	for i := range costSize {
 		costMatrix.Costs[i] = uint8(RandomInt(0, 255))
 	}
 

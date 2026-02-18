@@ -72,7 +72,7 @@ func WriteString(data []byte, index *int, value string, maxStringLength uint32) 
 }
 
 func WriteBytes(data []byte, index *int, value []byte, numBytes int) {
-	for i := 0; i < numBytes; i++ {
+	for i := range numBytes {
 		data[*index] = value[i]
 		*index++
 	}
@@ -207,7 +207,7 @@ func ReadBytes(data []byte, index *int, value []byte, bytes uint32) bool {
 	if *index+int(bytes) > len(data) {
 		return false
 	}
-	for i := uint32(0); i < bytes; i++ {
+	for i := range bytes {
 		value[i] = data[*index]
 		*index++
 	}

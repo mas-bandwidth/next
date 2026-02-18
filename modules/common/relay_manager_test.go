@@ -94,7 +94,7 @@ func TestRelayManager_Local(t *testing.T) {
 	assert.Equal(t, len(relays), databaseNumRelays)
 
 	numActive := 0
-	for i := 0; i < databaseNumRelays; i++ {
+	for i := range databaseNumRelays {
 		if relays[i].Id == activeRelays[0].Id || relays[i].Id == activeRelays[1].Id {
 			assert.Equal(t, relays[i].Status, constants.RelayStatus_Online)
 			numActive++
@@ -127,7 +127,7 @@ func TestRelayManager_Local(t *testing.T) {
 
 	assert.Equal(t, len(relays), databaseNumRelays)
 
-	for i := 0; i < databaseNumRelays; i++ {
+	for i := range databaseNumRelays {
 		assert.Equal(t, relays[i].Status, constants.RelayStatus_Offline)
 	}
 }
@@ -179,7 +179,7 @@ func TestRelayManager_Real(t *testing.T) {
 
 	currentTime := time.Now().Unix()
 
-	for i := 0; i < constants.RelayHistorySize*2; i++ {
+	for i := range constants.RelayHistorySize * 2 {
 
 		// add some samples from relay A -> B
 		{
@@ -217,8 +217,8 @@ func TestRelayManager_Real(t *testing.T) {
 
 			assert.Equal(t, len(costs), int(common.TriMatrixLength(numRelays)))
 
-			for i := 0; i < 5; i++ {
-				for j := 0; j < 5; j++ {
+			for i := range 5 {
+				for j := range 5 {
 					index := common.TriMatrixIndex(i, j)
 					if i == j {
 						continue
@@ -257,7 +257,7 @@ func TestRelayManager_Real(t *testing.T) {
 
 	assert.Equal(t, len(relays), databaseNumRelays)
 
-	for i := 0; i < databaseNumRelays; i++ {
+	for i := range databaseNumRelays {
 		assert.Equal(t, relays[i].Status, constants.RelayStatus_Offline)
 	}
 
@@ -287,7 +287,7 @@ func TestRelayManager_Real(t *testing.T) {
 
 	assert.Equal(t, len(relays), databaseNumRelays)
 
-	for i := 0; i < databaseNumRelays; i++ {
+	for i := range databaseNumRelays {
 		if relays[i].Id == relayIds[0] {
 			assert.Equal(t, relays[i].Status, constants.RelayStatus_ShuttingDown)
 		} else if relays[i].Id == relayIds[1] {
@@ -307,13 +307,13 @@ func TestRelayManager_Real(t *testing.T) {
 
 	assert.Equal(t, len(relays), databaseNumRelays)
 
-	for i := 0; i < databaseNumRelays; i++ {
+	for i := range databaseNumRelays {
 		assert.Equal(t, relays[i].Status, constants.RelayStatus_Offline)
 	}
 
 	// now restart relay A 60 seconds in the future. we should need to wait another HistorySize number of updates before we see routes between A and B
 
-	for i := 0; i < constants.RelayHistorySize*2; i++ {
+	for i := range constants.RelayHistorySize * 2 {
 
 		// add some samples from relay A -> B
 		{
@@ -349,8 +349,8 @@ func TestRelayManager_Real(t *testing.T) {
 
 			assert.Equal(t, len(costs), int(common.TriMatrixLength(numRelays)))
 
-			for i := 0; i < 5; i++ {
-				for j := 0; j < 5; j++ {
+			for i := range 5 {
+				for j := range 5 {
 					index := common.TriMatrixIndex(i, j)
 					if i == j {
 						continue
@@ -380,7 +380,7 @@ func TestRelayManager_Real(t *testing.T) {
 		assert.Equal(t, len(relays), databaseNumRelays)
 
 		numActive := 0
-		for i := 0; i < databaseNumRelays; i++ {
+		for i := range databaseNumRelays {
 			if relays[i].Id == activeRelays[0].Id || relays[i].Id == activeRelays[1].Id {
 				assert.Equal(t, relays[i].Status, constants.RelayStatus_Online)
 				numActive++

@@ -1729,11 +1729,11 @@ func secrets() {
 
 // -------------------------------------------------------------------------------------------------------
 
-func GetJSON(apiKey string, url string, object interface{}) {
+func GetJSON(apiKey string, url string, object any) {
 
 	var err error
 	var response *http.Response
-	for i := 0; i < 30; i++ {
+	for range 30 {
 		req, err := http.NewRequest("GET", url, bytes.NewBuffer(nil))
 		req.Header.Set("Authorization", "Bearer "+apiKey)
 		client := &http.Client{}
@@ -1782,7 +1782,7 @@ func GetText(apiKey string, url string) string {
 
 	var err error
 	var response *http.Response
-	for i := 0; i < 30; i++ {
+	for range 30 {
 		req, err := http.NewRequest("GET", url, bytes.NewBuffer(nil))
 		req.Header.Set("Authorization", "Bearer "+apiKey)
 		client := &http.Client{}
@@ -1825,7 +1825,7 @@ func GetBinary(apiKey string, url string) []byte {
 
 	var err error
 	var response *http.Response
-	for i := 0; i < 30; i++ {
+	for range 30 {
 		req, err := http.NewRequest("GET", url, bytes.NewBuffer(nil))
 		req.Header.Set("Authorization", "Bearer "+apiKey)
 		client := &http.Client{}
@@ -1864,7 +1864,7 @@ func GetBinary(apiKey string, url string) []byte {
 	return body
 }
 
-func PutJSON(apiKey string, url string, requestData interface{}, responseData interface{}) error {
+func PutJSON(apiKey string, url string, requestData any, responseData any) error {
 
 	buffer := new(bytes.Buffer)
 
@@ -1878,7 +1878,7 @@ func PutJSON(apiKey string, url string, requestData interface{}, responseData in
 
 	var err error
 	var response *http.Response
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		response, err = httpClient.Do(request)
 		if err == nil {
 			break
@@ -3009,28 +3009,28 @@ func routes(src string, dest string) {
 	fmt.Printf("routes from %s -> %s:\n\n", src, dest)
 
 	for i := 0; i < int(entry.NumRoutes); i++ {
-		routeRelays := ""
+		var routeRelays strings.Builder
 		numRouteRelays := int(entry.RouteNumRelays[i])
 		if src_index < dest_index {
 			for j := numRouteRelays - 1; j >= 0; j-- {
 				routeRelayIndex := entry.RouteRelays[i][j]
 				routeRelayName := routeMatrix.RelayNames[routeRelayIndex]
-				routeRelays += routeRelayName
+				routeRelays.WriteString(routeRelayName)
 				if j != 0 {
-					routeRelays += " - "
+					routeRelays.WriteString(" - ")
 				}
 			}
 		} else {
-			for j := 0; j < numRouteRelays; j++ {
+			for j := range numRouteRelays {
 				routeRelayIndex := entry.RouteRelays[i][j]
 				routeRelayName := routeMatrix.RelayNames[routeRelayIndex]
-				routeRelays += routeRelayName
+				routeRelays.WriteString(routeRelayName)
 				if j != numRouteRelays-1 {
-					routeRelays += " - "
+					routeRelays.WriteString(" - ")
 				}
 			}
 		}
-		fmt.Printf(" + %d: %s\n", entry.RouteCost[i], routeRelays)
+		fmt.Printf(" + %d: %s\n", entry.RouteCost[i], routeRelays.String())
 	}
 
 	if entry.DirectCost != 255 {

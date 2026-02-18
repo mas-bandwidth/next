@@ -77,7 +77,7 @@ func autodetectHandler(w http.ResponseWriter, r *http.Request) {
 
 	seller := ""
 
-	for iteration := 0; iteration < 2; iteration++ {
+	for iteration := range 2 {
 
 		var cmd *exec.Cmd
 		if iteration == 0 {

@@ -30,7 +30,7 @@ type Update struct {
 
 func RunInsertThreads(ctx context.Context, numRelays int, updateChan chan *Update) {
 
-	for k := 0; k < numRelays; k++ {
+	for k := range numRelays {
 
 		go func(relayIndex int) {
 
@@ -86,7 +86,7 @@ func RunRelayManagerThread(ctx context.Context, numRelays int, updateChan chan *
 		relayManager := common.CreateRelayManager(local)
 
 		relayIds := make([]uint64, numRelays)
-		for i := 0; i < numRelays; i++ {
+		for i := range numRelays {
 			relayIds[i] = uint64(i)
 		}
 

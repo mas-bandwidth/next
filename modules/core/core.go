@@ -30,19 +30,19 @@ func init() {
 	}
 }
 
-func Error(s string, params ...interface{}) {
+func Error(s string, params ...any) {
 	fmt.Printf("error: "+s+"\n", params...)
 }
 
-func Warn(s string, params ...interface{}) {
+func Warn(s string, params ...any) {
 	fmt.Printf("warning: "+s+"\n", params...)
 }
 
-func Log(s string, params ...interface{}) {
+func Log(s string, params ...any) {
 	fmt.Printf(s+"\n", params...)
 }
 
-func Debug(s string, params ...interface{}) {
+func Debug(s string, params ...any) {
 	if DebugLogs {
 		fmt.Printf(s+"\n", params...)
 	}
@@ -371,7 +371,7 @@ func Optimize(numRelays int, numSegments int, cost []uint8, relayPrice []uint8, 
 
 	wg.Add(numSegments)
 
-	for segment := 0; segment < numSegments; segment++ {
+	for segment := range numSegments {
 
 		startIndex := segment * numRelays / numSegments
 		endIndex := (segment+1)*numRelays/numSegments - 1
@@ -389,7 +389,7 @@ func Optimize(numRelays int, numSegments int, cost []uint8, relayPrice []uint8, 
 
 				indirect[i] = make([][]Indirect, numRelays)
 
-				for j := 0; j < numRelays; j++ {
+				for j := range numRelays {
 
 					// can't route to self
 					if i == j {
@@ -401,7 +401,7 @@ func Optimize(numRelays int, numSegments int, cost []uint8, relayPrice []uint8, 
 					numRoutes := 0
 					costDirect := uint32(cost[ijIndex])
 
-					for x := 0; x < numRelays; x++ {
+					for x := range numRelays {
 						if x == i || x == j {
 							continue
 						}
@@ -441,7 +441,7 @@ func Optimize(numRelays int, numSegments int, cost []uint8, relayPrice []uint8, 
 
 	wg.Add(numSegments)
 
-	for segment := 0; segment < numSegments; segment++ {
+	for segment := range numSegments {
 
 		startIndex := segment * numRelays / numSegments
 		endIndex := (segment+1)*numRelays/numSegments - 1
@@ -535,12 +535,12 @@ func Optimize(numRelays int, numSegments int, cost []uint8, relayPrice []uint8, 
 					routes[index].DirectCost = int32(cost[index])
 					routes[index].NumRoutes = int32(numRoutes)
 
-					for u := 0; u < numRoutes; u++ {
+					for u := range numRoutes {
 						routes[index].RouteCost[u] = routeManager.RouteCost[u]
 						routes[index].RoutePrice[u] = routeManager.RoutePrice[u]
 						routes[index].RouteNumRelays[u] = routeManager.RouteNumRelays[u]
 						numRelays := int(routes[index].RouteNumRelays[u])
-						for v := 0; v < numRelays; v++ {
+						for v := range numRelays {
 							routes[index].RouteRelays[u][v] = routeManager.RouteRelays[u][v]
 						}
 						routes[index].RouteHash[u] = routeManager.RouteHash[u]
@@ -573,7 +573,7 @@ func Optimize2(numRelays int, numSegments int, cost []uint8, relayPrice []uint8,
 
 	wg.Add(numSegments)
 
-	for segment := 0; segment < numSegments; segment++ {
+	for segment := range numSegments {
 
 		startIndex := segment * numRelays / numSegments
 		endIndex := (segment+1)*numRelays/numSegments - 1
@@ -591,7 +591,7 @@ func Optimize2(numRelays int, numSegments int, cost []uint8, relayPrice []uint8,
 
 				indirect[i] = make([][]Indirect, numRelays)
 
-				for j := 0; j < numRelays; j++ {
+				for j := range numRelays {
 
 					// can't route to self
 					if i == j {
@@ -607,7 +607,7 @@ func Optimize2(numRelays int, numSegments int, cost []uint8, relayPrice []uint8,
 					numRoutes := 0
 					costDirect := uint32(cost[ijIndex])
 
-					for x := 0; x < numRelays; x++ {
+					for x := range numRelays {
 						if x == i || x == j {
 							continue
 						}
@@ -647,7 +647,7 @@ func Optimize2(numRelays int, numSegments int, cost []uint8, relayPrice []uint8,
 
 	wg.Add(numSegments)
 
-	for segment := 0; segment < numSegments; segment++ {
+	for segment := range numSegments {
 
 		startIndex := segment * numRelays / numSegments
 		endIndex := (segment+1)*numRelays/numSegments - 1
@@ -742,12 +742,12 @@ func Optimize2(numRelays int, numSegments int, cost []uint8, relayPrice []uint8,
 					routes[index].DirectCost = int32(cost[index])
 					routes[index].NumRoutes = int32(numRoutes)
 
-					for u := 0; u < numRoutes; u++ {
+					for u := range numRoutes {
 						routes[index].RouteCost[u] = routeManager.RouteCost[u]
 						routes[index].RoutePrice[u] = routeManager.RoutePrice[u]
 						routes[index].RouteNumRelays[u] = routeManager.RouteNumRelays[u]
 						numRelays := int(routes[index].RouteNumRelays[u])
-						for v := 0; v < numRelays; v++ {
+						for v := range numRelays {
 							routes[index].RouteRelays[u][v] = routeManager.RouteRelays[u][v]
 						}
 						routes[index].RouteHash[u] = routeManager.RouteHash[u]
@@ -924,7 +924,7 @@ func ReadEncryptedRouteToken(token *RouteToken, tokenData []byte, secretKey []by
 func WriteRouteTokens(tokenData []byte, expireTimestamp uint64, sessionId uint64, sessionVersion uint8, kbpsUp uint32, kbpsDown uint32, numNodes int, publicAddresses []net.UDPAddr, hasInternalAddress []bool, internalAddresses []net.UDPAddr, internalGroups []uint64, sellers []int, secretKeys [][]byte) {
 	privateKey := [crypto.Box_PrivateKeySize]byte{}
 	RandomBytes(privateKey[:])
-	for i := 0; i < numNodes; i++ {
+	for i := range numNodes {
 		var token RouteToken
 		token.ExpireTimestamp = expireTimestamp
 		token.SessionId = sessionId
@@ -1021,7 +1021,7 @@ func ReadEncryptedContinueToken(token *ContinueToken, tokenData []byte, secretKe
 }
 
 func WriteContinueTokens(tokenData []byte, expireTimestamp uint64, sessionId uint64, sessionVersion uint8, numNodes int, secretKeys [][]byte) {
-	for i := 0; i < numNodes; i++ {
+	for i := range numNodes {
 		var token ContinueToken
 		token.ExpireTimestamp = expireTimestamp
 		token.SessionId = sessionId
@@ -1236,7 +1236,7 @@ func GetBestRoutes(routeMatrix []RouteEntry, sourceRelays []int32, sourceRelayCo
 				bestRoutes[numRoutes].Price = entry.RoutePrice[k]
 				bestRoutes[numRoutes].NumRelays = entry.RouteNumRelays[k]
 
-				for l := 0; l < len(entry.RouteRelays[0]); l++ {
+				for l := range len(entry.RouteRelays[0]) {
 					bestRoutes[numRoutes].Relays[l] = entry.RouteRelays[k][l]
 				}
 
@@ -1461,7 +1461,7 @@ func GetRandomBestRoute(routeMatrix []RouteEntry, sourceRelays []int32, sourceRe
 		copy(out_bestRouteRelays[:], bestRoutes[randomIndex].Relays[:bestRoutes[randomIndex].NumRelays])
 	} else {
 		numRouteRelays := bestRoutes[randomIndex].NumRelays
-		for i := int32(0); i < numRouteRelays; i++ {
+		for i := range numRouteRelays {
 			out_bestRouteRelays[numRouteRelays-1-i] = bestRoutes[randomIndex].Relays[i]
 		}
 	}
@@ -1546,7 +1546,7 @@ func GetRandomBestRoute_LowestPrice(routeMatrix []RouteEntry, sourceRelays []int
 		copy(out_bestRouteRelays[:], filteredBestRoutes[randomIndex].Relays[:filteredBestRoutes[randomIndex].NumRelays])
 	} else {
 		numRouteRelays := filteredBestRoutes[randomIndex].NumRelays
-		for i := int32(0); i < numRouteRelays; i++ {
+		for i := range numRouteRelays {
 			out_bestRouteRelays[numRouteRelays-1-i] = filteredBestRoutes[randomIndex].Relays[i]
 		}
 	}
@@ -1599,50 +1599,50 @@ func GetBestRoute_Update(routeMatrix []RouteEntry, sourceRelays []int32, sourceR
 }
 
 type RouteShader struct {
-	DisableNetworkNext            bool    `json:"disable_network_next"`
-	SelectionPercent              int     `json:"selection_percentage"`
-	ABTest                        bool    `json:"ab_test"`
-	AcceptableLatency             int32   `json:"acceptable_latency"`
-	LatencyReductionThreshold     int32   `json:"latency_reduction_threshold"`
-	AcceptablePacketLoss          float32 `json:"acceptable_packet_loss"`
-	BandwidthEnvelopeUpKbps       int32   `json:"bandwidth_envelope_up_kbps"`
-	BandwidthEnvelopeDownKbps     int32   `json:"bandwidth_envelope_down_kbps"`
-	RouteSelectThreshold          int32   `json:"route_select_threshold"`
-	RouteSwitchThreshold          int32   `json:"route_switch_threshold"`
-	MaxLatencyTradeOff            int32   `json:"max_latency_trade_off"`
-	ForceNext                     bool    `json:"force_next"`
+	DisableNetworkNext        bool    `json:"disable_network_next"`
+	SelectionPercent          int     `json:"selection_percentage"`
+	ABTest                    bool    `json:"ab_test"`
+	AcceptableLatency         int32   `json:"acceptable_latency"`
+	LatencyReductionThreshold int32   `json:"latency_reduction_threshold"`
+	AcceptablePacketLoss      float32 `json:"acceptable_packet_loss"`
+	BandwidthEnvelopeUpKbps   int32   `json:"bandwidth_envelope_up_kbps"`
+	BandwidthEnvelopeDownKbps int32   `json:"bandwidth_envelope_down_kbps"`
+	RouteSelectThreshold      int32   `json:"route_select_threshold"`
+	RouteSwitchThreshold      int32   `json:"route_switch_threshold"`
+	MaxLatencyTradeOff        int32   `json:"max_latency_trade_off"`
+	ForceNext                 bool    `json:"force_next"`
 }
 
 func NewRouteShader() RouteShader {
 	return RouteShader{
-		DisableNetworkNext:            false,
-		SelectionPercent:              100,
-		ABTest:                        false,
-		AcceptableLatency:             0,
-		LatencyReductionThreshold:     10,
-		AcceptablePacketLoss:          0.1,
-		BandwidthEnvelopeUpKbps:       1024,
-		BandwidthEnvelopeDownKbps:     1024,
-		RouteSelectThreshold:          5,
-		RouteSwitchThreshold:          10,
-		MaxLatencyTradeOff:            20,
-		ForceNext:                     false,
+		DisableNetworkNext:        false,
+		SelectionPercent:          100,
+		ABTest:                    false,
+		AcceptableLatency:         0,
+		LatencyReductionThreshold: 10,
+		AcceptablePacketLoss:      0.1,
+		BandwidthEnvelopeUpKbps:   1024,
+		BandwidthEnvelopeDownKbps: 1024,
+		RouteSelectThreshold:      5,
+		RouteSwitchThreshold:      10,
+		MaxLatencyTradeOff:        20,
+		ForceNext:                 false,
 	}
 }
 
 type RouteState struct {
-	Next                bool
-	Veto                bool
-	Disabled            bool
-	NotSelected         bool
-	ABTest              bool
-	A                   bool
-	B                   bool
-	ForcedNext          bool
-	ReduceLatency       bool
-	ReducePacketLoss    bool
-	RouteLost           bool
-	NoRoute             bool
+	Next             bool
+	Veto             bool
+	Disabled         bool
+	NotSelected      bool
+	ABTest           bool
+	A                bool
+	B                bool
+	ForcedNext       bool
+	ReduceLatency    bool
+	ReducePacketLoss bool
+	RouteLost        bool
+	NoRoute          bool
 }
 
 func EarlyOutDirect(userId uint64, routeShader *RouteShader, routeState *RouteState, debug *string) bool {
@@ -1951,11 +1951,11 @@ func GeneratePittle(output []byte, fromAddress []byte, toAddress []byte, packetL
 
 	sum := uint16(0)
 
-	for i := 0; i < len(fromAddress); i++ {
+	for i := range fromAddress {
 		sum += uint16(fromAddress[i])
 	}
 
-	for i := 0; i < len(toAddress); i++ {
+	for i := range toAddress {
 		sum += uint16(toAddress[i])
 	}
 
@@ -2136,10 +2136,7 @@ func GeneratePingToken(expireTimestamp uint64, from *net.UDPAddr, to *net.UDPAdd
 func GetSessionScore(directRTT int32, nextRTT int32) uint32 {
 	var score uint32
 	if nextRTT > 0 {
-		improvement := directRTT - nextRTT
-		if improvement < 0 {
-			improvement = 0
-		}
+		improvement := max(directRTT-nextRTT, 0)
 		if improvement > 254 {
 			improvement = 254
 		}
@@ -2209,10 +2206,7 @@ func DoPagination_Simple(page int, length int) (begin, end, outputPage, numPages
 		page = numPages - 1
 	}
 	begin = page * 100
-	end = (page + 1) * 100
-	if end > length {
-		end = length
-	}
+	end = min((page+1)*100, length)
 	outputPage = page
 	return
 }

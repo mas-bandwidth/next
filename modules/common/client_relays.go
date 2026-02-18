@@ -49,7 +49,7 @@ func GetClientRelays(maxClientRelays int, distanceThreshold int, latencyThreshol
 
 	relayMap := make(map[uint64]ClientRelayData)
 
-	for i := 0; i < len(clientRelayData); i++ {
+	for i := range clientRelayData {
 
 		if len(relayMap) == maxClientRelays {
 			break
@@ -91,7 +91,7 @@ func GetClientRelays(maxClientRelays int, distanceThreshold int, latencyThreshol
 
 	sort.SliceStable(clientRelayData, func(i, j int) bool { return clientRelayData[i].Distance < clientRelayData[j].Distance })
 
-	for i := 0; i < len(clientRelayData); i++ {
+	for i := range clientRelayData {
 
 		if len(relayMap) == maxClientRelays {
 			break

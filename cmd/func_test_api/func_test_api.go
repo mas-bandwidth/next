@@ -81,7 +81,7 @@ func GetText(path string) (string, error) {
 
 	var err error
 	var response *http.Response
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		req, err := http.NewRequest("GET", url, bytes.NewBuffer(nil))
 		req.Header.Set("Authorization", "Bearer "+TestAPIKey)
 		client := &http.Client{}
@@ -114,13 +114,13 @@ func GetText(path string) (string, error) {
 	return string(body), nil
 }
 
-func GetJSON(path string, object interface{}) error {
+func GetJSON(path string, object any) error {
 
 	url := Hostname + "/" + path
 
 	var err error
 	var response *http.Response
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		req, err := http.NewRequest("GET", url, bytes.NewBuffer(nil))
 		req.Header.Set("Authorization", "Bearer "+TestAPIKey)
 		client := &http.Client{}
@@ -154,7 +154,7 @@ func GetJSON(path string, object interface{}) error {
 	return nil
 }
 
-func Create(path string, requestData interface{}, responseData interface{}) error {
+func Create(path string, requestData any, responseData any) error {
 
 	url := Hostname + "/" + path
 
@@ -172,7 +172,7 @@ func Create(path string, requestData interface{}, responseData interface{}) erro
 	httpClient := &http.Client{}
 
 	var response *http.Response
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		response, err = httpClient.Do(request)
 		if err == nil {
 			break
@@ -203,7 +203,7 @@ func Create(path string, requestData interface{}, responseData interface{}) erro
 	return nil
 }
 
-func Update(path string, requestData interface{}, responseData interface{}) error {
+func Update(path string, requestData any, responseData any) error {
 
 	url := Hostname + "/" + path
 
@@ -219,7 +219,7 @@ func Update(path string, requestData interface{}, responseData interface{}) erro
 
 	var err error
 	var response *http.Response
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		response, err = httpClient.Do(request)
 		if err == nil {
 			break
@@ -250,7 +250,7 @@ func Update(path string, requestData interface{}, responseData interface{}) erro
 	return nil
 }
 
-func Delete(path string, responseData interface{}) error {
+func Delete(path string, responseData any) error {
 
 	url := Hostname + "/" + path
 
@@ -262,7 +262,7 @@ func Delete(path string, responseData interface{}) error {
 
 	var err error
 	var response *http.Response
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		response, err = httpClient.Do(request)
 		if err == nil {
 			break
@@ -1009,19 +1009,19 @@ func test_route_shader() {
 	// create route shader
 
 	expected := admin.RouteShaderData{
-		RouteShaderName:               "Test",
-		ABTest:                        true,
-		AcceptableLatency:             10.0,
-		AcceptablePacketLoss:          1.0,
-		BandwidthEnvelopeUpKbps:       1024,
-		BandwidthEnvelopeDownKbps:     512,
-		DisableNetworkNext:            true,
-		LatencyReductionThreshold:     10.0,
-		SelectionPercent:              100,
-		MaxLatencyTradeOff:            20,
-		RouteSwitchThreshold:          10,
-		RouteSelectThreshold:          5,
-		ForceNext:                     true,
+		RouteShaderName:           "Test",
+		ABTest:                    true,
+		AcceptableLatency:         10.0,
+		AcceptablePacketLoss:      1.0,
+		BandwidthEnvelopeUpKbps:   1024,
+		BandwidthEnvelopeDownKbps: 512,
+		DisableNetworkNext:        true,
+		LatencyReductionThreshold: 10.0,
+		SelectionPercent:          100,
+		MaxLatencyTradeOff:        20,
+		RouteSwitchThreshold:      10,
+		RouteSelectThreshold:      5,
+		ForceNext:                 true,
 	}
 
 	routeShaderId := uint64(0)
@@ -1142,19 +1142,19 @@ func test_buyer() {
 	routeShaderId := uint64(0)
 	{
 		routeShader := admin.RouteShaderData{
-			RouteShaderName:               "Test",
-			ABTest:                        true,
-			AcceptableLatency:             10.0,
-			AcceptablePacketLoss:          0.25,
-			BandwidthEnvelopeUpKbps:       1024,
-			BandwidthEnvelopeDownKbps:     512,
-			DisableNetworkNext:            true,
-			LatencyReductionThreshold:     10.0,
-			SelectionPercent:              100,
-			MaxLatencyTradeOff:            20,
-			RouteSwitchThreshold:          10,
-			RouteSelectThreshold:          5,
-			ForceNext:                     true,
+			RouteShaderName:           "Test",
+			ABTest:                    true,
+			AcceptableLatency:         10.0,
+			AcceptablePacketLoss:      0.25,
+			BandwidthEnvelopeUpKbps:   1024,
+			BandwidthEnvelopeDownKbps: 512,
+			DisableNetworkNext:        true,
+			LatencyReductionThreshold: 10.0,
+			SelectionPercent:          100,
+			MaxLatencyTradeOff:        20,
+			RouteSwitchThreshold:      10,
+			RouteSelectThreshold:      5,
+			ForceNext:                 true,
 		}
 
 		var response CreateRouteShaderResponse
@@ -1298,19 +1298,19 @@ func test_buyer_datacenter_settings() {
 	routeShaderId := uint64(0)
 	{
 		routeShader := admin.RouteShaderData{
-			RouteShaderName:               "Test",
-			ABTest:                        true,
-			AcceptableLatency:             10.0,
-			AcceptablePacketLoss:          0.25,
-			BandwidthEnvelopeUpKbps:       1024,
-			BandwidthEnvelopeDownKbps:     512,
-			DisableNetworkNext:            true,
-			LatencyReductionThreshold:     10.0,
-			SelectionPercent:              100,
-			MaxLatencyTradeOff:            20,
-			RouteSwitchThreshold:          10,
-			RouteSelectThreshold:          5,
-			ForceNext:                     true,
+			RouteShaderName:           "Test",
+			ABTest:                    true,
+			AcceptableLatency:         10.0,
+			AcceptablePacketLoss:      0.25,
+			BandwidthEnvelopeUpKbps:   1024,
+			BandwidthEnvelopeDownKbps: 512,
+			DisableNetworkNext:        true,
+			LatencyReductionThreshold: 10.0,
+			SelectionPercent:          100,
+			MaxLatencyTradeOff:        20,
+			RouteSwitchThreshold:      10,
+			RouteSelectThreshold:      5,
+			ForceNext:                 true,
 		}
 
 		var response CreateRouteShaderResponse
@@ -1626,19 +1626,19 @@ func test_database() {
 	routeShaderId := uint64(0)
 	{
 		routeShader := admin.RouteShaderData{
-			RouteShaderName:               "Test",
-			ABTest:                        true,
-			AcceptableLatency:             10.0,
-			AcceptablePacketLoss:          0.25,
-			BandwidthEnvelopeUpKbps:       1024,
-			BandwidthEnvelopeDownKbps:     512,
-			DisableNetworkNext:            true,
-			LatencyReductionThreshold:     10.0,
-			SelectionPercent:              100,
-			MaxLatencyTradeOff:            20,
-			RouteSwitchThreshold:          10,
-			RouteSelectThreshold:          5,
-			ForceNext:                     true,
+			RouteShaderName:           "Test",
+			ABTest:                    true,
+			AcceptableLatency:         10.0,
+			AcceptablePacketLoss:      0.25,
+			BandwidthEnvelopeUpKbps:   1024,
+			BandwidthEnvelopeDownKbps: 512,
+			DisableNetworkNext:        true,
+			LatencyReductionThreshold: 10.0,
+			SelectionPercent:          100,
+			MaxLatencyTradeOff:        20,
+			RouteSwitchThreshold:      10,
+			RouteSelectThreshold:      5,
+			ForceNext:                 true,
 		}
 
 		var response CreateRouteShaderResponse

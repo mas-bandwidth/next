@@ -102,12 +102,12 @@ func updateServers() {
 	go func() {
 		for {
 			time.Sleep(time.Second)
-			newServers := ""
+			var newServers strings.Builder
 			itor := redisClient.Scan(ctx, 0, fmt.Sprintf("%s*", prefix), 0).Iterator()
 			for itor.Next(ctx) {
 				_, server, result := strings.Cut(itor.Val(), prefix)
 				if result {
-					newServers += fmt.Sprintf("%s\n", server)
+					newServers.WriteString(fmt.Sprintf("%s\n", server))
 				}
 			}
 			if err := itor.Err(); err != nil {
@@ -115,7 +115,7 @@ func updateServers() {
 				continue
 			}
 			serversMutex.Lock()
-			servers = newServers
+			servers = newServers.String()
 			serversMutex.Unlock()
 		}
 	}()

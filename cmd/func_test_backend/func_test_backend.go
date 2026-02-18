@@ -180,7 +180,7 @@ func test_magic_backend() {
 
 	magicUpdates := 0
 
-	for i := 0; i < 30; i++ {
+	for range 30 {
 
 		response, err = http.Get("http://127.0.0.1:40000/magic")
 		if err != nil || response.StatusCode != 200 {
@@ -269,7 +269,7 @@ func test_magic_backend() {
 
 	time.Sleep(time.Second)
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 
 		response1, err := http.Get("http://127.0.0.1:40000/magic")
 		if err != nil || response1.StatusCode != 200 {
@@ -475,14 +475,14 @@ func test_relay_manager() {
 	samplePacketLoss := make([]uint16, numSamples)
 	counters := make([]uint64, constants.NumRelayCounters)
 
-	for i := 0; i < numSamples; i++ {
+	for i := range numSamples {
 		sampleRelayId[i] = uint64(i)
 		sampleRTT[i] = 10
 		sampleJitter[i] = 5
 		samplePacketLoss[i] = 0
 	}
 
-	for i := 0; i < NumRelays; i++ {
+	for i := range NumRelays {
 
 		go func(index int) {
 
@@ -632,14 +632,14 @@ func test_optimize() {
 	samplePacketLoss := make([]uint16, numSamples)
 	counters := make([]uint64, constants.NumRelayCounters)
 
-	for i := 0; i < numSamples; i++ {
+	for i := range numSamples {
 		sampleRelayId[i] = uint64(i)
 		sampleRTT[i] = uint8(common.RandomInt(0, 255))
 		sampleJitter[i] = uint8(common.RandomInt(0, 255))
 		samplePacketLoss[i] = uint16(common.RandomInt(0, 255))
 	}
 
-	for i := 0; i < NumRelays; i++ {
+	for i := range NumRelays {
 
 		go func(index int) {
 
@@ -684,7 +684,7 @@ func test_relay_backend() {
 	datacenterLatitudes := make([]float32, NumDatacenters)
 	datacenterLongitudes := make([]float32, NumDatacenters)
 
-	for i := 0; i < NumDatacenters; i++ {
+	for i := range NumDatacenters {
 		datacenterIds[i] = uint64(i)
 		datacenterNames[i] = fmt.Sprintf("datacenter%d", i)
 		datacenterLatitudes[i] = float32(common.RandomInt(-90, +90))
@@ -726,7 +726,7 @@ func test_relay_backend() {
 	datacenter.Name = "test"
 	database.DatacenterMap[1] = &datacenter
 
-	for i := 0; i < NumRelays; i++ {
+	for i := range NumRelays {
 
 		relay := db.Relay{}
 
@@ -838,7 +838,7 @@ func test_relay_backend() {
 
 	var successCount uint64
 
-	for i := 0; i < NumRelays; i++ {
+	for i := range NumRelays {
 
 		go func(index int) {
 
@@ -870,7 +870,7 @@ func test_relay_backend() {
 					requestPacket.NumSamples = NumRelays
 					requestPacket.NumRelayCounters = constants.NumRelayCounters
 
-					for i := 0; i < NumRelays; i++ {
+					for i := range NumRelays {
 						requestPacket.SampleRelayId[i] = relayIds[i]
 						requestPacket.SampleRTT[i] = uint8(common.RandomInt(0, 255))
 						requestPacket.SampleJitter[i] = uint8(common.RandomInt(0, 255))
