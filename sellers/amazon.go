@@ -39,6 +39,10 @@ var prodRelayMap = map[string][]string{
 
 	// "amazon.ohio.1": {"amazon.ohio.1", "m5a.large", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 
+	"amazon.singapore.1": {"amazon.singapore.1", "m5a.large", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	"amazon.singapore.2": {"amazon.singapore.2", "m5a.large", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	"amazon.singapore.3": {"amazon.singapore.3", "m5a.large", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+
 	"amazon.saopaulo.1": {"amazon.saopaulo.1", "m5a.large", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 	"amazon.saopaulo.2": {"amazon.saopaulo.2", "m5a.large", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 	"amazon.saopaulo.3": {"amazon.saopaulo.3", "m5a.large", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
