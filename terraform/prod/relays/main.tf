@@ -33,67 +33,48 @@ locals {
 
   rematch_datacenters = [
 
-    "latitude.saopaulo",
-    "google.saopaulo.1",
-    "google.saopaulo.2",
-    "google.saopaulo.3",
-
-    "i3d.dubai",
-    "google.doha.1",
-    "google.doha.2",
-    "google.doha.3",
-
-    "zenlayer.istanbul",
     "datapacket.istanbul",
     "gcore.istanbul",
 
-    "velia.frankfurt",
-    "uk2group.frankfurt",
-    "gcore.frankfurt",
-    "i3d.frankfurt",
-    "datapacket.frankfurt",
-    "ovh.frankfurt",
-    "google.frankfurt.1",
-    "google.frankfurt.2",
-    "google.frankfurt.3",
+    "amazon.frankfurt.1",
+    "amazon.frankfurt.2",
+    "amazon.frankfurt.3",
 
-    "i3d.losangeles",
-    "datapacket.losangeles",
-    "hivelocity.losangeles",
-    "google.losangeles.1",
-    "google.losangeles.2",
-    "google.losangeles.3",
+    "amazon.saopaulo.1",
+    "amazon.saopaulo.2",
+    "amazon.saopaulo.3",
 
-    "uk2group.dallas",
-    "serversdotcom.dallas",
-    "google.dallas.1",
-    "google.dallas.2",
-    "google.dallas.3",
+    "amazon.losangeles.1",
+    "amazon.losangeles.2",
 
-    "latitude.ashburn",
-    "i3d.ashburn",
-    "gcore.ashburn",
-    "ovh.ashburn",
-    "datapacket.ashburn",
-    "google.virginia.1",
-    "google.virginia.2",
-    "google.virginia.3",
+    "amazon.bahrain.1",
+    "amazon.bahrain.2",
+    "amazon.bahrain.3",
 
-    "i3d.singapore",
+    "amazon.dallas.1",
 
-    "google.tokyo.1",
-    "google.tokyo.2",
-    "google.tokyo.3",
+    "amazon.virginia.1",
+    "amazon.virginia.2",
+    "amazon.virginia.3",
+    "amazon.virginia.4",
+    "amazon.virginia.5",
+    "amazon.virginia.6",
 
-    "serversaustralia.sydney",
-    "google.sydney.1",
-    "google.sydney.2",
-    "google.sydney.3",
+    "amazon.singapore.1",
+    "amazon.singapore.2",
+    "amazon.singapore.3",
 
-    "gcore.johannesburg",
-    "google.johannesburg.1",
-    "google.johannesburg.2",
-    "google.johannesburg.3",
+    "amazon.tokyo.1",
+    "amazon.tokyo.2",
+    "amazon.tokyo.4",
+
+    "amazon.sydney.1",
+    "amazon.sydney.2",
+    "amazon.sydney.3",
+
+    "amazon.johannesburg.1",
+    "amazon.johannesburg.2",
+    "amazon.johannesburg.3",
   ]
 
   sellers = {
@@ -213,7 +194,6 @@ locals {
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
     },
 
-    /*
     "google.saopaulo.2" = {
       datacenter_name = "google.saopaulo.2"
       type            = "n2-highcpu-2" # c2-standard-4"
@@ -225,7 +205,6 @@ locals {
       type            = "n2-highcpu-2" # "c2-standard-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
     },
-    */
 
     "google.santiago.1" = {
       datacenter_name = "google.santiago.1"
@@ -233,7 +212,6 @@ locals {
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
     },
 
-    /*
     "google.santiago.2" = {
       datacenter_name = "google.santiago.2"
       type            = "c2-standard-4"
@@ -245,7 +223,6 @@ locals {
       type            = "c2-standard-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
     },
-    */
 
     "google.frankfurt.1" = {
       datacenter_name = "google.frankfurt.1"
@@ -273,7 +250,6 @@ locals {
     },
     */
 
-    /*
     "google.dallas.2" = {
       datacenter_name = "google.dallas.2"
       type            = "n2-highcpu-2"
@@ -285,15 +261,12 @@ locals {
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
     },
-    */
 
-    /*
     "google.losangeles.1" = {
       datacenter_name = "google.losangeles.1"
       type            = "n2-highcpu-2" # "c2-standard-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
     },
-    */
 
     "google.losangeles.2" = {
       datacenter_name = "google.losangeles.2"
@@ -301,13 +274,11 @@ locals {
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
     },
 
-    /*
     "google.losangeles.3" = {
       datacenter_name = "google.losangeles.3"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
     },
-    */
 
     "google.virginia.1" = {
       datacenter_name = "google.virginia.1"
@@ -315,7 +286,6 @@ locals {
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
     },
 
-    /*
     "google.virginia.2" = {
       datacenter_name = "google.virginia.2"
       type            = "n2-highcpu-2"
@@ -327,7 +297,6 @@ locals {
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
     },
-    */
 
     "google.queretaro.1" = {
       datacenter_name = "google.queretaro.1"
