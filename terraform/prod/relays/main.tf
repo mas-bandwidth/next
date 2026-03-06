@@ -864,11 +864,6 @@ locals {
       public_address  = "103.219.169.121"
     },
 
-    "latitude.buenosaires" = {
-      datacenter_name = "latitude.buenosaires"
-      public_address  = "103.106.58.67"
-    },
-
     "latitude.buenosaires.b" = {
       datacenter_name = "latitude.buenosaires"
       public_address  = "103.106.58.63"
@@ -892,11 +887,6 @@ locals {
     "latitude.saopaulo.b" = {
       datacenter_name = "latitude.saopaulo"
       public_address  = "103.88.235.93"
-    },
-
-    "latitude.saopaulo.c" = {
-      datacenter_name = "latitude.saopaulo"
-      public_address  = "103.88.235.133"
     },
 
     "latitude.saopaulo.d" = {

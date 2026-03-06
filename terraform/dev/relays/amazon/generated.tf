@@ -2047,7 +2047,7 @@ module "relay_amazon_ohio_1" {
 	  name              = "amazon.ohio.1"
 	  zone              = local.datacenter_map["amazon.ohio.1"].zone
 	  region            = local.datacenter_map["amazon.ohio.1"].region
-	  type              = "m5a.xlarge"
+	  type              = "m5a.large"
 	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
 	  security_group_id = module.region_us_east_2.security_group_id
 	  vpn_address       = var.vpn_address
@@ -2060,7 +2060,7 @@ module "relay_amazon_ohio_1" {
 	  name              = "amazon.ohio.2"
 	  zone              = local.datacenter_map["amazon.ohio.2"].zone
 	  region            = local.datacenter_map["amazon.ohio.2"].region
-	  type              = "m5a.xlarge"
+	  type              = "m5a.large"
 	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
 	  security_group_id = module.region_us_east_2.security_group_id
 	  vpn_address       = var.vpn_address
@@ -2073,7 +2073,7 @@ module "relay_amazon_ohio_1" {
 	  name              = "amazon.ohio.3"
 	  zone              = local.datacenter_map["amazon.ohio.3"].zone
 	  region            = local.datacenter_map["amazon.ohio.3"].region
-	  type              = "m5a.xlarge"
+	  type              = "m5a.large"
 	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
 	  security_group_id = module.region_us_east_2.security_group_id
 	  vpn_address       = var.vpn_address
