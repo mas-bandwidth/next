@@ -2037,6 +2037,7 @@ locals {
 
     "amazon.ohio.1" = { datacenter_name = "amazon.ohio.1" },
     "amazon.ohio.2" = { datacenter_name = "amazon.ohio.2" },
+    "amazon.ohio.3" = { datacenter_name = "amazon.ohio.3" },
   }
 
 }
@@ -2059,6 +2060,19 @@ module "relay_amazon_ohio_1" {
 	  name              = "amazon.ohio.2"
 	  zone              = local.datacenter_map["amazon.ohio.2"].zone
 	  region            = local.datacenter_map["amazon.ohio.2"].region
+	  type              = "m5a.xlarge"
+	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
+	  security_group_id = module.region_us_east_2.security_group_id
+	  vpn_address       = var.vpn_address
+	  providers = {
+	    aws = aws.us-east-2
+	  }
+	}
+	module "relay_amazon_ohio_3" {
+	  source            = "./relay"
+	  name              = "amazon.ohio.3"
+	  zone              = local.datacenter_map["amazon.ohio.3"].zone
+	  region            = local.datacenter_map["amazon.ohio.3"].region
 	  type              = "m5a.xlarge"
 	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
 	  security_group_id = module.region_us_east_2.security_group_id
@@ -2100,6 +2114,22 @@ module "relay_amazon_ohio_1" {
 	      "internal_port"    = 40000
 	      "internal_group"   = "us-east-2"
 	      "ssh_ip"           = module.relay_amazon_ohio_2.public_address
+	      "ssh_port"         = 22
+	      "ssh_user"         = "ubuntu"
+	      "bandwidth_price"  = 2
+	    }
+
+	    "amazon.ohio.3" = {
+	      "relay_name"       = "amazon.ohio.3"
+	      "datacenter_name"  = "amazon.ohio.3"
+	      "seller_name"      = "Amazon"
+	      "seller_code"      = "amazon"
+	      "public_ip"        = module.relay_amazon_ohio_3.public_address
+	      "public_port"      = 40000
+	      "internal_ip"      = module.relay_amazon_ohio_3.internal_address
+	      "internal_port"    = 40000
+	      "internal_group"   = "us-east-2"
+	      "ssh_ip"           = module.relay_amazon_ohio_3.public_address
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
