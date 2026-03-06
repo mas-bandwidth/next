@@ -712,6 +712,7 @@ module "api" {
     cat <<EOF > /app/app.env
     ENV=dev
     DEBUG_LOGS=1
+    ENABLE_DEBUG=1
     ENABLE_REDIS_TIME_SERIES=true
     REDIS_TIME_SERIES_HOSTNAME="${module.redis_time_series.address}:6379"
     REDIS_PORTAL_HOSTNAME="${google_redis_instance.redis_portal.host}:6379"
