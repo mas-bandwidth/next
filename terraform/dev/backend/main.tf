@@ -41,7 +41,7 @@ locals {
   test_server_zone            = "us-central1-a"
 
   disable_backend             = false
-  disable_raspberry           = false
+  disable_raspberry           = true
   disable_ip2location         = true
 
   google_project_id           = file("~/secrets/dev-project-id.txt")
