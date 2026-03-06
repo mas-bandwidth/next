@@ -720,6 +720,7 @@ module "api" {
     SESSION_CRUNCHER_URL="http://${module.session_cruncher.address}"
     SERVER_CRUNCHER_URL="http://${module.server_cruncher.address}"
     RELAY_BACKEND_URL="http://${module.relay_backend.address}"
+    ROUTE_MATRIX_URL="http://${module.relay_backend.address}/route_matrix"
     GOOGLE_PROJECT_ID=${local.google_project_id}
     DATABASE_URL="${local.google_database_bucket}/dev.bin"
     DATABASE_PATH="/app/database.bin"
