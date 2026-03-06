@@ -1062,21 +1062,6 @@ locals {
       datacenter_name = "uk2group.frankfurt"
       public_address  = "46.23.75.215"
     },
-
-    "uk2group.dallas.a" = {
-      datacenter_name = "uk2group.dallas"
-      public_address  = "206.217.211.37"
-    },
-
-    "uk2group.dallas.b" = {
-      datacenter_name = "uk2group.dallas"
-      public_address  = "206.217.211.40"
-    },
-
-    "uk2group.dallas.c" = {
-      datacenter_name = "uk2group.dallas"
-      public_address  = "206.217.211.48"
-    },
   }
 }
 
@@ -1257,16 +1242,6 @@ locals {
     "velia.frankfurt.a" = {
       datacenter_name = "velia.frankfurt"
       public_address  = "37.61.208.81"
-    },
-
-    "velia.frankfurt.b" = {
-      datacenter_name = "velia.frankfurt"
-      public_address  = "37.61.218.237" 
-    },
-
-    "velia.frankfurt.c" = {
-      datacenter_name = "velia.frankfurt"
-      public_address  = "37.61.219.29"
     },
 
   }
