@@ -26,6 +26,26 @@ var devRelayMap = map[string][]string{
 
 var prodRelayMap = map[string][]string{
 
+	"amazon.hongkong.1": {"amazon.hongkong.1", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	"amazon.hongkong.2": {"amazon.hongkong.2", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	"amazon.hongkong.3": {"amazon.hongkong.3", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+
+	"amazon.mumbai.1": {"amazon.mumbai.1", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	"amazon.mumbai.2": {"amazon.mumbai.2", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	"amazon.mumbai.3": {"amazon.mumbai.3", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+
+	"amazon.capetown.1": {"amazon.capetown.1", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	"amazon.capetown.2": {"amazon.capetown.2", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	"amazon.capetown.3": {"amazon.capetown.3", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+
+	"amazon.tokyo.1": {"amazon.tokyo.1", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	"amazon.tokyo.2": {"amazon.tokyo.2", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	"amazon.tokyo.4": {"amazon.tokyo.4", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+
+	"amazon.sydney.1": {"amazon.sydney.1", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	"amazon.sydney.2": {"amazon.sydney.2", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	"amazon.sydney.3": {"amazon.sydney.3", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+
 	"amazon.calgary.1": {"amazon.calgary.1", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 
 	"amazon.portland.1": {"amazon.portland.1", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
@@ -127,7 +147,7 @@ var datacenterMap = map[string]*Datacenter{
 
 	// regions (AZID)
 
-	"afs1":  {"johannesburg", -33.9249, 18.4241},
+	"afs1":  {"capetown", -33.9249, 18.4241},
 	"ape1":  {"hongkong", 22.3193, 114.1694},
 	"apne1": {"tokyo", 35.6762, 139.6503},
 	"apne2": {"seoul", 37.5665, 126.9780},

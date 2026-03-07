@@ -573,7 +573,7 @@ locals {
 
   datacenter_map = {
 
-    "amazon.johannesburg.1" = {
+    "amazon.capetown.1" = {
       azid        = "afs1-az1"
       zone        = "af-south-1a"
       region      = "af-south-1"
@@ -584,7 +584,7 @@ locals {
       seller_code = "amazon"
     }
 
-    "amazon.johannesburg.2" = {
+    "amazon.capetown.2" = {
       azid        = "afs1-az2"
       zone        = "af-south-1b"
       region      = "af-south-1"
@@ -595,7 +595,7 @@ locals {
       seller_code = "amazon"
     }
 
-    "amazon.johannesburg.3" = {
+    "amazon.capetown.3" = {
       azid        = "afs1-az3"
       zone        = "af-south-1c"
       region      = "af-south-1"

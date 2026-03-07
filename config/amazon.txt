@@ -1,6 +1,6 @@
-afs1-az1,amazon.johannesburg.1
-afs1-az2,amazon.johannesburg.2
-afs1-az3,amazon.johannesburg.3
+afs1-az1,amazon.capetown.1
+afs1-az2,amazon.capetown.2
+afs1-az3,amazon.capetown.3
 afs1-los1-az1,amazon.nigeria.1
 ape1-az1,amazon.hongkong.1
 ape1-az2,amazon.hongkong.2

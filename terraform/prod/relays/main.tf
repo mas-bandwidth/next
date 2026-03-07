@@ -33,6 +33,8 @@ locals {
 
   rematch_datacenters = [
 
+    "i3d.dubai",
+
     "datapacket.istanbul",
     "gcore.istanbul",
 
@@ -72,9 +74,9 @@ locals {
     "amazon.sydney.2",
     "amazon.sydney.3",
 
-    "amazon.johannesburg.1",
-    "amazon.johannesburg.2",
-    "amazon.johannesburg.3",
+    "amazon.capetown.1",
+    "amazon.capetown.2",
+    "amazon.capetown.3",
   ]
 
   sellers = {
@@ -131,6 +133,114 @@ locals {
   google_credentials = "~/secrets/terraform-prod-relays.json"
   google_project     = file("~/secrets/prod-relays-project-id.txt")
   google_relays = {
+
+    "google.hongkong.1" = {
+      datacenter_name = "google.hongkong.1"
+      type            = "n2-highcpu-2"
+      image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+    },
+
+    "google.hongkong.2" = {
+      datacenter_name = "google.hongkong.2"
+      type            = "n2-highcpu-2"
+      image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+    },
+
+    "google.hongkong.3" = {
+      datacenter_name = "google.hongkong.3"
+      type            = "n2-highcpu-2"
+      image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+    },
+
+    "google.mumbai.1" = {
+      datacenter_name = "google.mumbai.1"
+      type            = "n2-highcpu-2"
+      image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+    },
+
+    "google.mumbai.2" = {
+      datacenter_name = "google.mumbai.2"
+      type            = "n2-highcpu-2"
+      image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+    },
+
+    "google.mumbai.3" = {
+      datacenter_name = "google.mumbai.3"
+      type            = "n2-highcpu-2"
+      image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+    },
+
+    "google.johannesburg.1" = {
+      datacenter_name = "google.johannesburg.1"
+      type            = "n2-highcpu-2"
+      image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+    },
+
+    "google.johannesburg.2" = {
+      datacenter_name = "google.johannesburg.2"
+      type            = "n2-highcpu-2"
+      image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+    },
+
+    "google.johannesburg.3" = {
+      datacenter_name = "google.johannesburg.3"
+      type            = "n2-highcpu-2"
+      image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+    },
+
+    "google.sydney.1" = {
+      datacenter_name = "google.sydney.1"
+      type            = "n2-highcpu-2"
+      image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+    },
+
+    "google.sydney.2" = {
+      datacenter_name = "google.sydney.2"
+      type            = "n2-highcpu-2"
+      image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+    },
+
+    "google.sydney.3" = {
+      datacenter_name = "google.sydney.3"
+      type            = "n2-highcpu-2"
+      image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+    },
+
+    "google.singapore.1" = {
+      datacenter_name = "google.singapore.1"
+      type            = "n2-highcpu-2"
+      image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+    },
+
+    "google.singapore.2" = {
+      datacenter_name = "google.singapore.2"
+      type            = "n2-highcpu-2"
+      image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+    },
+
+    "google.singapore.3" = {
+      datacenter_name = "google.singapore.3"
+      type            = "n2-highcpu-2"
+      image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+    },
+
+    "google.tokyo.1" = {
+      datacenter_name = "google.tokyo.1"
+      type            = "n2-highcpu-2"
+      image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+    },
+
+    "google.tokyo.2" = {
+      datacenter_name = "google.tokyo.2"
+      type            = "n2-highcpu-2"
+      image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+    },
+
+    "google.tokyo.3" = {
+      datacenter_name = "google.tokyo.3"
+      type            = "n2-highcpu-2"
+      image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+    },
 
     "google.lasvegas.1" = {
       datacenter_name = "google.lasvegas.1"
@@ -290,13 +400,13 @@ locals {
 
     "google.queretaro.2" = {
       datacenter_name = "google.queretaro.2"
-      type            = "c4-highcpu-4"
+      type            = "n4-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
     },
 
     "google.queretaro.3" = {
       datacenter_name = "google.queretaro.3"
-      type            = "c4-highcpu-4"
+      type            = "n4-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
     },
 
@@ -581,6 +691,24 @@ module "akamai_relays" {
 locals {
 
   zenlayer_relays = {
+
+    "zenlayer.jakarta" = {
+      datacenter_name  = "zenlayer.jakarta"
+      public_address   = "162.128.66.181"
+      internal_address = "10.130.96.2"
+    },
+
+    "zenlayer.hongkong" = {
+      datacenter_name  = "zenlayer.hongkong"
+      public_address   = "103.49.62.221"
+      internal_address = "10.130.96.2"
+    },
+
+    "zenlayer.singapore" = {
+      datacenter_name  = "zenlayer.singapore"
+      public_address   = "162.128.86.254"
+      internal_address = "10.130.128.2"
+    },
 
     "zenlayer.saopaulo" = {
       datacenter_name = "zenlayer.saopaulo"
@@ -1481,7 +1609,7 @@ resource "networknext_route_shader" rematch {
   force_next = false
   latency_reduction_threshold = 10
   acceptable_latency = 10
-  acceptable_packet_loss = 0.1
+  acceptable_packet_loss = 1.0
   bandwidth_envelope_up_kbps = 1024
   bandwidth_envelope_down_kbps = 1024
   route_select_threshold = 1
