@@ -8,7 +8,7 @@ locals {
   vpn_address                 = "45.79.157.168"
   ssh_public_key_file         = "~/secrets/next_ssh.pub"
   ssh_private_key_file        = "~/secrets/next_ssh"
-  relay_version               = "relay-144"
+  relay_version               = "relay-146"
   relay_artifacts_bucket      = "sloclap_network_next_relay_artifacts"
   relay_backend_public_key    = "TINP/TnYY/0W7JvLFlYGrB0MUw+b4aIrN20Vq7g5bhU="
   relay_backend_url           = "relay.virtualgo.net"
@@ -132,61 +132,47 @@ locals {
   google_project     = file("~/secrets/prod-relays-project-id.txt")
   google_relays = {
 
-    /*
     "google.lasvegas.1" = {
       datacenter_name = "google.lasvegas.1"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
     },
-    */
 
-    /*
     "google.saltlakecity.1" = {
       datacenter_name = "google.saltlakecity.1"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
     },
-    */
 
-    /*
     "google.oregon.1" = {
       datacenter_name = "google.oregon.1"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
     },
-    */
 
-    /*
     "google.toronto.1" = {
       datacenter_name = "google.toronto.1"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
     },
-    */
 
-    /*
     "google.montreal.1" = {
       datacenter_name = "google.montreal.1"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
     },
-    */
 
-    /*
     "google.ohio.1" = {
       datacenter_name = "google.ohio.1"      
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
     },
-    */
 
-    /*
     "google.iowa.1" = {
       datacenter_name = "google.iowa.1"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
     },
-    */
 
     "google.saopaulo.1" = {
       datacenter_name = "google.saopaulo.1"
@@ -242,13 +228,11 @@ locals {
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
     },
 
-    /*
     "google.dallas.1" = {
       datacenter_name = "google.dallas.1"
       type            = "n2-highcpu-2" # "c3-standard-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
     },
-    */
 
     "google.dallas.2" = {
       datacenter_name = "google.dallas.2"
@@ -304,7 +288,6 @@ locals {
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
     },
 
-    /*
     "google.queretaro.2" = {
       datacenter_name = "google.queretaro.2"
       type            = "c4-highcpu-4"
@@ -316,7 +299,6 @@ locals {
       type            = "c4-highcpu-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
     },
-    */
 
     "google.doha.1" = {
       datacenter_name = "google.doha.1"
@@ -324,7 +306,6 @@ locals {
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
     },
 
-    /*
     "google.doha.2" = {
       datacenter_name = "google.doha.2"
       type            = "n2-highcpu-2" # c4-highcpu-4"
@@ -336,7 +317,6 @@ locals {
       type            = "n2-highcpu-2" # "e2-standard-8"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
     },
-    */
 
     "google.dammam.1" = {
       datacenter_name = "google.dammam.1"
@@ -344,27 +324,23 @@ locals {
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
     },
 
-    /*
     "google.dammam.2" = {
       datacenter_name = "google.dammam.2"
-      type            = "c2-standard-4"
+      type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
     },
 
     "google.dammam.3" = {
       datacenter_name = "google.dammam.3"
-      type            = "c4-highcpu-4"
+      type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
     },
-    */
 
-    /*
     "google.telaviv.1" = {
       datacenter_name = "google.telaviv.1"
       type            = "n2-highcpu-2" # "c4-highmem-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
     },
-    */
 
     /*
     "google.telaviv.2" = {
@@ -1504,8 +1480,8 @@ resource "networknext_route_shader" rematch {
   name = "rematch"
   force_next = false
   latency_reduction_threshold = 10
-  acceptable_latency = 20
-  acceptable_packet_loss = 1.0
+  acceptable_latency = 10
+  acceptable_packet_loss = 0.1
   bandwidth_envelope_up_kbps = 1024
   bandwidth_envelope_down_kbps = 1024
   route_select_threshold = 1
