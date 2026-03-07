@@ -25,9 +25,9 @@ locals {
   test_buyer_public_key       = "AzcqXbdP3Txq3rHIjRBS4BfG7OoKV9PAZfB0rY7a+ArdizBzFAd2vQ=="
 
   test_datacenters = [
-    "google.saopaulo.1",
-    "google.saopaulo.2",
-    "google.saopaulo.3",
+    "amazon.ohio.1",
+    "amazon.ohio.2",
+    "amazon.ohio.3",
   ]
 
   sellers = {
@@ -83,46 +83,45 @@ locals {
 
     "google.iowa.1" = {
       datacenter_name = "google.iowa.1"
-      type            = "c3-highcpu-4"
+      type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
     },
 
     "google.iowa.2" = {
       datacenter_name = "google.iowa.2"
-      type            = "c3-highcpu-4"
+      type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
     },
 
     "google.iowa.3" = {
       datacenter_name = "google.iowa.3"
-      type            = "c3-highcpu-4"
+      type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
     },
 
     "google.iowa.6" = {
       datacenter_name = "google.iowa.6"
-      type            = "c3-highcpu-4"
+      type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
     },
 
     "google.ohio.1" = {
       datacenter_name = "google.ohio.1"
-      type            = "c3-highcpu-4"
+      type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
     },
 
     "google.ohio.2" = {
       datacenter_name = "google.ohio.2"
-      type            = "c3-highcpu-4"
+      type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
     },
 
     "google.ohio.3" = {
       datacenter_name = "google.ohio.3"
-      type            = "c3-highcpu-4"
+      type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
     },
-
   }
 }
 
@@ -170,11 +169,13 @@ locals {
 
   akamai_relays = {
 
+    /*
     "akamai.newyork" = {
       datacenter_name = "akamai.newyork"
-      type            = "g6-dedicated-4"
+      type            = "g6-dedicated-2"
       image           = "linode/ubuntu22.04"
     },
+    */
 
   }
 }

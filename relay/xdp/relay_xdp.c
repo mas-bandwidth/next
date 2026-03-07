@@ -109,7 +109,7 @@ int bpf_relay_sha256( void * data, int data__sz, void * output, int output__sz )
 int bpf_relay_xchacha20poly1305_decrypt( void * data, int data__sz, struct chacha20poly1305_crypto * crypto ) __ksym;
 
 #ifndef RELAY_DEBUG
-#define RELAY_DEBUG 0
+#define RELAY_DEBUG 1
 #endif // #ifndef RELAY_DEBUG
 
 #if RELAY_DEBUG
