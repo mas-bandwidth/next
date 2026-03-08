@@ -56,7 +56,7 @@ func main() {
 
 	scriptData, err := os.ReadFile("scripts/setup_relay.sh")
 	if err != nil {
-		fmt.Printf("\nerror: could not load setup_realy.sh script\n\n")
+		fmt.Printf("\nerror: could not load setup_relay.sh script\n\n")
 		os.Exit(1)
 	}
 

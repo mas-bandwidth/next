@@ -692,6 +692,12 @@ locals {
 
   zenlayer_relays = {
 
+    "zenlayer.manilla" = {
+      datacenter_name  = "zenlayer.manilla"
+      public_address   = "66.253.11.251"
+      internal_address = "10.131.160.2"
+    },
+
     "zenlayer.jakarta" = {
       datacenter_name  = "zenlayer.jakarta"
       public_address   = "162.128.66.181"
@@ -701,7 +707,7 @@ locals {
     "zenlayer.hongkong" = {
       datacenter_name  = "zenlayer.hongkong"
       public_address   = "103.49.62.221"
-      internal_address = "10.130.96.2"
+      internal_address = "10.130.64.2"
     },
 
     "zenlayer.singapore" = {
