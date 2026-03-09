@@ -26,6 +26,13 @@ var devRelayMap = map[string][]string{
 
 var prodRelayMap = map[string][]string{
 
+	"amazon.sanjose.1": {"amazon.sanjose.1", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	"amazon.sanjose.3": {"amazon.sanjose.3", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+
+	"amazon.newzealand.1": {"amazon.newzealand.1", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	"amazon.newzealand.2": {"amazon.newzealand.2", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	"amazon.newzealand.3": {"amazon.newzealand.3", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+
 	"amazon.hongkong.1": {"amazon.hongkong.1", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 	"amazon.hongkong.2": {"amazon.hongkong.2", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 	"amazon.hongkong.3": {"amazon.hongkong.3", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
@@ -136,7 +143,7 @@ var prodRelayMap = map[string][]string{
 // Exclude regions
 
 var excludedRegions = map[string]bool{
-	"ap-southeast-6": true,
+	//"ap-southeast-6": true,
 }
 
 // ===========================================================================================================================================
@@ -480,7 +487,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.0"
+      version = "~> 6.35"
     }
   }
 }
@@ -643,7 +650,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.0"
+      version = "~> 6.35"
     }
   }
 }

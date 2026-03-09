@@ -3,7 +3,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.0"
+      version = "~> 6.35"
     }
   }
 }
@@ -254,6 +254,14 @@ provider "aws" {
   profile                  = var.profile
   alias                    = "ap-southeast-5"
   region                   = "ap-southeast-5"
+}
+
+provider "aws" { 
+  shared_config_files      = var.config
+  shared_credentials_files = var.credentials
+  profile                  = var.profile
+  alias                    = "ap-southeast-6"
+  region                   = "ap-southeast-6"
 }
 
 provider "aws" { 
@@ -548,6 +556,15 @@ module "region_ap_southeast_5" {
   ssh_public_key_file = var.ssh_public_key_file
   providers = {
     aws = aws.ap-southeast-5
+  }
+}
+
+module "region_ap_southeast_6" { 
+  source              = "./region"
+  vpn_address         = var.vpn_address
+  ssh_public_key_file = var.ssh_public_key_file
+  providers = {
+    aws = aws.ap-southeast-6
   }
 }
 
@@ -2026,6 +2043,7 @@ locals {
     "ap-southeast-4",
     "us-east-1",
     "ap-southeast-5",
+    "ap-southeast-6",
     "us-east-2",
     "ap-southeast-7",
   ]

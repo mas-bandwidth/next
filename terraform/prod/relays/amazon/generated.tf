@@ -3,7 +3,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.0"
+      version = "~> 6.35"
     }
   }
 }
@@ -254,6 +254,14 @@ provider "aws" {
   profile                  = var.profile
   alias                    = "ap-southeast-5"
   region                   = "ap-southeast-5"
+}
+
+provider "aws" { 
+  shared_config_files      = var.config
+  shared_credentials_files = var.credentials
+  profile                  = var.profile
+  alias                    = "ap-southeast-6"
+  region                   = "ap-southeast-6"
 }
 
 provider "aws" { 
@@ -548,6 +556,15 @@ module "region_ap_southeast_5" {
   ssh_public_key_file = var.ssh_public_key_file
   providers = {
     aws = aws.ap-southeast-5
+  }
+}
+
+module "region_ap_southeast_6" { 
+  source              = "./region"
+  vpn_address         = var.vpn_address
+  ssh_public_key_file = var.ssh_public_key_file
+  providers = {
+    aws = aws.ap-southeast-6
   }
 }
 
@@ -2026,6 +2043,7 @@ locals {
     "ap-southeast-4",
     "us-east-1",
     "ap-southeast-5",
+    "ap-southeast-6",
     "us-east-2",
     "ap-southeast-7",
   ]
@@ -2060,12 +2078,17 @@ locals {
     "amazon.mumbai.1" = { datacenter_name = "amazon.mumbai.1" },
     "amazon.mumbai.2" = { datacenter_name = "amazon.mumbai.2" },
     "amazon.mumbai.3" = { datacenter_name = "amazon.mumbai.3" },
+    "amazon.newzealand.1" = { datacenter_name = "amazon.newzealand.1" },
+    "amazon.newzealand.2" = { datacenter_name = "amazon.newzealand.2" },
+    "amazon.newzealand.3" = { datacenter_name = "amazon.newzealand.3" },
     "amazon.ohio.1" = { datacenter_name = "amazon.ohio.1" },
     "amazon.oman.1" = { datacenter_name = "amazon.oman.1" },
     "amazon.oregon.1" = { datacenter_name = "amazon.oregon.1" },
     "amazon.paris.1" = { datacenter_name = "amazon.paris.1" },
     "amazon.portland.1" = { datacenter_name = "amazon.portland.1" },
     "amazon.queretaro.1" = { datacenter_name = "amazon.queretaro.1" },
+    "amazon.sanjose.1" = { datacenter_name = "amazon.sanjose.1" },
+    "amazon.sanjose.3" = { datacenter_name = "amazon.sanjose.3" },
     "amazon.santiago.1" = { datacenter_name = "amazon.santiago.1" },
     "amazon.saopaulo.1" = { datacenter_name = "amazon.saopaulo.1" },
     "amazon.saopaulo.2" = { datacenter_name = "amazon.saopaulo.2" },
@@ -2418,6 +2441,45 @@ module "relay_amazon_bahrain_1" {
 	    aws = aws.ap-south-1
 	  }
 	}
+	module "relay_amazon_newzealand_1" {
+	  source            = "./relay"
+	  name              = "amazon.newzealand.1"
+	  zone              = local.datacenter_map["amazon.newzealand.1"].zone
+	  region            = local.datacenter_map["amazon.newzealand.1"].region
+	  type              = "t3.medium"
+	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
+	  security_group_id = module.region_ap_southeast_6.security_group_id
+	  vpn_address       = var.vpn_address
+	  providers = {
+	    aws = aws.ap-southeast-6
+	  }
+	}
+	module "relay_amazon_newzealand_2" {
+	  source            = "./relay"
+	  name              = "amazon.newzealand.2"
+	  zone              = local.datacenter_map["amazon.newzealand.2"].zone
+	  region            = local.datacenter_map["amazon.newzealand.2"].region
+	  type              = "t3.medium"
+	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
+	  security_group_id = module.region_ap_southeast_6.security_group_id
+	  vpn_address       = var.vpn_address
+	  providers = {
+	    aws = aws.ap-southeast-6
+	  }
+	}
+	module "relay_amazon_newzealand_3" {
+	  source            = "./relay"
+	  name              = "amazon.newzealand.3"
+	  zone              = local.datacenter_map["amazon.newzealand.3"].zone
+	  region            = local.datacenter_map["amazon.newzealand.3"].region
+	  type              = "t3.medium"
+	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
+	  security_group_id = module.region_ap_southeast_6.security_group_id
+	  vpn_address       = var.vpn_address
+	  providers = {
+	    aws = aws.ap-southeast-6
+	  }
+	}
 	module "relay_amazon_ohio_1" {
 	  source            = "./relay"
 	  name              = "amazon.ohio.1"
@@ -2494,6 +2556,32 @@ module "relay_amazon_bahrain_1" {
 	  vpn_address       = var.vpn_address
 	  providers = {
 	    aws = aws.us-east-1
+	  }
+	}
+	module "relay_amazon_sanjose_1" {
+	  source            = "./relay"
+	  name              = "amazon.sanjose.1"
+	  zone              = local.datacenter_map["amazon.sanjose.1"].zone
+	  region            = local.datacenter_map["amazon.sanjose.1"].region
+	  type              = "t3.medium"
+	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
+	  security_group_id = module.region_us_west_1.security_group_id
+	  vpn_address       = var.vpn_address
+	  providers = {
+	    aws = aws.us-west-1
+	  }
+	}
+	module "relay_amazon_sanjose_3" {
+	  source            = "./relay"
+	  name              = "amazon.sanjose.3"
+	  zone              = local.datacenter_map["amazon.sanjose.3"].zone
+	  region            = local.datacenter_map["amazon.sanjose.3"].region
+	  type              = "t3.medium"
+	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
+	  security_group_id = module.region_us_west_1.security_group_id
+	  vpn_address       = var.vpn_address
+	  providers = {
+	    aws = aws.us-west-1
 	  }
 	}
 	module "relay_amazon_santiago_1" {
@@ -3201,6 +3289,54 @@ module "relay_amazon_bahrain_1" {
 	      "bandwidth_price"  = 2
 	    }
 
+	    "amazon.newzealand.1" = {
+	      "relay_name"       = "amazon.newzealand.1"
+	      "datacenter_name"  = "amazon.newzealand.1"
+	      "seller_name"      = "Amazon"
+	      "seller_code"      = "amazon"
+	      "public_ip"        = module.relay_amazon_newzealand_1.public_address
+	      "public_port"      = 40000
+	      "internal_ip"      = module.relay_amazon_newzealand_1.internal_address
+	      "internal_port"    = 40000
+	      "internal_group"   = "ap-southeast-6"
+	      "ssh_ip"           = module.relay_amazon_newzealand_1.public_address
+	      "ssh_port"         = 22
+	      "ssh_user"         = "ubuntu"
+	      "bandwidth_price"  = 2
+	    }
+
+	    "amazon.newzealand.2" = {
+	      "relay_name"       = "amazon.newzealand.2"
+	      "datacenter_name"  = "amazon.newzealand.2"
+	      "seller_name"      = "Amazon"
+	      "seller_code"      = "amazon"
+	      "public_ip"        = module.relay_amazon_newzealand_2.public_address
+	      "public_port"      = 40000
+	      "internal_ip"      = module.relay_amazon_newzealand_2.internal_address
+	      "internal_port"    = 40000
+	      "internal_group"   = "ap-southeast-6"
+	      "ssh_ip"           = module.relay_amazon_newzealand_2.public_address
+	      "ssh_port"         = 22
+	      "ssh_user"         = "ubuntu"
+	      "bandwidth_price"  = 2
+	    }
+
+	    "amazon.newzealand.3" = {
+	      "relay_name"       = "amazon.newzealand.3"
+	      "datacenter_name"  = "amazon.newzealand.3"
+	      "seller_name"      = "Amazon"
+	      "seller_code"      = "amazon"
+	      "public_ip"        = module.relay_amazon_newzealand_3.public_address
+	      "public_port"      = 40000
+	      "internal_ip"      = module.relay_amazon_newzealand_3.internal_address
+	      "internal_port"    = 40000
+	      "internal_group"   = "ap-southeast-6"
+	      "ssh_ip"           = module.relay_amazon_newzealand_3.public_address
+	      "ssh_port"         = 22
+	      "ssh_user"         = "ubuntu"
+	      "bandwidth_price"  = 2
+	    }
+
 	    "amazon.ohio.1" = {
 	      "relay_name"       = "amazon.ohio.1"
 	      "datacenter_name"  = "amazon.ohio.1"
@@ -3292,6 +3428,38 @@ module "relay_amazon_bahrain_1" {
 	      "internal_port"    = 40000
 	      "internal_group"   = "amazon.queretaro.1"
 	      "ssh_ip"           = module.relay_amazon_queretaro_1.public_address
+	      "ssh_port"         = 22
+	      "ssh_user"         = "ubuntu"
+	      "bandwidth_price"  = 2
+	    }
+
+	    "amazon.sanjose.1" = {
+	      "relay_name"       = "amazon.sanjose.1"
+	      "datacenter_name"  = "amazon.sanjose.1"
+	      "seller_name"      = "Amazon"
+	      "seller_code"      = "amazon"
+	      "public_ip"        = module.relay_amazon_sanjose_1.public_address
+	      "public_port"      = 40000
+	      "internal_ip"      = module.relay_amazon_sanjose_1.internal_address
+	      "internal_port"    = 40000
+	      "internal_group"   = "us-west-1"
+	      "ssh_ip"           = module.relay_amazon_sanjose_1.public_address
+	      "ssh_port"         = 22
+	      "ssh_user"         = "ubuntu"
+	      "bandwidth_price"  = 2
+	    }
+
+	    "amazon.sanjose.3" = {
+	      "relay_name"       = "amazon.sanjose.3"
+	      "datacenter_name"  = "amazon.sanjose.3"
+	      "seller_name"      = "Amazon"
+	      "seller_code"      = "amazon"
+	      "public_ip"        = module.relay_amazon_sanjose_3.public_address
+	      "public_port"      = 40000
+	      "internal_ip"      = module.relay_amazon_sanjose_3.internal_address
+	      "internal_port"    = 40000
+	      "internal_group"   = "us-west-1"
+	      "ssh_ip"           = module.relay_amazon_sanjose_3.public_address
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
