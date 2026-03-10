@@ -977,6 +977,11 @@ locals {
 
   latitude_relays = {
 
+    "latitude.siliconvalley" = {
+      datacenter_name = "latitude.siliconvalley"
+      public_address  = "206.223.239.17"
+    },
+
     "latitude.bogota" = {
       datacenter_name = "latitude.bogota"
       public_address  = "103.219.169.121"

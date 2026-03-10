@@ -135,6 +135,14 @@ locals {
       seller_code = local.seller_code
     },
 
+    "latitude.siliconvalley" = {
+      latitude    = 37.34
+      longitude   = -121.9168
+      native_name = "SV"
+      seller_name = local.seller_name
+      seller_code = local.seller_code
+    },
+
   }
 }
 
