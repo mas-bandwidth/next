@@ -38,6 +38,9 @@ locals {
     "datapacket.istanbul",
     "gcore.istanbul",
 
+    "amazon.sanjose.1",
+    "amazon.sanjose.3",
+
     "amazon.frankfurt.1",
     "amazon.frankfurt.2",
     "amazon.frankfurt.3",
