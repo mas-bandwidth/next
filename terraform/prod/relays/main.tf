@@ -137,6 +137,110 @@ locals {
   google_project     = file("~/secrets/prod-relays-project-id.txt")
   google_relays = {
 
+    "google.finland.1" = {
+      datacenter_name = "google.finland.1"
+      type            = "n2-highcpu-2"
+      image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+    },
+
+    "google.finland.2" = {
+      datacenter_name = "google.finland.2"
+      type            = "n2-highcpu-2"
+      image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+    },
+
+    "google.finland.3" = {
+      datacenter_name = "google.finland.3"
+      type            = "n2-highcpu-2"
+      image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+    },
+
+    "google.osaka.1" = {
+      datacenter_name = "google.osaka.1"
+      type            = "n2-highcpu-2"
+      image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+    },
+
+    /*
+    "google.osaka.2" = {
+      datacenter_name = "google.osaka.2"
+      type            = "n2-highcpu-2"
+      image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+    },
+
+    "google.osaka.3" = {
+      datacenter_name = "google.osaka.3"
+      type            = "n2-highcpu-2"
+      image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+    },
+    */
+
+    "google.seoul.1" = {
+      datacenter_name = "google.seoul.1"
+      type            = "n2-highcpu-2"
+      image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+    },
+
+    "google.seoul.2" = {
+      datacenter_name = "google.seoul.2"
+      type            = "n2-highcpu-2"
+      image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+    },
+
+    "google.seoul.3" = {
+      datacenter_name = "google.seoul.3"
+      type            = "n2-highcpu-2"
+      image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+    },
+
+    "google.taiwan.1" = {
+      datacenter_name = "google.taiwan.1"
+      type            = "n2-highcpu-2"
+      image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+    },
+
+    "google.taiwan.2" = {
+      datacenter_name = "google.taiwan.2"
+      type            = "n2-highcpu-2"
+      image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+    },
+
+    "google.taiwan.3" = {
+      datacenter_name = "google.taiwan.3"
+      type            = "n2-highcpu-2"
+      image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+    },
+
+    "google.zurich.1" = {
+      datacenter_name = "google.zurich.1"
+      type            = "n2-highcpu-2"
+      image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+    },
+
+    "google.warsaw.1" = {
+      datacenter_name = "google.warsaw.1"
+      type            = "n2-highcpu-2"
+      image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+    },
+
+    "google.southcarolina.2" = {
+      datacenter_name = "google.southcarolina.2"
+      type            = "n2-highcpu-2"
+      image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+    },
+
+    "google.southcarolina.3" = {
+      datacenter_name = "google.southcarolina.3"
+      type            = "n2-highcpu-2"
+      image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+    },
+
+    "google.southcarolina.4" = {
+      datacenter_name = "google.southcarolina.4"
+      type            = "n2-highcpu-2"
+      image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+    },
+
     "google.hongkong.1" = {
       datacenter_name = "google.hongkong.1"
       type            = "n2-highcpu-2"
@@ -187,6 +291,24 @@ locals {
 
     "google.johannesburg.3" = {
       datacenter_name = "google.johannesburg.3"
+      type            = "n2-highcpu-2"
+      image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+    },
+
+    "google.melbourne.1" = {
+      datacenter_name = "google.melbourne.1"
+      type            = "n2-highcpu-2"
+      image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+    },
+
+    "google.melbourne.2" = {
+      datacenter_name = "google.melbourne.2"
+      type            = "n2-highcpu-2"
+      image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+    },
+
+    "google.melbourne.3" = {
+      datacenter_name = "google.melbourne.3"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
     },
@@ -379,7 +501,7 @@ locals {
 
     "google.virginia.1" = {
       datacenter_name = "google.virginia.1"
-      type            = "n2-highcpu-4"
+      type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
     },
 
@@ -976,6 +1098,11 @@ module "i3d_relays" {
 locals {
 
   latitude_relays = {
+
+    "latitude.newyork" = {
+      datacenter_name = "latitude.newyork"
+      public_address  = "206.223.233.117"
+    },
 
     "latitude.siliconvalley" = {
       datacenter_name = "latitude.siliconvalley"
