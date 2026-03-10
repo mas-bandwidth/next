@@ -695,6 +695,11 @@ locals {
 
   zenlayer_relays = {
 
+    "zenlayer.sanjose" = {
+      datacenter_name  = "zenlayer.sanjose"
+      public_address   = "23.251.98.70"
+    },
+
     "zenlayer.manilla" = {
       datacenter_name  = "zenlayer.manilla"
       public_address   = "66.253.11.251"
