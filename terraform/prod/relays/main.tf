@@ -957,6 +957,12 @@ locals {
 
   datapacket_relays = {
 
+    "datapacket.denver" = {
+      datacenter_name = "datapacket.denver"
+      ssh_address = "121.127.44.13"
+      public_address = "121.127.44.13"
+    },
+
     "datapacket.saopaulo" = {
       datacenter_name = "datapacket.saopaulo"
       ssh_address = "79.127.137.166"
