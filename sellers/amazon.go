@@ -27,11 +27,13 @@ var devRelayMap = map[string][]string{
 var prodRelayMap = map[string][]string{
 
 	"amazon.osaka.1": {"amazon.osaka.1", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
-	"amazon.osaka.2": {"amazon.osaka.2", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	// "amazon.osaka.2": {"amazon.osaka.2", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 
 	"amazon.seoul.1": {"amazon.seoul.1", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	/*
 	"amazon.seoul.2": {"amazon.seoul.2", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 	"amazon.seoul.3": {"amazon.seoul.3", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	*/
 
 	"amazon.kansas.1": {"amazon.kansas.1", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 
@@ -42,23 +44,37 @@ var prodRelayMap = map[string][]string{
 	"amazon.perth.1": {"amazon.perth.1", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 
 	"amazon.stockholm.1": {"amazon.stockholm.1", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	/*
 	"amazon.stockholm.2": {"amazon.stockholm.2", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 	"amazon.stockholm.3": {"amazon.stockholm.3", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	*/
 
-	"amazon.sanjose.1": {"amazon.sanjose.1", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
-	"amazon.sanjose.3": {"amazon.sanjose.3", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	"amazon.sanjose.1": {"amazon.sanjose.1", "m5a.large", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	"amazon.sanjose.3": {"amazon.sanjose.3", "m5a.large", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+
+	"amazon.sydney.1": {"amazon.sydney.1", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	/*
+	"amazon.sydney.2": {"amazon.sydney.2", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	"amazon.sydney.3": {"amazon.sydney.3", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	*/
 
 	"amazon.newzealand.1": {"amazon.newzealand.1", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	/*
 	"amazon.newzealand.2": {"amazon.newzealand.2", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 	"amazon.newzealand.3": {"amazon.newzealand.3", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	*/
 
 	"amazon.hongkong.1": {"amazon.hongkong.1", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	/*
 	"amazon.hongkong.2": {"amazon.hongkong.2", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 	"amazon.hongkong.3": {"amazon.hongkong.3", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	*/
 
 	"amazon.mumbai.1": {"amazon.mumbai.1", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	/*
 	"amazon.mumbai.2": {"amazon.mumbai.2", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 	"amazon.mumbai.3": {"amazon.mumbai.3", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	*/
 
 	"amazon.capetown.1": {"amazon.capetown.1", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 	"amazon.capetown.2": {"amazon.capetown.2", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
@@ -67,10 +83,6 @@ var prodRelayMap = map[string][]string{
 	"amazon.tokyo.1": {"amazon.tokyo.1", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 	"amazon.tokyo.2": {"amazon.tokyo.2", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 	"amazon.tokyo.4": {"amazon.tokyo.4", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
-
-	"amazon.sydney.1": {"amazon.sydney.1", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
-	"amazon.sydney.2": {"amazon.sydney.2", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
-	"amazon.sydney.3": {"amazon.sydney.3", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 
 	"amazon.calgary.1": {"amazon.calgary.1", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 
@@ -111,6 +123,10 @@ var prodRelayMap = map[string][]string{
 	"amazon.virginia.5": {"amazon.virginia.5", "m5a.large", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 	"amazon.virginia.6": {"amazon.virginia.6", "r5.large", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 
+	// "amazon.chicago.2":     {"amazon.chicago.2", "c6i.large" /*"c6i.xlarge"*/, "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+
+	// "amazon.newyork.1":    {"amazon.newyork.1", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+
 	"amazon.dallas.1":     {"amazon.dallas.1", "c6i.large" /*"c6i.xlarge"*/, "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 
 	"amazon.miami.1":      {"amazon.miami.1", "c6i.large" /*"c6i.xlarge"*/, "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
@@ -118,7 +134,7 @@ var prodRelayMap = map[string][]string{
 	"amazon.queretaro.1":  {"amazon.queretaro.1", "t3.medium" /*"c5.2xlarge"*/, "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 
 	"amazon.losangeles.1": {"amazon.losangeles.1", "c5.large", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
-	"amazon.losangeles.2": {"amazon.losangeles.2", "c5.large", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	// "amazon.losangeles.2": {"amazon.losangeles.2", "c5.large", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 
 	"amazon.bahrain.1": {"amazon.bahrain.1", "c5a.large", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 	/*
@@ -175,6 +191,7 @@ var datacenterMap = map[string]*Datacenter{
 
 	"afs1":  {"capetown", -33.9249, 18.4241},
 	"ape1":  {"hongkong", 22.3193, 114.1694},
+	// "ape2":  {"taipei", 25.0330, 121.5654},
 	"apne1": {"tokyo", 35.6762, 139.6503},
 	"apne2": {"seoul", 37.5665, 126.9780},
 	"apne3": {"osaka", 34.6937, 135.5023},
@@ -187,6 +204,7 @@ var datacenterMap = map[string]*Datacenter{
 	"apse5": {"malaysia", 4.2105, 101.9758},
 	"apse6": {"newzealand", -36.8509, 174.7645},
 	"apse7": {"thailand", 15.8700, 100.9925},
+
 	"cac1":  {"montreal", 45.5019, -73.5674},
 	"euc1":  {"frankfurt", 50.1109, 8.6821},
 	"euc2":  {"zurich", 47.3769, 8.5417},
@@ -223,14 +241,14 @@ var datacenterMap = map[string]*Datacenter{
 	"atl1": {"atlanta", 33.7488, -84.3877},
 	"bos1": {"boston", 42.3601, -71.0589},
 	"bue1": {"buenosaires", -34.6037, -58.3816},
-//	"chi1": {"chicago", 41.8781, -87.6298},
+	"chi2": {"chicago", 41.8781, -87.6298},
 	"dfw2": {"dallas", 32.7767, -96.7970},
 	"iah1": {"houston", 29.7604, -95.3698},
 	"lim1": {"lima", -12.0464, -77.0428},
 	"mci1": {"kansas", 39.0997, -94.5786},
 	"mia2": {"miami", 25.7617, -80.1918},
 	"msp1": {"minneapolis", 44.9778, -93.2650},
-// "nyc1": {"newyork", 40.7128, -74.0060},
+ 	"nyc2": {"newyork", 40.7128, -74.0060},
 	"phl1": {"philadelphia", 39.9526, -75.1652},
 	"qro1": {"queretaro", 23.6345, -102.5528},
 	"scl1": {"santiago", -33.4489, -70.6693},
