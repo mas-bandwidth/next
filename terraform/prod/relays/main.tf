@@ -769,12 +769,19 @@ locals {
 
   akamai_relays = {
 
-  /*
     "akamai.chicago" = {
       datacenter_name = "akamai.chicago"
       type            = "g7-premium-16"
       image           = "linode/ubuntu22.04"
     },
+
+    "akamai.fremont" = {
+      datacenter_name = "akamai.fremont"
+      type            = "g6-dedicated-16"
+      image           = "linode/ubuntu22.04"
+    },
+
+  /*
 
     "akamai.saopaulo" = {
       datacenter_name = "akamai.saopaulo"
@@ -978,6 +985,12 @@ module "azure_relays" {
 locals {
 
   datapacket_relays = {
+
+    "datapacket.newyork" = {
+      datacenter_name = "datapacket.newyork"
+      ssh_address = "89.222.109.12"
+      public_address = "89.222.109.12"
+    }
 
     "datapacket.denver" = {
       datacenter_name = "datapacket.denver"
