@@ -781,8 +781,6 @@ locals {
       image           = "linode/ubuntu22.04"
     },
 
-  /*
-
     "akamai.saopaulo" = {
       datacenter_name = "akamai.saopaulo"
       type            = "g7-premium-16"
@@ -819,12 +817,13 @@ locals {
       image           = "linode/ubuntu22.04"
     },    
 
+    /*
     "akamai.london" = {
       datacenter_name = "akamai.london"
       type            = "g7-premium-16"
       image           = "linode/ubuntu22.04"
     },
-  */
+    */
   }
 }
 
