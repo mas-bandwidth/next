@@ -20,9 +20,9 @@ locals {
       seller_code = local.seller_code
     },
 
-    "serversdotcom.sanfran" = {
-      latitude    = 37.7749
-      longitude   = -122.4194
+    "serversdotcom.sanjose" = {
+      latitude    = 37.3387, 
+      longitude   = -121.8853
       native_name = ""
       seller_name = local.seller_name
       seller_code = local.seller_code

@@ -1499,6 +1499,24 @@ locals {
 
   serversdotcom_relays = {
 
+    "serversdotcom.washingtondc" = {
+      datacenter_name  = "serversdotcom.washingtondc"
+      public_address   = "209.192.155.142"
+      internal_address = "10.233.194.72"
+    },
+
+    "serversdotcom.singapore" = {
+      datacenter_name  = "serversdotcom.singapore"
+      public_address   = "103.23.208.238"
+      internal_address = "10.233.195.142"
+    },
+
+    "serversdotcom.sanjose" = {
+      datacenter_name  = "serversdotcom.sanjose"
+      public_address   = "50.115.10.103"
+      internal_address = "10.233.194.140"
+    },
+
     "serversdotcom.dallas" = {
       datacenter_name = "serversdotcom.dallas"
       public_address  = "64.58.117.12"
