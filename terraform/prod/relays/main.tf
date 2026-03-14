@@ -985,6 +985,24 @@ locals {
 
   datapacket_relays = {
 
+    "datapacket.sanjose" = {
+      datacenter_name = "datapacket.sanjose"
+      ssh_address = "79.127.255.82"
+      public_address = "79.127.255.82"
+    }
+
+    "datapacket.seattle" = {
+      datacenter_name = "datapacket.seattle"
+      ssh_address = "79.127.250.35"
+      public_address = "79.127.250.35"
+    }
+
+    "datapacket.atlanta" = {
+      datacenter_name = "datapacket.atlanta"
+      ssh_address = "95.173.192.142"
+      public_address = "95.173.192.142"
+    }
+
     "datapacket.newyork" = {
       datacenter_name = "datapacket.newyork"
       ssh_address = "89.222.109.12"
