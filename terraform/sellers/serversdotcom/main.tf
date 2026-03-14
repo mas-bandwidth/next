@@ -8,8 +8,6 @@ locals {
 
   seller_code = "serversdotcom"
 
-  ssh_user = "root"
-
   datacenter_map = {
 
     "serversdotcom.dallas" = {
@@ -126,7 +124,7 @@ output "relays" {
         "", 
         v.public_address,
         22,
-        local.ssh_user,
+        v.ssh_user,
         0,
       ]
     )
