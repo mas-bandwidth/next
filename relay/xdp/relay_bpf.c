@@ -16,7 +16,7 @@
 
 #include "relay_xdp_source.h"
 
-int bpf_init( struct bpf_t * bpf, uint32_t relay_public_address, uint32_t relay_internal_address )
+int bpf_init( struct bpf_t * bpf, uint32_t relay_public_address, uint32_t relay_internal_address, const char * relay_name )
 {
     // we can only run xdp programs as root
 
@@ -75,23 +75,9 @@ int bpf_init( struct bpf_t * bpf, uint32_t relay_public_address, uint32_t relay_
     bool running_in_aws = false;
     {
         printf( "Checking if we are running in AWS...\n" );
-        char command_line[2048];
-        strncpy( command_line, "curl -s \"http://169.254.169.254/latest/meta-data\" --max-time 2 -s 2>/dev/null", sizeof(command_line) );
-        printf( "command line: '%s'\n", command_line );
-        FILE * file = popen( command_line, "r" );
-        if ( file )
+        if ( strstr( relay_name, "amazon." ) )
         {
-            char buffer[1024];
-            while ( fgets( buffer, sizeof(buffer), file ) != NULL )
-            {
-                if ( strstr( buffer, "ami-id" ) != NULL )
-                {
-                    printf( "Detected that we are running in AWS\n" );
-                    running_in_aws = true;
-                    break;
-                }
-            }
-            pclose( file );
+            running_in_aws = true;
         }
         if ( !running_in_aws )
         {

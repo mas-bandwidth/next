@@ -99,7 +99,7 @@ int main( int argc, char *argv[] )
 
     fflush( stdout );
 
-    if ( bpf_init( &bpf, config.relay_public_address, config.relay_internal_address ) != RELAY_OK )
+    if ( bpf_init( &bpf, config.relay_public_address, config.relay_internal_address, config.relay_name ) != RELAY_OK )
     {
         cleanup();
         return 1;
