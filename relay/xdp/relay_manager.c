@@ -7,6 +7,7 @@
 #include "relay_ping_history.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 struct relay_manager_t * relay_manager_create()
 {

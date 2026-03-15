@@ -27,7 +27,7 @@ struct bpf_t
 #endif // #ifdef COMPILE_WITH_BPF
 };
 
-int bpf_init( struct bpf_t * bpf, uint32_t relay_public_address, uint32_t relay_internal_address );
+int bpf_init( struct bpf_t * bpf, uint32_t relay_public_address, uint32_t relay_internal_address, const char * relay_name );
 
 void bpf_shutdown( struct bpf_t * bpf );
 
