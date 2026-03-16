@@ -1608,7 +1608,7 @@ SEC("relay_xdp") int relay_xdp_filter( struct xdp_md *ctx )
 
                                 const int payload_bytes = 18 + 8;
 
-                                // todo: is this what is breaking AWS?!
+                                // todo: this was breaking AWS. check if this is needed for google cloud, if not remove...
                                 // ip->daddr = config->relay_public_address;       // IMPORTANT: We must respond from the relay public address or it will get filtered out
 
                                 relay_reflect_packet( data, payload_bytes, state->current_magic, config->use_gateway_ethernet_address ? config->gateway_ethernet_address : NULL );

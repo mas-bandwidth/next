@@ -2081,6 +2081,7 @@ locals {
     "amazon.capetown.1" = { datacenter_name = "amazon.capetown.1" },
     "amazon.capetown.2" = { datacenter_name = "amazon.capetown.2" },
     "amazon.capetown.3" = { datacenter_name = "amazon.capetown.3" },
+    "amazon.chicago.1" = { datacenter_name = "amazon.chicago.1" },
     "amazon.copenhagen.1" = { datacenter_name = "amazon.copenhagen.1" },
     "amazon.dallas.1" = { datacenter_name = "amazon.dallas.1" },
     "amazon.denver.1" = { datacenter_name = "amazon.denver.1" },
@@ -2212,6 +2213,19 @@ module "relay_amazon_bahrain_1" {
 	  vpn_address       = var.vpn_address
 	  providers = {
 	    aws = aws.af-south-1
+	  }
+	}
+	module "relay_amazon_chicago_1" {
+	  source            = "./relay"
+	  name              = "amazon.chicago.1"
+	  zone              = local.datacenter_map["amazon.chicago.1"].zone
+	  region            = local.datacenter_map["amazon.chicago.1"].region
+	  type              = "c6i.large"
+	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
+	  security_group_id = module.region_us_east_1.security_group_id
+	  vpn_address       = var.vpn_address
+	  providers = {
+	    aws = aws.us-east-1
 	  }
 	}
 	module "relay_amazon_copenhagen_1" {
@@ -2974,6 +2988,22 @@ module "relay_amazon_bahrain_1" {
 	      "internal_port"    = 40000
 	      "internal_group"   = "af-south-1"
 	      "ssh_ip"           = module.relay_amazon_capetown_3.public_address
+	      "ssh_port"         = 22
+	      "ssh_user"         = "ubuntu"
+	      "bandwidth_price"  = 2
+	    }
+
+	    "amazon.chicago.1" = {
+	      "relay_name"       = "amazon.chicago.1"
+	      "datacenter_name"  = "amazon.chicago.1"
+	      "seller_name"      = "Amazon"
+	      "seller_code"      = "amazon"
+	      "public_ip"        = module.relay_amazon_chicago_1.public_address
+	      "public_port"      = 40000
+	      "internal_ip"      = module.relay_amazon_chicago_1.internal_address
+	      "internal_port"    = 40000
+	      "internal_group"   = "amazon.chicago.1"
+	      "ssh_ip"           = module.relay_amazon_chicago_1.public_address
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
