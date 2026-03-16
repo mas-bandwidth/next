@@ -785,6 +785,24 @@ locals {
 
   akamai_relays = {
 
+    "akamai.tokyo.2" = {
+      datacenter_name = "akamai.tokyo.2"
+      type            = "g7-premium-16"
+      image           = "linode/ubuntu22.04"
+    },    
+
+    "akamai.mumbai.2" = {
+      datacenter_name = "akamai.mumbai.2"
+      type            = "g7-premium-16"
+      image           = "linode/ubuntu22.04"
+    },    
+
+    "akamai.singapore.2" = {
+      datacenter_name = "akamai.singapore.2"
+      type            = "g7-premium-16"
+      image           = "linode/ubuntu22.04"
+    },    
+
     "akamai.chicago" = {
       datacenter_name = "akamai.chicago"
       type            = "g7-premium-16"
