@@ -15,6 +15,22 @@ locals {
 
   datacenter_map = {
 
+    "latitude.amsterdam" = {
+      latitude    = 52.3676
+      longitude   = 4.9041
+      native_name = "AMS"
+      seller_name = local.seller_name
+      seller_code = local.seller_code
+    },
+
+    "latitude.singapore" = {
+      latitude    = 1.3521
+      longitude   = 103.8198
+      native_name = "SGP"
+      seller_name = local.seller_name
+      seller_code = local.seller_code
+    },
+
     "latitude.chicago" = {
       latitude    = 41.8781
       longitude   = -87.6298

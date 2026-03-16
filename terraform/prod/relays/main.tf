@@ -785,6 +785,14 @@ locals {
 
   akamai_relays = {
 
+    /*
+    "akamai.sydney" = {
+      datacenter_name = "akamai.sydney"
+      type            = "g6-standard-16"
+      image           = "linode/ubuntu22.04"
+    },
+    */    
+
     "akamai.tokyo.2" = {
       datacenter_name = "akamai.tokyo.2"
       type            = "g7-premium-16"
@@ -943,7 +951,7 @@ locals {
       public_address   = "193.118.46.254"
     },
 
-    "zenlayer.london.a" = {
+    "zenlayer.london" = {
       datacenter_name  = "zenlayer.london"
       public_address   = "98.98.142.118"
     },
@@ -978,7 +986,7 @@ locals {
       public_address   = "98.98.173.226"
     },
 
-    "zenlayer.losangeles.a" = {
+    "zenlayer.losangeles" = {
       datacenter_name  = "zenlayer.losangeles"
       public_address   = "128.14.73.78"
     },
@@ -1135,6 +1143,7 @@ locals {
 
   i3d_relays = {
 
+    // todo: remove. too expensive
     "i3d.saopaulo" = {
       datacenter_name = "i3d.saopaulo"
       public_address  = "185.50.104.109"
@@ -1145,6 +1154,7 @@ locals {
       public_address  = "162.244.55.38"
     },
 
+    // todo: remove
     "i3d.ashburn.b" = {
       datacenter_name = "i3d.ashburn"
       public_address  = "162.244.55.42"
@@ -1155,11 +1165,13 @@ locals {
       public_address  = "185.179.202.102"
     },
 
+    // todo: remove
     "i3d.dubai.b" = {
       datacenter_name = "i3d.dubai"
       public_address  = "185.179.202.104"
     },
 
+    // todo: remove. too expensive
     "i3d.frankfurt" = {
       datacenter_name = "i3d.frankfurt"
       public_address  = "188.122.68.101"
@@ -1193,6 +1205,16 @@ locals {
 
   latitude_relays = {
 
+    "latitude.amsterdam" = {
+      datacenter_name = "latitude.amsterdam"
+      public_address  = "206.223.236.57"
+    },
+
+    "latitude.singapore" = {
+      datacenter_name = "latitude.singapore"
+      public_address  = "67.213.122.157"
+    },
+    
     "latitude.newyork" = {
       datacenter_name = "latitude.newyork"
       public_address  = "206.223.233.117"
@@ -1223,19 +1245,9 @@ locals {
       public_address  = "186.233.187.217"
     },
 
-    "latitude.saopaulo.a" = {
-      datacenter_name = "latitude.saopaulo"
-      public_address  = "189.1.173.223"
-    },
-
-    "latitude.saopaulo.b" = {
+    "latitude.saopaulo" = {
       datacenter_name = "latitude.saopaulo"
       public_address  = "103.88.235.93"
-    },
-
-    "latitude.saopaulo.d" = {
-      datacenter_name = "latitude.saopaulo"
-      public_address  = "177.54.147.193"
     },
 
     "latitude.ashburn" = {
@@ -1397,11 +1409,13 @@ locals {
       public_address  = "46.23.74.129"
     },
 
+    // todo: remove
     "uk2group.frankfurt.b" = {
       datacenter_name = "uk2group.frankfurt"
       public_address  = "46.23.75.213"
     },
 
+    // todo: remove
     "uk2group.frankfurt.c" = {
       datacenter_name = "uk2group.frankfurt"
       public_address  = "46.23.75.215"
@@ -1605,7 +1619,7 @@ locals {
 
   velia_relays = {
 
-    "velia.frankfurt.a" = {
+    "velia.frankfurt" = {
       datacenter_name = "velia.frankfurt"
       public_address  = "37.61.208.81"
     },

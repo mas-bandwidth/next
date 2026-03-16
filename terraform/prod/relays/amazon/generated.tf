@@ -2123,6 +2123,8 @@ locals {
     "amazon.spain.1" = { datacenter_name = "amazon.spain.1" },
     "amazon.stockholm.1" = { datacenter_name = "amazon.stockholm.1" },
     "amazon.sydney.1" = { datacenter_name = "amazon.sydney.1" },
+    "amazon.sydney.2" = { datacenter_name = "amazon.sydney.2" },
+    "amazon.sydney.3" = { datacenter_name = "amazon.sydney.3" },
     "amazon.telaviv.1" = { datacenter_name = "amazon.telaviv.1" },
     "amazon.tokyo.1" = { datacenter_name = "amazon.tokyo.1" },
     "amazon.tokyo.2" = { datacenter_name = "amazon.tokyo.2" },
@@ -2754,6 +2756,32 @@ module "relay_amazon_bahrain_1" {
 	  name              = "amazon.sydney.1"
 	  zone              = local.datacenter_map["amazon.sydney.1"].zone
 	  region            = local.datacenter_map["amazon.sydney.1"].region
+	  type              = "t3.medium"
+	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
+	  security_group_id = module.region_ap_southeast_2.security_group_id
+	  vpn_address       = var.vpn_address
+	  providers = {
+	    aws = aws.ap-southeast-2
+	  }
+	}
+	module "relay_amazon_sydney_2" {
+	  source            = "./relay"
+	  name              = "amazon.sydney.2"
+	  zone              = local.datacenter_map["amazon.sydney.2"].zone
+	  region            = local.datacenter_map["amazon.sydney.2"].region
+	  type              = "t3.medium"
+	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
+	  security_group_id = module.region_ap_southeast_2.security_group_id
+	  vpn_address       = var.vpn_address
+	  providers = {
+	    aws = aws.ap-southeast-2
+	  }
+	}
+	module "relay_amazon_sydney_3" {
+	  source            = "./relay"
+	  name              = "amazon.sydney.3"
+	  zone              = local.datacenter_map["amazon.sydney.3"].zone
+	  region            = local.datacenter_map["amazon.sydney.3"].region
 	  type              = "t3.medium"
 	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
 	  security_group_id = module.region_ap_southeast_2.security_group_id
@@ -3674,6 +3702,38 @@ module "relay_amazon_bahrain_1" {
 	      "internal_port"    = 40000
 	      "internal_group"   = "ap-southeast-2"
 	      "ssh_ip"           = module.relay_amazon_sydney_1.public_address
+	      "ssh_port"         = 22
+	      "ssh_user"         = "ubuntu"
+	      "bandwidth_price"  = 2
+	    }
+
+	    "amazon.sydney.2" = {
+	      "relay_name"       = "amazon.sydney.2"
+	      "datacenter_name"  = "amazon.sydney.2"
+	      "seller_name"      = "Amazon"
+	      "seller_code"      = "amazon"
+	      "public_ip"        = module.relay_amazon_sydney_2.public_address
+	      "public_port"      = 40000
+	      "internal_ip"      = module.relay_amazon_sydney_2.internal_address
+	      "internal_port"    = 40000
+	      "internal_group"   = "ap-southeast-2"
+	      "ssh_ip"           = module.relay_amazon_sydney_2.public_address
+	      "ssh_port"         = 22
+	      "ssh_user"         = "ubuntu"
+	      "bandwidth_price"  = 2
+	    }
+
+	    "amazon.sydney.3" = {
+	      "relay_name"       = "amazon.sydney.3"
+	      "datacenter_name"  = "amazon.sydney.3"
+	      "seller_name"      = "Amazon"
+	      "seller_code"      = "amazon"
+	      "public_ip"        = module.relay_amazon_sydney_3.public_address
+	      "public_port"      = 40000
+	      "internal_ip"      = module.relay_amazon_sydney_3.internal_address
+	      "internal_port"    = 40000
+	      "internal_group"   = "ap-southeast-2"
+	      "ssh_ip"           = module.relay_amazon_sydney_3.public_address
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
