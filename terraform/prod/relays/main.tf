@@ -1029,6 +1029,12 @@ locals {
 
   datapacket_relays = {
 
+    "datapacket.chicago" = {
+      datacenter_name = "datapacket.sanjose"
+      ssh_address = "46.151.196.239"
+      public_address = "46.151.196.239"
+    }
+
     "datapacket.sanjose" = {
       datacenter_name = "datapacket.sanjose"
       ssh_address = "79.127.255.82"

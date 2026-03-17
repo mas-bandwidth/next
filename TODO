@@ -4,30 +4,24 @@ DONE
 	zenlayer.sanjose
 	latitude.newyork
 	datapacket.denver
-
 	Remove amazon dupes
-
 	Remove google dupes
+	Re-add google dupes (for now)
+	velia.singapore
+	amazon.newyork
+	amazon.chicago
 
 TODO
 
+	datapacket.chicago
 	velia.stlouis
-	velia.singapore
 
-	Amazon new york local zone
-
-	Amazon chicago zone
-
-	i3d.sanjose
+	i3d.santaclara				<--- they might have it, as legacy instances
 	i3d.tokyo
 	i3d.singapore
 
 ============================================================
 	
-	datapacket.sanjose			<--- provisioning
-	datapacket.chicago
-	more...
-
 GDC follow ups:
 
 	Hosting with zenlayer
