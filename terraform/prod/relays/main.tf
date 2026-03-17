@@ -1601,6 +1601,11 @@ locals {
 
   velia_relays = {
 
+    "velia.stlouis" = {
+      datacenter_name = "velia.stlouis"
+      public_address  = "103.66.180.167"
+    },
+
     "velia.singapore" = {
       datacenter_name = "velia.singapore"
       public_address  = "192.155.100.65"
