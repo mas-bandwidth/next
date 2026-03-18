@@ -2953,6 +2953,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 65
 	    }
 
 	    "amazon.buenosaires.1" = {
@@ -2969,6 +2970,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 35
 	    }
 
 	    "amazon.calgary.1" = {
@@ -2985,6 +2987,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 35
 	    }
 
 	    "amazon.capetown.1" = {
@@ -3001,6 +3004,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 35
 	    }
 
 	    "amazon.capetown.2" = {
@@ -3017,6 +3021,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 35
 	    }
 
 	    "amazon.capetown.3" = {
@@ -3033,6 +3038,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 35
 	    }
 
 	    "amazon.chicago.1" = {
@@ -3049,6 +3055,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 70
 	    }
 
 	    "amazon.copenhagen.1" = {
@@ -3065,6 +3072,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 35
 	    }
 
 	    "amazon.dallas.1" = {
@@ -3081,6 +3089,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 70
 	    }
 
 	    "amazon.denver.1" = {
@@ -3097,6 +3106,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 35
 	    }
 
 	    "amazon.finland.1" = {
@@ -3113,6 +3123,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 35
 	    }
 
 	    "amazon.frankfurt.1" = {
@@ -3129,6 +3140,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 74
 	    }
 
 	    "amazon.frankfurt.2" = {
@@ -3145,6 +3157,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 74
 	    }
 
 	    "amazon.frankfurt.3" = {
@@ -3161,6 +3174,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 74
 	    }
 
 	    "amazon.hongkong.1" = {
@@ -3177,6 +3191,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 35
 	    }
 
 	    "amazon.ireland.1" = {
@@ -3193,6 +3208,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 70
 	    }
 
 	    "amazon.kansas.1" = {
@@ -3209,6 +3225,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 35
 	    }
 
 	    "amazon.lima.1" = {
@@ -3225,6 +3242,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 35
 	    }
 
 	    "amazon.london.1" = {
@@ -3241,6 +3259,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 70
 	    }
 
 	    "amazon.losangeles.1" = {
@@ -3257,6 +3276,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 70
 	    }
 
 	    "amazon.mexico.1" = {
@@ -3273,6 +3293,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 85
 	    }
 
 	    "amazon.miami.1" = {
@@ -3289,6 +3310,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 70
 	    }
 
 	    "amazon.montreal.1" = {
@@ -3305,6 +3327,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 74
 	    }
 
 	    "amazon.mumbai.1" = {
@@ -3321,6 +3344,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 35
 	    }
 
 	    "amazon.newyork.1" = {
@@ -3337,6 +3361,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 85
 	    }
 
 	    "amazon.newzealand.1" = {
@@ -3353,6 +3378,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 35
 	    }
 
 	    "amazon.ohio.1" = {
@@ -3369,6 +3395,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 74
 	    }
 
 	    "amazon.oman.1" = {
@@ -3385,6 +3412,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 35
 	    }
 
 	    "amazon.oregon.1" = {
@@ -3401,6 +3429,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 74
 	    }
 
 	    "amazon.osaka.1" = {
@@ -3417,6 +3446,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 35
 	    }
 
 	    "amazon.paris.1" = {
@@ -3433,6 +3463,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 70
 	    }
 
 	    "amazon.perth.1" = {
@@ -3449,6 +3480,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 35
 	    }
 
 	    "amazon.portland.1" = {
@@ -3465,6 +3497,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 35
 	    }
 
 	    "amazon.queretaro.1" = {
@@ -3481,6 +3514,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 35
 	    }
 
 	    "amazon.sanjose.1" = {
@@ -3497,6 +3531,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 74
 	    }
 
 	    "amazon.sanjose.3" = {
@@ -3513,6 +3548,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 74
 	    }
 
 	    "amazon.santiago.1" = {
@@ -3529,6 +3565,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 35
 	    }
 
 	    "amazon.saopaulo.1" = {
@@ -3545,6 +3582,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 74
 	    }
 
 	    "amazon.saopaulo.2" = {
@@ -3561,6 +3599,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 74
 	    }
 
 	    "amazon.saopaulo.3" = {
@@ -3577,6 +3616,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 74
 	    }
 
 	    "amazon.seattle.1" = {
@@ -3593,6 +3633,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 35
 	    }
 
 	    "amazon.seoul.1" = {
@@ -3609,6 +3650,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 35
 	    }
 
 	    "amazon.singapore.1" = {
@@ -3625,6 +3667,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 74
 	    }
 
 	    "amazon.singapore.2" = {
@@ -3641,6 +3684,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 74
 	    }
 
 	    "amazon.singapore.3" = {
@@ -3657,6 +3701,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 74
 	    }
 
 	    "amazon.spain.1" = {
@@ -3673,6 +3718,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 70
 	    }
 
 	    "amazon.stockholm.1" = {
@@ -3689,6 +3735,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 35
 	    }
 
 	    "amazon.sydney.1" = {
@@ -3705,6 +3752,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 35
 	    }
 
 	    "amazon.sydney.2" = {
@@ -3721,6 +3769,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 35
 	    }
 
 	    "amazon.sydney.3" = {
@@ -3737,6 +3786,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 35
 	    }
 
 	    "amazon.telaviv.1" = {
@@ -3753,6 +3803,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 70
 	    }
 
 	    "amazon.tokyo.1" = {
@@ -3769,6 +3820,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 35
 	    }
 
 	    "amazon.tokyo.2" = {
@@ -3785,6 +3837,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 35
 	    }
 
 	    "amazon.tokyo.4" = {
@@ -3801,6 +3854,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 35
 	    }
 
 	    "amazon.uae.1" = {
@@ -3817,6 +3871,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 70
 	    }
 
 	    "amazon.virginia.1" = {
@@ -3833,6 +3888,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 74
 	    }
 
 	    "amazon.virginia.2" = {
@@ -3849,6 +3905,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 74
 	    }
 
 	    "amazon.virginia.3" = {
@@ -3865,6 +3922,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 92
 	    }
 
 	    "amazon.virginia.4" = {
@@ -3881,6 +3939,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 74
 	    }
 
 	    "amazon.virginia.5" = {
@@ -3897,6 +3956,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 74
 	    }
 
 	    "amazon.virginia.6" = {
@@ -3913,6 +3973,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 92
 	    }
 
 	

@@ -2141,6 +2141,7 @@ module "relay_amazon_ohio_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 74
 	    }
 
 	    "amazon.ohio.2" = {
@@ -2157,6 +2158,7 @@ module "relay_amazon_ohio_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 74
 	    }
 
 	    "amazon.ohio.3" = {
@@ -2173,6 +2175,7 @@ module "relay_amazon_ohio_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
+	      "mrc"              = 74
 	    }
 
 	

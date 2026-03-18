@@ -133,6 +133,7 @@ output "relays" {
         "ssh_port",
         "ssh_user",
         "bandwidth_price",
+        "mrc",
       ], 
       [
         k,
@@ -148,6 +149,7 @@ output "relays" {
         22,
         "ubuntu",
         2,
+        v.mrc,
       ]
     )
   }

@@ -284,6 +284,7 @@ output "relays" {
         "ssh_port",
         "ssh_user",
         "bandwidth_price",
+        "mrc",
       ], 
       [
         k,
@@ -299,6 +300,7 @@ output "relays" {
         22,
         local.ssh_user,
         1,
+        v.mrc,
       ]
     )
   }

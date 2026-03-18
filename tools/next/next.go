@@ -2080,6 +2080,7 @@ func printRelays(env Environment, relayCount int64, alphaSort bool, regexName st
 		Uptime        string
 		Sessions      int
 		Version       string
+		MRC           int
 	}
 
 	relayMap := make(map[string]*RelayRow)
@@ -2099,6 +2100,7 @@ func printRelays(env Environment, relayCount int64, alphaSort bool, regexName st
 		relay.Status = "offline"
 		relay.Sessions = 0
 		relay.Version = adminRelaysResponse.Relays[i].Version
+		relay.MRC = adminRelaysResponse.Relays[i].MRC
 	}
 
 	for i := range portalRelaysResponse.Relays {

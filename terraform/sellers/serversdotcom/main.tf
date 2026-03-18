@@ -111,6 +111,7 @@ output "relays" {
         "ssh_port",
         "ssh_user",
         "bandwidth_price",
+        "mrc",
       ], 
       [
         k,
@@ -125,6 +126,7 @@ output "relays" {
         v.public_address,
         22,
         v.ssh_user,
+        0,
         0,
       ]
     )

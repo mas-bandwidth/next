@@ -141,6 +141,7 @@ locals {
       datacenter_name = "google.finland.1"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     /*
@@ -148,12 +149,14 @@ locals {
       datacenter_name = "google.finland.2"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.finland.3" = {
       datacenter_name = "google.finland.3"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
     */
 
@@ -161,6 +164,7 @@ locals {
       datacenter_name = "google.osaka.1"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     /*
@@ -168,12 +172,14 @@ locals {
       datacenter_name = "google.osaka.2"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.osaka.3" = {
       datacenter_name = "google.osaka.3"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
     */
 
@@ -181,6 +187,7 @@ locals {
       datacenter_name = "google.seoul.1"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     /*
@@ -188,12 +195,14 @@ locals {
       datacenter_name = "google.seoul.2"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.seoul.3" = {
       datacenter_name = "google.seoul.3"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
     */
 
@@ -201,6 +210,7 @@ locals {
       datacenter_name = "google.taiwan.1"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     /*
@@ -208,12 +218,14 @@ locals {
       datacenter_name = "google.taiwan.2"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.taiwan.3" = {
       datacenter_name = "google.taiwan.3"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
     */
 
@@ -221,18 +233,21 @@ locals {
       datacenter_name = "google.zurich.1"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.warsaw.1" = {
       datacenter_name = "google.warsaw.1"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.southcarolina.2" = {
       datacenter_name = "google.southcarolina.2"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     /*
@@ -240,12 +255,14 @@ locals {
       datacenter_name = "google.southcarolina.3"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.southcarolina.4" = {
       datacenter_name = "google.southcarolina.4"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
     */
 
@@ -253,6 +270,7 @@ locals {
       datacenter_name = "google.hongkong.1"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     /*
@@ -260,12 +278,14 @@ locals {
       datacenter_name = "google.hongkong.2"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.hongkong.3" = {
       datacenter_name = "google.hongkong.3"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
     */
 
@@ -273,42 +293,49 @@ locals {
       datacenter_name = "google.mumbai.1"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.mumbai.2" = {
       datacenter_name = "google.mumbai.2"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.mumbai.3" = {
       datacenter_name = "google.mumbai.3"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.johannesburg.1" = {
       datacenter_name = "google.johannesburg.1"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.johannesburg.2" = {
       datacenter_name = "google.johannesburg.2"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.johannesburg.3" = {
       datacenter_name = "google.johannesburg.3"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.melbourne.1" = {
       datacenter_name = "google.melbourne.1"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     /*
@@ -316,12 +343,14 @@ locals {
       datacenter_name = "google.melbourne.2"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.melbourne.3" = {
       datacenter_name = "google.melbourne.3"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
     */
 
@@ -329,108 +358,126 @@ locals {
       datacenter_name = "google.sydney.1"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.sydney.2" = {
       datacenter_name = "google.sydney.2"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.sydney.3" = {
       datacenter_name = "google.sydney.3"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.singapore.1" = {
       datacenter_name = "google.singapore.1"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.singapore.2" = {
       datacenter_name = "google.singapore.2"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.singapore.3" = {
       datacenter_name = "google.singapore.3"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.tokyo.1" = {
       datacenter_name = "google.tokyo.1"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.tokyo.2" = {
       datacenter_name = "google.tokyo.2"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.tokyo.3" = {
       datacenter_name = "google.tokyo.3"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.lasvegas.1" = {
       datacenter_name = "google.lasvegas.1"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.saltlakecity.1" = {
       datacenter_name = "google.saltlakecity.1"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.oregon.1" = {
       datacenter_name = "google.oregon.1"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.toronto.1" = {
       datacenter_name = "google.toronto.1"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.montreal.1" = {
       datacenter_name = "google.montreal.1"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.ohio.1" = {
       datacenter_name = "google.ohio.1"      
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.iowa.1" = {
       datacenter_name = "google.iowa.1"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.saopaulo.1" = {
       datacenter_name = "google.saopaulo.1"
       type            = "n2-highcpu-2" # "c2-standard-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.saopaulo.2" = {
       datacenter_name = "google.saopaulo.2"
       type            = "n2-highcpu-2" # c2-standard-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     /*
@@ -438,6 +485,7 @@ locals {
       datacenter_name = "google.saopaulo.3"
       type            = "n2-highcpu-2" # "c2-standard-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
     */
 
@@ -445,150 +493,175 @@ locals {
       datacenter_name = "google.santiago.1"
       type            = "n2-highcpu-2" # "c2-standard-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.santiago.2" = {
       datacenter_name = "google.santiago.2"
       type            = "c2-standard-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.santiago.3" = {
       datacenter_name = "google.santiago.3"
       type            = "c2-standard-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.frankfurt.1" = {
       datacenter_name = "google.frankfurt.1"
       type            = "n2-highcpu-2" # "c2-standard-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.frankfurt.2" = {
       datacenter_name = "google.frankfurt.2"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.frankfurt.3" = {
       datacenter_name = "google.frankfurt.3"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.dallas.1" = {
       datacenter_name = "google.dallas.1"
       type            = "n2-highcpu-2" # "c3-standard-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.dallas.2" = {
       datacenter_name = "google.dallas.2"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.dallas.3" = {
       datacenter_name = "google.dallas.3"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.losangeles.1" = {
       datacenter_name = "google.losangeles.1"
       type            = "n2-highcpu-2" # "c2-standard-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.losangeles.2" = {
       datacenter_name = "google.losangeles.2"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.losangeles.3" = {
       datacenter_name = "google.losangeles.3"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.virginia.1" = {
       datacenter_name = "google.virginia.1"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.virginia.2" = {
       datacenter_name = "google.virginia.2"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.virginia.3" = {
       datacenter_name = "google.virginia.3"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.queretaro.1" = {
       datacenter_name = "google.queretaro.1"
       type            = "n4-highcpu-2" # "c4-highcpu-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.queretaro.2" = {
       datacenter_name = "google.queretaro.2"
       type            = "n4-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.queretaro.3" = {
       datacenter_name = "google.queretaro.3"
       type            = "n4-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.doha.1" = {
       datacenter_name = "google.doha.1"
       type            = "n2-highcpu-2" # "c3-highmem-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.doha.2" = {
       datacenter_name = "google.doha.2"
       type            = "n2-highcpu-2" # c4-highcpu-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.doha.3" = {
       datacenter_name = "google.doha.3"
       type            = "n2-highcpu-2" # "e2-standard-8"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.dammam.1" = {
       datacenter_name = "google.dammam.1"
       type            = "n2-highcpu-2" # "c4-highcpu-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.dammam.2" = {
       datacenter_name = "google.dammam.2"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.dammam.3" = {
       datacenter_name = "google.dammam.3"
       type            = "n2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.telaviv.1" = {
       datacenter_name = "google.telaviv.1"
       type            = "n2-highcpu-2" # "c4-highmem-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     /*
@@ -596,12 +669,14 @@ locals {
       datacenter_name = "google.telaviv.2"
       type            = "c3-standard-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.telaviv.3" = {
       datacenter_name = "google.telaviv.3"
       type            = "c3-standard-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
     */
 
@@ -609,19 +684,22 @@ locals {
       datacenter_name = "google.paris.1"
       type            = "n2-highcpu-2" # "c4-highcpu-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     /*
     "google.paris.2" = {
       datacenter_name = "google.paris.2"
-      type            = "c4-highcpu-4"
+      type            = "n2-highcpu-2" # c4-highcpu-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.paris.3" = {
       datacenter_name = "google.paris.3"
-      type            = "c4-highcpu-4"
+      type            = "n2-highcpu-2" # c4-highcpu-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
     */
 
@@ -629,19 +707,22 @@ locals {
       datacenter_name = "google.netherlands.1"
       type            = "n2-highcpu-2" # c4-highcpu-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     /*
     "google.netherlands.2" = {
       datacenter_name = "google.netherlands.2"
-      type            = "c4-highcpu-4"
+      type            = "n2-highcpu-2" # c4-highcpu-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.netherlands.3" = {
       datacenter_name = "google.netherlands.2"
-      type            = "c4-highcpu-4"
+      type            = "n2-highcpu-2" # c4-highcpu-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
     */
 
@@ -649,13 +730,15 @@ locals {
       datacenter_name = "google.milan.2"
       type            = "n2-highcpu-2" # c4-standard-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     /*
     "google.milan.3" = {
       datacenter_name = "google.milan.3"
-      type            = "c4-highcpu-4"
+      type            = "n2-highcpu-2" # c4-highcpu-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
     */
 
@@ -663,19 +746,22 @@ locals {
       datacenter_name = "google.belgium.2"
       type            = "n2-highcpu-2" # "c4-highcpu-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     /*
     "google.belgium.3" = {
       datacenter_name = "google.belgium.3"
-      type            = "c4-highcpu-4"
+      type            = "n2-highcpu-2" # c4-highcpu-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.belgium.4" = {
       datacenter_name = "google.belgium.4"
-      type            = "c4-highcpu-4"
+      type            = "n2-highcpu-2" # c4-highcpu-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
     */
 
@@ -683,19 +769,22 @@ locals {
       datacenter_name = "google.london.1"
       type            = "n2-highcpu-2" # "c4-highcpu-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     /*
     "google.london.2" = {
       datacenter_name = "google.london.2"
-      type            = "c4-highcpu-4"
+      type            = "n2-highcpu-2" # c4-highcpu-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     "google.london.3" = {
       datacenter_name = "google.london.3"
-      type            = "c4-highcpu-4"
+      type            = "n2-highcpu-2" # c4-highcpu-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
     */
 
@@ -703,13 +792,15 @@ locals {
       datacenter_name = "google.madrid.1"
       type            = "n2-highcpu-2" # c4-highcpu-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
 
     /*
     "google.madrid.2" = {
       datacenter_name = "google.madrid.2"
-      type            = "c4-highcpu-4"
+      type            = "n2-highcpu-2" # c4-highcpu-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
+      mrc             = 80
     },
     */
 
@@ -766,6 +857,7 @@ locals {
       datacenter_name = "akamai.sydney"
       type            = "g6-standard-16"
       image           = "linode/ubuntu22.04"
+      mrc             = 173
     },
     */    
 
@@ -773,36 +865,42 @@ locals {
       datacenter_name = "akamai.tokyo.2"
       type            = "g7-premium-16"
       image           = "linode/ubuntu22.04"
+      mrc             = 173
     },    
 
     "akamai.mumbai.2" = {
       datacenter_name = "akamai.mumbai.2"
       type            = "g7-premium-16"
       image           = "linode/ubuntu22.04"
+      mrc             = 173
     },    
 
     "akamai.singapore.2" = {
       datacenter_name = "akamai.singapore.2"
       type            = "g7-premium-16"
       image           = "linode/ubuntu22.04"
+      mrc             = 173
     },    
 
     "akamai.chicago" = {
       datacenter_name = "akamai.chicago"
       type            = "g7-premium-16"
       image           = "linode/ubuntu22.04"
+      mrc             = 173
     },
 
     "akamai.fremont" = {
       datacenter_name = "akamai.fremont"
       type            = "g6-dedicated-16"
       image           = "linode/ubuntu22.04"
+      mrc             = 173
     },
 
     "akamai.saopaulo" = {
       datacenter_name = "akamai.saopaulo"
       type            = "g7-premium-16"
       image           = "linode/ubuntu22.04"
+      mrc             = 173
     },
 
     /*
@@ -810,6 +908,7 @@ locals {
       datacenter_name = "akamai.frankfurt.1"
       type            = "g6-dedicated-16"
       image           = "linode/ubuntu22.04"
+      mrc             = 173
     },
     */
 
@@ -817,24 +916,28 @@ locals {
       datacenter_name = "akamai.frankfurt.2"
       type            = "g7-premium-16"
       image           = "linode/ubuntu22.04"
+      mrc             = 173
     },
 
     "akamai.dallas" = {
       datacenter_name = "akamai.dallas"
       type            = "g6-dedicated-16"
       image           = "linode/ubuntu22.04"
+      mrc             = 173
     },
 
     "akamai.washington" = {
       datacenter_name = "akamai.washington"
       type            = "g7-premium-16"
       image           = "linode/ubuntu22.04"
+      mrc             = 173
     },
 
     "akamai.losangeles" = {
       datacenter_name = "akamai.losangeles"
       type            = "g7-premium-16"
       image           = "linode/ubuntu22.04"
+      mrc             = 173
     },    
 
     /*
@@ -842,6 +945,7 @@ locals {
       datacenter_name = "akamai.london"
       type            = "g7-premium-16"
       image           = "linode/ubuntu22.04"
+      mrc             = 173
     },
     */
   }
@@ -868,103 +972,116 @@ locals {
     "zenlayer.sanjose" = {
       datacenter_name  = "zenlayer.sanjose"
       public_address   = "23.251.98.70"
+      mrc              = 196
     },
 
     "zenlayer.manilla" = {
       datacenter_name  = "zenlayer.manilla"
       public_address   = "66.253.11.251"
       internal_address = "10.131.160.2"
+      mrc              = 52
     },
 
     "zenlayer.jakarta" = {
       datacenter_name  = "zenlayer.jakarta"
       public_address   = "162.128.66.181"
       internal_address = "10.130.96.2"
+      mrc              = 52
     },
 
     "zenlayer.hongkong" = {
       datacenter_name  = "zenlayer.hongkong"
       public_address   = "103.49.62.221"
       internal_address = "10.130.64.2"
+      mrc              = 52
     },
 
     "zenlayer.singapore" = {
       datacenter_name  = "zenlayer.singapore"
       public_address   = "162.128.86.254"
       internal_address = "10.130.128.2"
+      mrc              = 52
     },
 
     "zenlayer.saopaulo" = {
       datacenter_name = "zenlayer.saopaulo"
       public_address  = "128.14.222.42"
+      mrc             = 719
     },
 
     "zenlayer.bogota" = {
       datacenter_name  = "zenlayer.bogota"
       public_address   = "107.151.192.238"
       internal_address = "10.131.48.2"
+      mrc              = 52
     },
 
     "zenlayer.lima" = {
       datacenter_name = "zenlayer.lima"
       public_address   = "198.44.168.157"
       internal_address = "10.131.64.2"
+      mrc              = 52
     },
 
     "zenlayer.riyadh" = {
       datacenter_name  = "zenlayer.riyadh"
       public_address   = "162.128.75.95"
       internal_address = "10.130.112.2"
+      mrc              = 52
     },
 
     "zenlayer.frankfurt" = {
       datacenter_name  = "zenlayer.frankfurt"
       public_address   = "193.118.46.254"
-    },
-
-    "zenlayer.frankfurt" = {
-      datacenter_name  = "zenlayer.frankfurt"
-      public_address   = "193.118.46.254"
+      mrc              = 219
     },
 
     "zenlayer.london" = {
       datacenter_name  = "zenlayer.london"
       public_address   = "98.98.142.118"
+      mrc              = 249
     },
 
     "zenlayer.istanbul" = {
       datacenter_name  = "zenlayer.istanbul"
       public_address   = "104.166.176.246"
+      mrc              = 289
     },
 
     "zenlayer.dubai" = {
       datacenter_name  = "zenlayer.dubai"
       public_address   = "193.118.56.2"
+      mrc              = 409
     },
 
     "zenlayer.ashburn" = {
       datacenter_name  = "zenlayer.ashburn"
       public_address   = "128.14.84.78"
+      mrc              = 519
     },
 
     "zenlayer.miami" = {
       datacenter_name  = "zenlayer.miami"
       public_address   = "128.14.216.30"
+      mrc              = 169
     },
 
     "zenlayer.dallas" = {
       datacenter_name  = "zenlayer.dallas"
       public_address   = "98.96.193.162"
+      mrc              = 609
     },
 
     "zenlayer.buenosaires" = {
       datacenter_name  = "zenlayer.buenosaires"
       public_address   = "98.98.173.226"
+      mrc              = 249
     },
 
     "zenlayer.losangeles" = {
       datacenter_name  = "zenlayer.losangeles"
       public_address   = "128.14.73.78"
+      mrc              = 339
     },
 
   }
@@ -1190,81 +1307,97 @@ locals {
     "latitude.amsterdam" = {
       datacenter_name = "latitude.amsterdam"
       public_address  = "206.223.236.57"
+      mrc             = 190 
     },
 
     "latitude.singapore" = {
       datacenter_name = "latitude.singapore"
       public_address  = "67.213.122.157"
+      mrc             = 226
     },
     
     "latitude.newyork" = {
       datacenter_name = "latitude.newyork"
       public_address  = "206.223.233.117"
+      mrc             = 190
     },
 
     "latitude.siliconvalley" = {
       datacenter_name = "latitude.siliconvalley"
       public_address  = "206.223.239.17"
+      mrc             = 190
     },
 
     "latitude.bogota" = {
       datacenter_name = "latitude.bogota"
       public_address  = "103.219.169.121"
+      mrc             = 261
     },
 
     "latitude.buenosaires" = {
       datacenter_name = "latitude.buenosaires"
       public_address  = "103.106.58.63"
+      mrc             = 261
     },
 
     "latitude.dallas" = {
       datacenter_name = "latitude.dallas"
       public_address  = "64.34.82.189"
+      mrc             = 189
     },
 
     "latitude.chicago" = {
       datacenter_name = "latitude.chicago"
       public_address  = "186.233.187.217"
+      mrc             = 189
     },
 
     "latitude.saopaulo" = {
       datacenter_name = "latitude.saopaulo"
       public_address  = "103.88.235.93"
+      mrc             = 179
     },
 
     "latitude.ashburn" = {
       datacenter_name = "latitude.ashburn"
       public_address  = "103.106.59.205"
+      mrc             = 118
     },
 
     "latitude.miami" = {
       datacenter_name = "latitude.miami"
       public_address  = "69.67.150.47"
+      mrc             = 179
     },
 
     "latitude.losangeles" = {
       datacenter_name = "latitude.losangeles"
       public_address  = "67.213.124.239"
+      mrc             = 189
     },
 
     "latitude.santiago" = {
       datacenter_name = "latitude.santiago"
       public_address  = "45.250.252.203"
+      mrc             = 92
     },
 
     "latitude.london" = {
       datacenter_name = "latitude.london"
       public_address  = "103.50.32.156"
+      mrc             = 179
     },
 
     "latitude.mexico" = {
       datacenter_name = "latitude.mexico"
       public_address  = "103.88.234.141"
+      mrc             = 261
     }
 
     "latitude.frankfurt" = {
       datacenter_name = "latitude.frankfurt"
       public_address  = "189.1.171.153"
+      mrc             = 226
     }
 
   }
@@ -1289,30 +1422,35 @@ locals {
       datacenter_name = "gcore.saopaulo"
       public_address  = "92.38.150.8"
       ssh_user        = "root"
+      mrc             = 480
     },
 
     "gcore.frankfurt" = {
       datacenter_name = "gcore.frankfurt"
       public_address  = "93.114.56.87"
       ssh_user        = "ubuntu"
+      mrc             = 520
     },
 
     "gcore.istanbul.a" = {
       datacenter_name = "gcore.istanbul"
       public_address  = "213.156.152.90"
       ssh_user        = "ubuntu"
+      mrc             = 114
     },
 
     "gcore.istanbul.b" = {
       datacenter_name = "gcore.istanbul"
       public_address  = "213.156.152.107"
       ssh_user        = "ubuntu"    
+      mrc             = 114
     },
 
     "gcore.ashburn" = {
       datacenter_name = "gcore.ashburn"
       public_address  = "5.188.124.74"
       ssh_user        = "root"
+      mrc             = 172
     },
 
   }
@@ -1386,22 +1524,22 @@ locals {
 
   uk2group_relays = {
 
+    /*
     "uk2group.frankfurt.a" = {
       datacenter_name = "uk2group.frankfurt"
       public_address  = "46.23.74.129"
     },
 
-    // todo: remove
     "uk2group.frankfurt.b" = {
       datacenter_name = "uk2group.frankfurt"
       public_address  = "46.23.75.213"
     },
 
-    // todo: remove
     "uk2group.frankfurt.c" = {
       datacenter_name = "uk2group.frankfurt"
       public_address  = "46.23.75.215"
     },
+    */
   }
 }
 
@@ -1779,6 +1917,7 @@ resource "networknext_relay" relays {
   ssh_user = each.value.ssh_user
   version = local.relay_version
   bandwidth_price = each.value.bandwidth_price
+  mrc = each.value.mrc
 }
 
 # ----------------------------------------------------------------------------------------
