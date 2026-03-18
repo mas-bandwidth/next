@@ -127,7 +127,7 @@ output "relays" {
         22,
         v.ssh_user,
         0,
-        0,
+        v.mrc,
       ]
     )
   }

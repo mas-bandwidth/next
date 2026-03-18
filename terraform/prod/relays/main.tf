@@ -1126,102 +1126,119 @@ locals {
       datacenter_name = "datapacket.sanjose"
       ssh_address = "46.151.196.239"
       public_address = "46.151.196.239"
+      mrc = 116
     }
 
     "datapacket.sanjose" = {
       datacenter_name = "datapacket.sanjose"
       ssh_address = "79.127.255.82"
       public_address = "79.127.255.82"
+      mrc = 301
     }
 
     "datapacket.seattle" = {
       datacenter_name = "datapacket.seattle"
       ssh_address = "79.127.250.35"
       public_address = "79.127.250.35"
+      mrc = 273
     }
 
     "datapacket.atlanta" = {
       datacenter_name = "datapacket.atlanta"
       ssh_address = "95.173.192.142"
       public_address = "95.173.192.142"
+      mrc = 169
     }
 
     "datapacket.newyork" = {
       datacenter_name = "datapacket.newyork"
       ssh_address = "89.222.109.12"
       public_address = "89.222.109.12"
+      mrc = 140
     }
 
     "datapacket.denver" = {
       datacenter_name = "datapacket.denver"
       ssh_address = "121.127.44.13"
       public_address = "121.127.44.13"
+      mrc = 236
     },
 
     "datapacket.saopaulo" = {
       datacenter_name = "datapacket.saopaulo"
       ssh_address = "79.127.137.166"
       public_address = "79.127.137.166"
+      mrc = 342
     },
 
     "datapacket.miami" = {
       datacenter_name = "datapacket.miami"
       ssh_address = "152.233.22.15"
       public_address = "152.233.22.15"
+      mrc = 244
     },
 
     "datapacket.losangeles" = {
       datacenter_name = "datapacket.losangeles"
       ssh_address = "79.127.232.205"
       public_address = "79.127.232.205"
+      mrc = 244
     }
 
     "datapacket.dallas" = {
       datacenter_name = "datapacket.dallas"
       ssh_address = "212.102.40.186"
       public_address = "212.102.40.186"
+      mrc = 196
     }
 
     "datapacket.istanbul" = {
       datacenter_name = "datapacket.istanbul"
       ssh_address = "169.150.215.57"
       public_address = "169.150.215.57"
+      mrc = 300
     }
 
     "datapacket.ashburn" = {
       datacenter_name = "datapacket.ashburn"
       ssh_address = "79.127.223.38"
       public_address = "79.127.223.38"
+      mrc = 234
     }
 
     "datapacket.frankfurt" = {
       datacenter_name = "datapacket.frankfurt"
       ssh_address = "89.222.124.57"
       public_address = "89.222.124.57"
+      mrc = 221
     }
 
     "datapacket.santiago" = {
       datacenter_name = "datapacket.santiago"
       ssh_address = "79.127.209.147"
       public_address = "79.127.209.147"
+      mrc = 375
     }
 
     "datapacket.lima" = {
       datacenter_name = "datapacket.lima"
       ssh_address = "79.127.252.114"
       public_address = "79.127.252.114"
+      mrc = 375
     }
 
     "datapacket.bogota" = {
       datacenter_name = "datapacket.bogota"
       ssh_address = "169.150.228.9"
       public_address = "169.150.228.9"
+      mrc = 375
     }
 
     "datapacket.london" = {
       datacenter_name = "datapacket.london"
       ssh_address = "138.199.51.243"
       public_address = "138.199.51.243"
+      mrc = 267
     }
 
   }
@@ -1246,44 +1263,53 @@ locals {
     "i3d.saopaulo" = {
       datacenter_name = "i3d.saopaulo"
       public_address  = "185.50.104.109"
+      mrc             = 0
     },
 
     "i3d.ashburn.a" = {
       datacenter_name = "i3d.ashburn"
       public_address  = "162.244.55.38"
+      mrc             = 92
     },
 
     // todo: remove
     "i3d.ashburn.b" = {
       datacenter_name = "i3d.ashburn"
       public_address  = "162.244.55.42"
+      mrc             = 92
     },
 
     "i3d.dubai.a" = {
       datacenter_name = "i3d.dubai"
       public_address  = "185.179.202.102"
+      mrc             = 156
     },
 
     // todo: remove
     "i3d.dubai.b" = {
       datacenter_name = "i3d.dubai"
       public_address  = "185.179.202.104"
+      mrc             = 156
     },
 
     // todo: remove. too expensive
     "i3d.frankfurt" = {
       datacenter_name = "i3d.frankfurt"
       public_address  = "188.122.68.101"
+      mrc             = 0
     },
 
+    // todo: remove?
     "i3d.losangeles" = {
       datacenter_name = "i3d.losangeles"
       public_address  = "162.245.204.237"
+      mrc             = 0
     },
 
     "i3d.dallas" = {
       datacenter_name = "i3d.dallas"
       public_address  = "138.128.136.133"
+      mrc             = 190
     },
 
   }
@@ -1561,11 +1587,13 @@ locals {
     "ovh.ashburn" = {
       datacenter_name = "ovh.ashburn"
       public_address  = "40.160.32.142"
+      mrc = 108
     },
     
     "ovh.frankfurt" = {
       datacenter_name = "ovh.frankfurt"
       public_address  = "51.89.11.27"
+      mrc = 149
     },
 
   }
@@ -1589,16 +1617,19 @@ locals {
     "hivelocity.losangeles" = {
       datacenter_name = "hivelocity.losangeles"
       public_address  = "107.155.127.114"
+      mrc = 179
     },
 
     "hivelocity.ashburn" = {
       datacenter_name = "hivelocity.ashburn"
       public_address  = "91.191.213.138"
+      mrc = 269
     },
 
     "hivelocity.miami" = {
       datacenter_name = "hivelocity.miami"
       public_address  = "162.254.151.130"
+      mrc = 121
     },
 
   }
@@ -1674,6 +1705,7 @@ locals {
       public_address   = "209.192.155.142"
       internal_address = "10.233.194.72"
       ssh_user         = "cloud-user"
+      mrc              = 60
     },
 
     "serversdotcom.singapore" = {
@@ -1681,6 +1713,7 @@ locals {
       public_address   = "103.23.208.238"
       internal_address = "10.233.195.142"
       ssh_user         = "cloud-user"
+      mrc              = 60
     },
 
     "serversdotcom.sanjose" = {
@@ -1688,12 +1721,14 @@ locals {
       public_address   = "50.115.10.103"
       internal_address = "10.233.194.140"
       ssh_user         = "cloud-user"
+      mrc              = 60
     },
 
     "serversdotcom.dallas" = {
       datacenter_name  = "serversdotcom.dallas"
       public_address   = "64.58.117.12"
       ssh_user         = "root"
+      mrc              = 328
     },
 
   }
@@ -1742,16 +1777,19 @@ locals {
     "velia.stlouis" = {
       datacenter_name = "velia.stlouis"
       public_address  = "103.66.180.167"
+      mrc             = 91
     },
 
     "velia.singapore" = {
       datacenter_name = "velia.singapore"
       public_address  = "192.155.100.65"
+      mrc             = 172
     },
 
     "velia.frankfurt" = {
       datacenter_name = "velia.frankfurt"
       public_address  = "37.61.208.81"
+      mrc             = 402
     },
 
   }

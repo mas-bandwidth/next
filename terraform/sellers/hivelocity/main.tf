@@ -145,7 +145,7 @@ output "relays" {
         22,
         local.ssh_user,
         0,
-        0,
+        v.mrc,
       ]
     )
   }
