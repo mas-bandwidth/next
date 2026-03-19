@@ -9,15 +9,11 @@ DONE
 		* Percentage of playtime above 60ms RTT
 		* Percentage of playtime above 100ms RTT
 		* P90 RTT
+		* P90 Jitter
+		* Mean packet Loss
+		* Latency Distribution
 
 TODO
-
-		* Mean RTT
-		* Mean Jitter
-		* Mean Packet Loss
-		* P90 Jitter
-		* P90 Packet Loss
-		* Latency Distribution
 
 	----------------
 
