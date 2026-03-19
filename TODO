@@ -4,7 +4,22 @@ DONE
 
 	Identify expensive relays that should just be replaced and make sure they are set to shut down
 
+	First do the essential overall analysis over the last 90 days:
+
+		* Percentage of playtime above 60ms RTT
+		* Percentage of playtime above 100ms RTT
+		* P90 RTT
+
 TODO
+
+		* Mean RTT
+		* Mean Jitter
+		* Mean Packet Loss
+		* P90 Jitter
+		* P90 Packet Loss
+		* Latency Distribution
+
+	----------------
 
 	Pass over all sellers and make sure relays we need aren't going to be shut down before the weekend test
 
@@ -45,6 +60,8 @@ TODO
 
 	Information could include:
 
+		*** Distribution of latency over the last 90 days as a graph ***
+
 		Unique users
 		Total playtime (hours)
 		Accelerated playtime (hours)
@@ -71,8 +88,6 @@ TODO
 		P90 latency over the last 90 days as a graph
 		P90 jitter over the last 90 days as a graph
 		P90 packet loss over the last 90 days as a graph
-
-		Distribution of latency over the last 90 days as a graph
 
 	------------------
 
