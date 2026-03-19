@@ -1,32 +1,81 @@
 DONE
 
-	latitude.siliconvalley
-	zenlayer.sanjose
-	latitude.newyork
-	datapacket.denver
-	Remove amazon dupes
-	Remove google dupes
-	Re-add google dupes (for now)
-	velia.singapore
-	amazon.newyork
-	amazon.chicago
+	Get MRC pricing information into the relay database
+
+	Identify expensive relays that should just be replaced and make sure they are set to shut down
 
 TODO
 
-	datapacket.chicago
-	velia.stlouis
+	Pass over all sellers and make sure relays we need aren't going to be shut down before the weekend test
 
-	i3d.santaclara				<--- they might have it, as legacy instances
-	i3d.tokyo
-	i3d.singapore
+		zenlayer
+		ovh
+		i3d
+		latitude
+		datapacket
+		hivelocity
+		gcore
+		serversdotcom
 
-============================================================
-	
-GDC follow ups:
+	----------------
 
-	Hosting with zenlayer
-	Hosting with datapacket
-	Hosting with latitude.sh
-	Hosting with nitrado
-	Hosting with edgegap
-	Hosting with gamelift
+	Can I run bigquery SQL queries from inside my next.go tool? That would be pretty convenient!
+
+	Implement a tool to calculate the # unique users accelerated, and a cost per-unique user accelerated per-month per-relay (given a time period, eg. weekend)
+
+	Consider the cost per-user in the decision on which relays to shut down
+
+	----------------
+
+	We need a per-datacenter analysis:
+
+		frankfurt
+		dubai
+		istanbul
+		saopaulo
+		dallas
+		virginia
+		losangeles / sanjose
+		singapore
+		tokyo
+		sydney
+		capetown
+
+	That shows as much useful information as we can get as possible, on a per-region basis.
+
+	Information could include:
+
+		Unique users
+		Total playtime (hours)
+		Accelerated playtime (hours)
+
+		Mean latency
+		Mean jitter
+		Mean packet loss
+
+		Mean latency (accelerated)
+		Mean jitter (accelerated)
+		Mean packet loss (accelerated)
+
+		P90 latency
+		P90 jitter
+		P90 packet loss
+
+		P90 latency (accelerated)
+		P90 jitter (accelerated)
+		P90 packet loss (accelerated)
+
+		Playtime above 60ms (with acceleration, without)
+		Playtime with packet loss (with acceleration, without)
+
+		P90 latency over the last 90 days as a graph
+		P90 jitter over the last 90 days as a graph
+		P90 packet loss over the last 90 days as a graph
+
+		Distribution of latency over the last 90 days as a graph
+
+	------------------
+
+	Start with this analysis on frankfurt
+
+	------------------
