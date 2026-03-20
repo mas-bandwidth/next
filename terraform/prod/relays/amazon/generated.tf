@@ -2086,9 +2086,6 @@ locals {
     "amazon.mexico.1" = { datacenter_name = "amazon.mexico.1" },
     "amazon.mexico.2" = { datacenter_name = "amazon.mexico.2" },
     "amazon.mexico.3" = { datacenter_name = "amazon.mexico.3" },
-    "amazon.mumbai.1" = { datacenter_name = "amazon.mumbai.1" },
-    "amazon.mumbai.2" = { datacenter_name = "amazon.mumbai.2" },
-    "amazon.mumbai.3" = { datacenter_name = "amazon.mumbai.3" },
     "amazon.oman.1" = { datacenter_name = "amazon.oman.1" },
     "amazon.sanjose.1" = { datacenter_name = "amazon.sanjose.1" },
     "amazon.sanjose.3" = { datacenter_name = "amazon.sanjose.3" },
@@ -2097,9 +2094,6 @@ locals {
     "amazon.saopaulo.2" = { datacenter_name = "amazon.saopaulo.2" },
     "amazon.saopaulo.3" = { datacenter_name = "amazon.saopaulo.3" },
     "amazon.telaviv.1" = { datacenter_name = "amazon.telaviv.1" },
-    "amazon.telaviv.2" = { datacenter_name = "amazon.telaviv.2" },
-    "amazon.telaviv.3" = { datacenter_name = "amazon.telaviv.3" },
-    "amazon.uae.1" = { datacenter_name = "amazon.uae.1" },
     "amazon.virginia.1" = { datacenter_name = "amazon.virginia.1" },
     "amazon.virginia.2" = { datacenter_name = "amazon.virginia.2" },
     "amazon.virginia.3" = { datacenter_name = "amazon.virginia.3" },
@@ -2115,7 +2109,7 @@ module "relay_amazon_bahrain_1" {
 	  name              = "amazon.bahrain.1"
 	  zone              = local.datacenter_map["amazon.bahrain.1"].zone
 	  region            = local.datacenter_map["amazon.bahrain.1"].region
-	  type              = "c5a.large"
+	  type              = "t3.medium"
 	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
 	  security_group_id = module.region_me_south_1.security_group_id
 	  vpn_address       = var.vpn_address
@@ -2128,7 +2122,7 @@ module "relay_amazon_bahrain_1" {
 	  name              = "amazon.bahrain.3"
 	  zone              = local.datacenter_map["amazon.bahrain.3"].zone
 	  region            = local.datacenter_map["amazon.bahrain.3"].region
-	  type              = "c5a.large"
+	  type              = "t3.medium"
 	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
 	  security_group_id = module.region_me_south_1.security_group_id
 	  vpn_address       = var.vpn_address
@@ -2154,7 +2148,7 @@ module "relay_amazon_bahrain_1" {
 	  name              = "amazon.dallas.1"
 	  zone              = local.datacenter_map["amazon.dallas.1"].zone
 	  region            = local.datacenter_map["amazon.dallas.1"].region
-	  type              = "c6i.xlarge"
+	  type              = "c6i.large"
 	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
 	  security_group_id = module.region_us_east_1.security_group_id
 	  vpn_address       = var.vpn_address
@@ -2167,7 +2161,7 @@ module "relay_amazon_bahrain_1" {
 	  name              = "amazon.frankfurt.1"
 	  zone              = local.datacenter_map["amazon.frankfurt.1"].zone
 	  region            = local.datacenter_map["amazon.frankfurt.1"].region
-	  type              = "c6a.xlarge"
+	  type              = "t3.large"
 	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
 	  security_group_id = module.region_eu_central_1.security_group_id
 	  vpn_address       = var.vpn_address
@@ -2180,7 +2174,7 @@ module "relay_amazon_bahrain_1" {
 	  name              = "amazon.frankfurt.2"
 	  zone              = local.datacenter_map["amazon.frankfurt.2"].zone
 	  region            = local.datacenter_map["amazon.frankfurt.2"].region
-	  type              = "c6a.xlarge"
+	  type              = "t3.large"
 	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
 	  security_group_id = module.region_eu_central_1.security_group_id
 	  vpn_address       = var.vpn_address
@@ -2193,7 +2187,7 @@ module "relay_amazon_bahrain_1" {
 	  name              = "amazon.frankfurt.3"
 	  zone              = local.datacenter_map["amazon.frankfurt.3"].zone
 	  region            = local.datacenter_map["amazon.frankfurt.3"].region
-	  type              = "c6a.xlarge"
+	  type              = "t3.large"
 	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
 	  security_group_id = module.region_eu_central_1.security_group_id
 	  vpn_address       = var.vpn_address
@@ -2219,7 +2213,7 @@ module "relay_amazon_bahrain_1" {
 	  name              = "amazon.mexico.1"
 	  zone              = local.datacenter_map["amazon.mexico.1"].zone
 	  region            = local.datacenter_map["amazon.mexico.1"].region
-	  type              = "m6i.large"
+	  type              = "t3.medium"
 	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
 	  security_group_id = module.region_mx_central_1.security_group_id
 	  vpn_address       = var.vpn_address
@@ -2232,7 +2226,7 @@ module "relay_amazon_bahrain_1" {
 	  name              = "amazon.mexico.2"
 	  zone              = local.datacenter_map["amazon.mexico.2"].zone
 	  region            = local.datacenter_map["amazon.mexico.2"].region
-	  type              = "m6i.large"
+	  type              = "t3.medium"
 	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
 	  security_group_id = module.region_mx_central_1.security_group_id
 	  vpn_address       = var.vpn_address
@@ -2245,51 +2239,12 @@ module "relay_amazon_bahrain_1" {
 	  name              = "amazon.mexico.3"
 	  zone              = local.datacenter_map["amazon.mexico.3"].zone
 	  region            = local.datacenter_map["amazon.mexico.3"].region
-	  type              = "m6i.large"
+	  type              = "t3.medium"
 	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
 	  security_group_id = module.region_mx_central_1.security_group_id
 	  vpn_address       = var.vpn_address
 	  providers = {
 	    aws = aws.mx-central-1
-	  }
-	}
-	module "relay_amazon_mumbai_1" {
-	  source            = "./relay"
-	  name              = "amazon.mumbai.1"
-	  zone              = local.datacenter_map["amazon.mumbai.1"].zone
-	  region            = local.datacenter_map["amazon.mumbai.1"].region
-	  type              = "t3.medium"
-	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
-	  security_group_id = module.region_ap_south_1.security_group_id
-	  vpn_address       = var.vpn_address
-	  providers = {
-	    aws = aws.ap-south-1
-	  }
-	}
-	module "relay_amazon_mumbai_2" {
-	  source            = "./relay"
-	  name              = "amazon.mumbai.2"
-	  zone              = local.datacenter_map["amazon.mumbai.2"].zone
-	  region            = local.datacenter_map["amazon.mumbai.2"].region
-	  type              = "t3.medium"
-	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
-	  security_group_id = module.region_ap_south_1.security_group_id
-	  vpn_address       = var.vpn_address
-	  providers = {
-	    aws = aws.ap-south-1
-	  }
-	}
-	module "relay_amazon_mumbai_3" {
-	  source            = "./relay"
-	  name              = "amazon.mumbai.3"
-	  zone              = local.datacenter_map["amazon.mumbai.3"].zone
-	  region            = local.datacenter_map["amazon.mumbai.3"].region
-	  type              = "t3.medium"
-	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
-	  security_group_id = module.region_ap_south_1.security_group_id
-	  vpn_address       = var.vpn_address
-	  providers = {
-	    aws = aws.ap-south-1
 	  }
 	}
 	module "relay_amazon_oman_1" {
@@ -2310,7 +2265,7 @@ module "relay_amazon_bahrain_1" {
 	  name              = "amazon.sanjose.1"
 	  zone              = local.datacenter_map["amazon.sanjose.1"].zone
 	  region            = local.datacenter_map["amazon.sanjose.1"].region
-	  type              = "m5a.xlarge"
+	  type              = "t3.medium"
 	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
 	  security_group_id = module.region_us_west_1.security_group_id
 	  vpn_address       = var.vpn_address
@@ -2323,7 +2278,7 @@ module "relay_amazon_bahrain_1" {
 	  name              = "amazon.sanjose.3"
 	  zone              = local.datacenter_map["amazon.sanjose.3"].zone
 	  region            = local.datacenter_map["amazon.sanjose.3"].region
-	  type              = "m5a.xlarge"
+	  type              = "t3.medium"
 	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
 	  security_group_id = module.region_us_west_1.security_group_id
 	  vpn_address       = var.vpn_address
@@ -2349,7 +2304,7 @@ module "relay_amazon_bahrain_1" {
 	  name              = "amazon.saopaulo.1"
 	  zone              = local.datacenter_map["amazon.saopaulo.1"].zone
 	  region            = local.datacenter_map["amazon.saopaulo.1"].region
-	  type              = "c6a.xlarge"
+	  type              = "t3.medium"
 	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
 	  security_group_id = module.region_sa_east_1.security_group_id
 	  vpn_address       = var.vpn_address
@@ -2362,7 +2317,7 @@ module "relay_amazon_bahrain_1" {
 	  name              = "amazon.saopaulo.2"
 	  zone              = local.datacenter_map["amazon.saopaulo.2"].zone
 	  region            = local.datacenter_map["amazon.saopaulo.2"].region
-	  type              = "c6a.xlarge"
+	  type              = "t3.medium"
 	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
 	  security_group_id = module.region_sa_east_1.security_group_id
 	  vpn_address       = var.vpn_address
@@ -2375,7 +2330,7 @@ module "relay_amazon_bahrain_1" {
 	  name              = "amazon.saopaulo.3"
 	  zone              = local.datacenter_map["amazon.saopaulo.3"].zone
 	  region            = local.datacenter_map["amazon.saopaulo.3"].region
-	  type              = "c6a.xlarge"
+	  type              = "t3.medium"
 	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
 	  security_group_id = module.region_sa_east_1.security_group_id
 	  vpn_address       = var.vpn_address
@@ -2388,51 +2343,12 @@ module "relay_amazon_bahrain_1" {
 	  name              = "amazon.telaviv.1"
 	  zone              = local.datacenter_map["amazon.telaviv.1"].zone
 	  region            = local.datacenter_map["amazon.telaviv.1"].region
-	  type              = "c5.large"
+	  type              = "t3.medium"
 	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
 	  security_group_id = module.region_il_central_1.security_group_id
 	  vpn_address       = var.vpn_address
 	  providers = {
 	    aws = aws.il-central-1
-	  }
-	}
-	module "relay_amazon_telaviv_2" {
-	  source            = "./relay"
-	  name              = "amazon.telaviv.2"
-	  zone              = local.datacenter_map["amazon.telaviv.2"].zone
-	  region            = local.datacenter_map["amazon.telaviv.2"].region
-	  type              = "c5.large"
-	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
-	  security_group_id = module.region_il_central_1.security_group_id
-	  vpn_address       = var.vpn_address
-	  providers = {
-	    aws = aws.il-central-1
-	  }
-	}
-	module "relay_amazon_telaviv_3" {
-	  source            = "./relay"
-	  name              = "amazon.telaviv.3"
-	  zone              = local.datacenter_map["amazon.telaviv.3"].zone
-	  region            = local.datacenter_map["amazon.telaviv.3"].region
-	  type              = "c5.large"
-	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
-	  security_group_id = module.region_il_central_1.security_group_id
-	  vpn_address       = var.vpn_address
-	  providers = {
-	    aws = aws.il-central-1
-	  }
-	}
-	module "relay_amazon_uae_1" {
-	  source            = "./relay"
-	  name              = "amazon.uae.1"
-	  zone              = local.datacenter_map["amazon.uae.1"].zone
-	  region            = local.datacenter_map["amazon.uae.1"].region
-	  type              = "c5.large"
-	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
-	  security_group_id = module.region_me_central_1.security_group_id
-	  vpn_address       = var.vpn_address
-	  providers = {
-	    aws = aws.me-central-1
 	  }
 	}
 	module "relay_amazon_virginia_1" {
@@ -2440,7 +2356,7 @@ module "relay_amazon_bahrain_1" {
 	  name              = "amazon.virginia.1"
 	  zone              = local.datacenter_map["amazon.virginia.1"].zone
 	  region            = local.datacenter_map["amazon.virginia.1"].region
-	  type              = "m5a.xlarge"
+	  type              = "t3.medium"
 	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
 	  security_group_id = module.region_us_east_1.security_group_id
 	  vpn_address       = var.vpn_address
@@ -2453,7 +2369,7 @@ module "relay_amazon_bahrain_1" {
 	  name              = "amazon.virginia.2"
 	  zone              = local.datacenter_map["amazon.virginia.2"].zone
 	  region            = local.datacenter_map["amazon.virginia.2"].region
-	  type              = "m5a.xlarge"
+	  type              = "t3.medium"
 	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
 	  security_group_id = module.region_us_east_1.security_group_id
 	  vpn_address       = var.vpn_address
@@ -2466,7 +2382,7 @@ module "relay_amazon_bahrain_1" {
 	  name              = "amazon.virginia.3"
 	  zone              = local.datacenter_map["amazon.virginia.3"].zone
 	  region            = local.datacenter_map["amazon.virginia.3"].region
-	  type              = "c3.xlarge"
+	  type              = "c3.large"
 	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
 	  security_group_id = module.region_us_east_1.security_group_id
 	  vpn_address       = var.vpn_address
@@ -2479,7 +2395,7 @@ module "relay_amazon_bahrain_1" {
 	  name              = "amazon.virginia.4"
 	  zone              = local.datacenter_map["amazon.virginia.4"].zone
 	  region            = local.datacenter_map["amazon.virginia.4"].region
-	  type              = "m5a.xlarge"
+	  type              = "t3.medium"
 	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
 	  security_group_id = module.region_us_east_1.security_group_id
 	  vpn_address       = var.vpn_address
@@ -2492,7 +2408,7 @@ module "relay_amazon_bahrain_1" {
 	  name              = "amazon.virginia.5"
 	  zone              = local.datacenter_map["amazon.virginia.5"].zone
 	  region            = local.datacenter_map["amazon.virginia.5"].region
-	  type              = "m5a.xlarge"
+	  type              = "t3.medium"
 	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
 	  security_group_id = module.region_us_east_1.security_group_id
 	  vpn_address       = var.vpn_address
@@ -2505,7 +2421,7 @@ module "relay_amazon_bahrain_1" {
 	  name              = "amazon.virginia.6"
 	  zone              = local.datacenter_map["amazon.virginia.6"].zone
 	  region            = local.datacenter_map["amazon.virginia.6"].region
-	  type              = "r5.xlarge"
+	  type              = "t3.medium"
 	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
 	  security_group_id = module.region_us_east_1.security_group_id
 	  vpn_address       = var.vpn_address
@@ -2533,7 +2449,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
-	      "mrc"              = 65
+	      "mrc"              = 35
 	    }
 
 	    "amazon.bahrain.3" = {
@@ -2550,7 +2466,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
-	      "mrc"              = 65
+	      "mrc"              = 35
 	    }
 
 	    "amazon.buenosaires.1" = {
@@ -2584,7 +2500,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
-	      "mrc"              = 140
+	      "mrc"              = 77
 	    }
 
 	    "amazon.frankfurt.1" = {
@@ -2601,7 +2517,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
-	      "mrc"              = 0
+	      "mrc"              = 72
 	    }
 
 	    "amazon.frankfurt.2" = {
@@ -2618,7 +2534,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
-	      "mrc"              = 0
+	      "mrc"              = 72
 	    }
 
 	    "amazon.frankfurt.3" = {
@@ -2635,7 +2551,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
-	      "mrc"              = 0
+	      "mrc"              = 72
 	    }
 
 	    "amazon.lima.1" = {
@@ -2669,7 +2585,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
-	      "mrc"              = 85
+	      "mrc"              = 35
 	    }
 
 	    "amazon.mexico.2" = {
@@ -2686,7 +2602,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
-	      "mrc"              = 85
+	      "mrc"              = 35
 	    }
 
 	    "amazon.mexico.3" = {
@@ -2700,57 +2616,6 @@ module "relay_amazon_bahrain_1" {
 	      "internal_port"    = 40000
 	      "internal_group"   = "mx-central-1"
 	      "ssh_ip"           = module.relay_amazon_mexico_3.public_address
-	      "ssh_port"         = 22
-	      "ssh_user"         = "ubuntu"
-	      "bandwidth_price"  = 2
-	      "mrc"              = 85
-	    }
-
-	    "amazon.mumbai.1" = {
-	      "relay_name"       = "amazon.mumbai.1"
-	      "datacenter_name"  = "amazon.mumbai.1"
-	      "seller_name"      = "Amazon"
-	      "seller_code"      = "amazon"
-	      "public_ip"        = module.relay_amazon_mumbai_1.public_address
-	      "public_port"      = 40000
-	      "internal_ip"      = module.relay_amazon_mumbai_1.internal_address
-	      "internal_port"    = 40000
-	      "internal_group"   = "ap-south-1"
-	      "ssh_ip"           = module.relay_amazon_mumbai_1.public_address
-	      "ssh_port"         = 22
-	      "ssh_user"         = "ubuntu"
-	      "bandwidth_price"  = 2
-	      "mrc"              = 35
-	    }
-
-	    "amazon.mumbai.2" = {
-	      "relay_name"       = "amazon.mumbai.2"
-	      "datacenter_name"  = "amazon.mumbai.2"
-	      "seller_name"      = "Amazon"
-	      "seller_code"      = "amazon"
-	      "public_ip"        = module.relay_amazon_mumbai_2.public_address
-	      "public_port"      = 40000
-	      "internal_ip"      = module.relay_amazon_mumbai_2.internal_address
-	      "internal_port"    = 40000
-	      "internal_group"   = "ap-south-1"
-	      "ssh_ip"           = module.relay_amazon_mumbai_2.public_address
-	      "ssh_port"         = 22
-	      "ssh_user"         = "ubuntu"
-	      "bandwidth_price"  = 2
-	      "mrc"              = 35
-	    }
-
-	    "amazon.mumbai.3" = {
-	      "relay_name"       = "amazon.mumbai.3"
-	      "datacenter_name"  = "amazon.mumbai.3"
-	      "seller_name"      = "Amazon"
-	      "seller_code"      = "amazon"
-	      "public_ip"        = module.relay_amazon_mumbai_3.public_address
-	      "public_port"      = 40000
-	      "internal_ip"      = module.relay_amazon_mumbai_3.internal_address
-	      "internal_port"    = 40000
-	      "internal_group"   = "ap-south-1"
-	      "ssh_ip"           = module.relay_amazon_mumbai_3.public_address
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
@@ -2788,7 +2653,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
-	      "mrc"              = 147
+	      "mrc"              = 35
 	    }
 
 	    "amazon.sanjose.3" = {
@@ -2805,7 +2670,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
-	      "mrc"              = 147
+	      "mrc"              = 35
 	    }
 
 	    "amazon.santiago.1" = {
@@ -2839,7 +2704,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
-	      "mrc"              = 0
+	      "mrc"              = 35
 	    }
 
 	    "amazon.saopaulo.2" = {
@@ -2856,7 +2721,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
-	      "mrc"              = 0
+	      "mrc"              = 35
 	    }
 
 	    "amazon.saopaulo.3" = {
@@ -2873,7 +2738,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
-	      "mrc"              = 0
+	      "mrc"              = 35
 	    }
 
 	    "amazon.telaviv.1" = {
@@ -2890,58 +2755,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
-	      "mrc"              = 70
-	    }
-
-	    "amazon.telaviv.2" = {
-	      "relay_name"       = "amazon.telaviv.2"
-	      "datacenter_name"  = "amazon.telaviv.2"
-	      "seller_name"      = "Amazon"
-	      "seller_code"      = "amazon"
-	      "public_ip"        = module.relay_amazon_telaviv_2.public_address
-	      "public_port"      = 40000
-	      "internal_ip"      = module.relay_amazon_telaviv_2.internal_address
-	      "internal_port"    = 40000
-	      "internal_group"   = "il-central-1"
-	      "ssh_ip"           = module.relay_amazon_telaviv_2.public_address
-	      "ssh_port"         = 22
-	      "ssh_user"         = "ubuntu"
-	      "bandwidth_price"  = 2
-	      "mrc"              = 70
-	    }
-
-	    "amazon.telaviv.3" = {
-	      "relay_name"       = "amazon.telaviv.3"
-	      "datacenter_name"  = "amazon.telaviv.3"
-	      "seller_name"      = "Amazon"
-	      "seller_code"      = "amazon"
-	      "public_ip"        = module.relay_amazon_telaviv_3.public_address
-	      "public_port"      = 40000
-	      "internal_ip"      = module.relay_amazon_telaviv_3.internal_address
-	      "internal_port"    = 40000
-	      "internal_group"   = "il-central-1"
-	      "ssh_ip"           = module.relay_amazon_telaviv_3.public_address
-	      "ssh_port"         = 22
-	      "ssh_user"         = "ubuntu"
-	      "bandwidth_price"  = 2
-	      "mrc"              = 70
-	    }
-
-	    "amazon.uae.1" = {
-	      "relay_name"       = "amazon.uae.1"
-	      "datacenter_name"  = "amazon.uae.1"
-	      "seller_name"      = "Amazon"
-	      "seller_code"      = "amazon"
-	      "public_ip"        = module.relay_amazon_uae_1.public_address
-	      "public_port"      = 40000
-	      "internal_ip"      = module.relay_amazon_uae_1.internal_address
-	      "internal_port"    = 40000
-	      "internal_group"   = "me-central-1"
-	      "ssh_ip"           = module.relay_amazon_uae_1.public_address
-	      "ssh_port"         = 22
-	      "ssh_user"         = "ubuntu"
-	      "bandwidth_price"  = 2
-	      "mrc"              = 70
+	      "mrc"              = 35
 	    }
 
 	    "amazon.virginia.1" = {
@@ -2958,7 +2772,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
-	      "mrc"              = 147
+	      "mrc"              = 35
 	    }
 
 	    "amazon.virginia.2" = {
@@ -2975,7 +2789,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
-	      "mrc"              = 147
+	      "mrc"              = 35
 	    }
 
 	    "amazon.virginia.3" = {
@@ -2992,7 +2806,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
-	      "mrc"              = 154
+	      "mrc"              = 92
 	    }
 
 	    "amazon.virginia.4" = {
@@ -3009,7 +2823,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
-	      "mrc"              = 147
+	      "mrc"              = 35
 	    }
 
 	    "amazon.virginia.5" = {
@@ -3026,7 +2840,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
-	      "mrc"              = 147
+	      "mrc"              = 35
 	    }
 
 	    "amazon.virginia.6" = {
@@ -3043,7 +2857,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
-	      "mrc"              = 0
+	      "mrc"              = 35
 	    }
 
 	

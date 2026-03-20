@@ -291,6 +291,7 @@ locals {
     },
     */
 
+    /*
     "google.mumbai.1" = {
       datacenter_name = "google.mumbai.1"
       type            = "n2-highcpu-2"
@@ -311,6 +312,7 @@ locals {
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
       mrc             = 80
     },
+    */
 
     /*
     "google.johannesburg.1" = {
@@ -882,12 +884,14 @@ locals {
     },
     */    
 
+    /*
     "akamai.mumbai.2" = {
       datacenter_name = "akamai.mumbai.2"
       type            = "g7-premium-16"
       image           = "linode/ubuntu22.04"
       mrc             = 173
-    },    
+    },
+    */    
 
     /*
     "akamai.singapore.2" = {

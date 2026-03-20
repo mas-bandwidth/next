@@ -42,6 +42,16 @@ DONE
 
 TODO
 
+	Optimize aws instance types
+
+	-----------
+
+	Optimize google cloud instance types
+
+	Optimize akamai instance types
+
+	-----------
+
 	i3D cancellations
 
 	GCore cancellations
@@ -51,3 +61,5 @@ TODO
 	Servers.com cancellations
 
 	OVH cancellations
+
+	-----------
