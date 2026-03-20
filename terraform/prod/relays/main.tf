@@ -993,12 +993,14 @@ locals {
       mrc              = 196
     },
 
+    /*
     "zenlayer.manilla" = {
       datacenter_name  = "zenlayer.manilla"
       public_address   = "66.253.11.251"
       internal_address = "10.131.160.2"
       mrc              = 52
     },
+    */
 
     /*
     "zenlayer.jakarta" = {
