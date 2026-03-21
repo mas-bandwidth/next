@@ -866,6 +866,50 @@ locals {
 
   akamai_relays = {
 
+    "akamai.fremont" = {
+      datacenter_name = "akamai.fremont"
+      type            = "g6-dedicated-4"
+      image           = "linode/ubuntu22.04"
+      mrc             = 72
+    },
+
+    "akamai.saopaulo" = {
+      datacenter_name = "akamai.saopaulo"
+      type            = "g7-premium-4"
+      image           = "linode/ubuntu22.04"
+      mrc             = 72
+    },
+
+    "akamai.frankfurt.2" = {
+      datacenter_name = "akamai.frankfurt.2"
+      type            = "g7-premium-4"
+      image           = "linode/ubuntu22.04"
+      mrc             = 72
+    },
+
+    "akamai.dallas" = {
+      datacenter_name = "akamai.dallas"
+      type            = "g6-dedicated-4"
+      image           = "linode/ubuntu22.04"
+      mrc             = 72
+    },
+
+    "akamai.washington" = {
+      datacenter_name = "akamai.washington"
+      type            = "g7-premium-4"
+      image           = "linode/ubuntu22.04"
+      mrc             = 72
+    },
+
+    /*
+    "akamai.frankfurt.1" = {
+      datacenter_name = "akamai.frankfurt.1"
+      type            = "g6-dedicated-16"
+      image           = "linode/ubuntu22.04"
+      mrc             = 173
+    },
+    */
+
     /*
     "akamai.sydney" = {
       datacenter_name = "akamai.sydney"
@@ -900,7 +944,9 @@ locals {
       image           = "linode/ubuntu22.04"
       mrc             = 173
     },    
+    */
 
+    /*
     "akamai.chicago" = {
       datacenter_name = "akamai.chicago"
       type            = "g7-premium-16"
@@ -908,50 +954,6 @@ locals {
       mrc             = 173
     },
     */
-
-    "akamai.fremont" = {
-      datacenter_name = "akamai.fremont"
-      type            = "g6-dedicated-16"
-      image           = "linode/ubuntu22.04"
-      mrc             = 173
-    },
-
-    "akamai.saopaulo" = {
-      datacenter_name = "akamai.saopaulo"
-      type            = "g7-premium-16"
-      image           = "linode/ubuntu22.04"
-      mrc             = 173
-    },
-
-    /*
-    "akamai.frankfurt.1" = {
-      datacenter_name = "akamai.frankfurt.1"
-      type            = "g6-dedicated-16"
-      image           = "linode/ubuntu22.04"
-      mrc             = 173
-    },
-    */
-
-    "akamai.frankfurt.2" = {
-      datacenter_name = "akamai.frankfurt.2"
-      type            = "g7-premium-16"
-      image           = "linode/ubuntu22.04"
-      mrc             = 173
-    },
-
-    "akamai.dallas" = {
-      datacenter_name = "akamai.dallas"
-      type            = "g6-dedicated-16"
-      image           = "linode/ubuntu22.04"
-      mrc             = 173
-    },
-
-    "akamai.washington" = {
-      datacenter_name = "akamai.washington"
-      type            = "g7-premium-16"
-      image           = "linode/ubuntu22.04"
-      mrc             = 173
-    },
 
     /*
     "akamai.losangeles" = {

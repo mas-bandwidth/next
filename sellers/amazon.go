@@ -77,8 +77,8 @@ var prodRelayMap = map[string][]string{
 	"amazon.stockholm.3": {"amazon.stockholm.3", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 	*/
 
-	"amazon.sanjose.1": {"amazon.sanjose.1", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
-	"amazon.sanjose.3": {"amazon.sanjose.3", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	"amazon.sanjose.1": {"amazon.sanjose.1", "t3.large", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	"amazon.sanjose.3": {"amazon.sanjose.3", "t3.large", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 
 	/*
 	"amazon.sydney.1": {"amazon.sydney.1", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
@@ -150,12 +150,12 @@ var prodRelayMap = map[string][]string{
 	"amazon.frankfurt.2": {"amazon.frankfurt.2", "t3.large", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 	"amazon.frankfurt.3": {"amazon.frankfurt.3", "t3.large", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 
-	"amazon.virginia.1": {"amazon.virginia.1", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
-	"amazon.virginia.2": {"amazon.virginia.2", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	"amazon.virginia.1": {"amazon.virginia.1", "t3.large", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	"amazon.virginia.2": {"amazon.virginia.2", "t3.large", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 	"amazon.virginia.3": {"amazon.virginia.3", "c3.large", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
-	"amazon.virginia.4": {"amazon.virginia.4", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
-	"amazon.virginia.5": {"amazon.virginia.5", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
-	"amazon.virginia.6": {"amazon.virginia.6", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	"amazon.virginia.4": {"amazon.virginia.4", "t3.large", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	"amazon.virginia.5": {"amazon.virginia.5", "t3.large", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	"amazon.virginia.6": {"amazon.virginia.6", "t3.large", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 
 	"amazon.dallas.1": {"amazon.dallas.1", "c6i.large", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 
