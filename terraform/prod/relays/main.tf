@@ -140,7 +140,7 @@ locals {
     /*
     "google.finland.1" = {
       datacenter_name = "google.finland.1"
-      type            = "n2-highcpu-2"
+      type            = "2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
       mrc             = 80
     },
@@ -482,16 +482,16 @@ locals {
 
     "google.saopaulo.1" = {
       datacenter_name = "google.saopaulo.1"
-      type            = "n2-highcpu-2" # "c2-standard-4"
+      type            = "e2-highcpu-2" # "c2-standard-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
-      mrc             = 80
+      mrc             = 43
     },
 
     "google.saopaulo.2" = {
       datacenter_name = "google.saopaulo.2"
-      type            = "n2-highcpu-2" # c2-standard-4"
+      type            = "e2-highcpu-2" # c2-standard-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
-      mrc             = 80
+      mrc             = 43
     },
 
     /*
@@ -499,71 +499,71 @@ locals {
       datacenter_name = "google.saopaulo.3"
       type            = "n2-highcpu-2" # "c2-standard-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
-      mrc             = 80
+      mrc             = 43
     },
     */
 
     "google.santiago.1" = {
       datacenter_name = "google.santiago.1"
-      type            = "n2-highcpu-2" # "c2-standard-4"
+      type            = "e2-highcpu-2" # "c2-standard-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
-      mrc             = 80
+      mrc             = 43
     },
 
     "google.santiago.2" = {
       datacenter_name = "google.santiago.2"
-      type            = "c2-standard-4"
+      type            = "e2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
-      mrc             = 80
+      mrc             = 43
     },
 
     "google.santiago.3" = {
       datacenter_name = "google.santiago.3"
-      type            = "c2-standard-4"
+      type            = "e2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
-      mrc             = 80
+      mrc             = 43
     },
 
     "google.frankfurt.1" = {
       datacenter_name = "google.frankfurt.1"
-      type            = "n2-highcpu-2" # "c2-standard-4"
+      type            = "e2-highcpu-2" # "c2-standard-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
-      mrc             = 80
+      mrc             = 43
     },
 
     "google.frankfurt.2" = {
       datacenter_name = "google.frankfurt.2"
-      type            = "n2-highcpu-2"
+      type            = "e2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
-      mrc             = 80
+      mrc             = 43
     },
 
     "google.frankfurt.3" = {
       datacenter_name = "google.frankfurt.3"
-      type            = "n2-highcpu-2"
+      type            = "e2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
-      mrc             = 80
+      mrc             = 43
     },
 
     "google.dallas.1" = {
       datacenter_name = "google.dallas.1"
-      type            = "n2-highcpu-2" # "c3-standard-4"
+      type            = "e2-highcpu-2" # "c3-standard-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
-      mrc             = 80
+      mrc             = 43
     },
 
     "google.dallas.2" = {
       datacenter_name = "google.dallas.2"
-      type            = "n2-highcpu-2"
+      type            = "e2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
-      mrc             = 80
+      mrc             = 43
     },
 
     "google.dallas.3" = {
       datacenter_name = "google.dallas.3"
-      type            = "n2-highcpu-2"
+      type            = "e2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
-      mrc             = 80
+      mrc             = 43
     },
 
     /*
@@ -591,107 +591,107 @@ locals {
 
     "google.virginia.1" = {
       datacenter_name = "google.virginia.1"
-      type            = "n2-highcpu-2"
+      type            = "e2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
-      mrc             = 80
+      mrc             = 43
     },
 
     "google.virginia.2" = {
       datacenter_name = "google.virginia.2"
-      type            = "n2-highcpu-2"
+      type            = "e2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
-      mrc             = 80
+      mrc             = 43
     },
 
     "google.virginia.3" = {
       datacenter_name = "google.virginia.3"
-      type            = "n2-highcpu-2"
+      type            = "e2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
-      mrc             = 80
+      mrc             = 43
     },
 
     "google.queretaro.1" = {
       datacenter_name = "google.queretaro.1"
-      type            = "n4-highcpu-2" # "c4-highcpu-4"
+      type            = "e2-highcpu-2" # "c4-highcpu-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
-      mrc             = 80
+      mrc             = 43
     },
 
     "google.queretaro.2" = {
       datacenter_name = "google.queretaro.2"
-      type            = "n4-highcpu-2"
+      type            = "e2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
-      mrc             = 80
+      mrc             = 43
     },
 
     "google.queretaro.3" = {
       datacenter_name = "google.queretaro.3"
-      type            = "n4-highcpu-2"
+      type            = "e2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
-      mrc             = 80
+      mrc             = 43
     },
 
     "google.doha.1" = {
       datacenter_name = "google.doha.1"
-      type            = "n2-highcpu-2" # "c3-highmem-4"
+      type            = "e2-highcpu-2" # "c3-highmem-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
-      mrc             = 80
+      mrc             = 43
     },
 
     "google.doha.2" = {
       datacenter_name = "google.doha.2"
-      type            = "n2-highcpu-2" # c4-highcpu-4"
+      type            = "e2-highcpu-2" # c4-highcpu-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
-      mrc             = 80
+      mrc             = 43
     },
 
     "google.doha.3" = {
       datacenter_name = "google.doha.3"
-      type            = "n2-highcpu-2" # "e2-standard-8"
+      type            = "e2-highcpu-2" # "e2-standard-8"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
-      mrc             = 80
+      mrc             = 43
     },
 
     "google.dammam.1" = {
       datacenter_name = "google.dammam.1"
-      type            = "n2-highcpu-2" # "c4-highcpu-4"
+      type            = "e2-highcpu-2" # "c4-highcpu-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
-      mrc             = 80
+      mrc             = 43
     },
 
     "google.dammam.2" = {
       datacenter_name = "google.dammam.2"
-      type            = "n2-highcpu-2"
+      type            = "e2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
-      mrc             = 80
+      mrc             = 43
     },
 
     "google.dammam.3" = {
       datacenter_name = "google.dammam.3"
-      type            = "n2-highcpu-2"
+      type            = "e2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
-      mrc             = 80
+      mrc             = 43
     },
 
     "google.telaviv.1" = {
       datacenter_name = "google.telaviv.1"
-      type            = "n2-highcpu-2" # "c4-highmem-4"
+      type            = "e2-highcpu-2" # "c4-highmem-4"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
-      mrc             = 80
+      mrc             = 43
     },
 
     "google.telaviv.2" = {
       datacenter_name = "google.telaviv.2"
-      type            = "c3-standard-4"
+      type            = "e2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
-      mrc             = 80
+      mrc             = 43
     },
 
     "google.telaviv.3" = {
       datacenter_name = "google.telaviv.3"
-      type            = "c3-standard-4"
+      type            = "e2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
-      mrc             = 80
+      mrc             = 43
     },
 
     /*
@@ -866,6 +866,50 @@ locals {
 
   akamai_relays = {
 
+    "akamai.fremont" = {
+      datacenter_name = "akamai.fremont"
+      type            = "g6-dedicated-2"
+      image           = "linode/ubuntu22.04"
+      mrc             = 45
+    },
+
+    "akamai.saopaulo" = {
+      datacenter_name = "akamai.saopaulo"
+      type            = "g7-premium-2"
+      image           = "linode/ubuntu22.04"
+      mrc             = 45
+    },
+
+    "akamai.frankfurt.2" = {
+      datacenter_name = "akamai.frankfurt.2"
+      type            = "g7-premium-2"
+      image           = "linode/ubuntu22.04"
+      mrc             = 45
+    },
+
+    "akamai.dallas" = {
+      datacenter_name = "akamai.dallas"
+      type            = "g6-dedicated-2"
+      image           = "linode/ubuntu22.04"
+      mrc             = 45
+    },
+
+    "akamai.washington" = {
+      datacenter_name = "akamai.washington"
+      type            = "g7-premium-2"
+      image           = "linode/ubuntu22.04"
+      mrc             = 45
+    },
+
+    /*
+    "akamai.frankfurt.1" = {
+      datacenter_name = "akamai.frankfurt.1"
+      type            = "g6-dedicated-16"
+      image           = "linode/ubuntu22.04"
+      mrc             = 173
+    },
+    */
+
     /*
     "akamai.sydney" = {
       datacenter_name = "akamai.sydney"
@@ -900,7 +944,9 @@ locals {
       image           = "linode/ubuntu22.04"
       mrc             = 173
     },    
+    */
 
+    /*
     "akamai.chicago" = {
       datacenter_name = "akamai.chicago"
       type            = "g7-premium-16"
@@ -908,50 +954,6 @@ locals {
       mrc             = 173
     },
     */
-
-    "akamai.fremont" = {
-      datacenter_name = "akamai.fremont"
-      type            = "g6-dedicated-16"
-      image           = "linode/ubuntu22.04"
-      mrc             = 173
-    },
-
-    "akamai.saopaulo" = {
-      datacenter_name = "akamai.saopaulo"
-      type            = "g7-premium-16"
-      image           = "linode/ubuntu22.04"
-      mrc             = 173
-    },
-
-    /*
-    "akamai.frankfurt.1" = {
-      datacenter_name = "akamai.frankfurt.1"
-      type            = "g6-dedicated-16"
-      image           = "linode/ubuntu22.04"
-      mrc             = 173
-    },
-    */
-
-    "akamai.frankfurt.2" = {
-      datacenter_name = "akamai.frankfurt.2"
-      type            = "g7-premium-16"
-      image           = "linode/ubuntu22.04"
-      mrc             = 173
-    },
-
-    "akamai.dallas" = {
-      datacenter_name = "akamai.dallas"
-      type            = "g6-dedicated-16"
-      image           = "linode/ubuntu22.04"
-      mrc             = 173
-    },
-
-    "akamai.washington" = {
-      datacenter_name = "akamai.washington"
-      type            = "g7-premium-16"
-      image           = "linode/ubuntu22.04"
-      mrc             = 173
-    },
 
     /*
     "akamai.losangeles" = {
