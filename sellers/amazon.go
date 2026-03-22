@@ -140,7 +140,7 @@ var prodRelayMap = map[string][]string{
 	"amazon.saopaulo.2": {"amazon.saopaulo.2", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 	"amazon.saopaulo.3": {"amazon.saopaulo.3", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 	
-	"amazon.buenosaires.1": {"amazon.buenosaires.1", "t3.medium" /*"r5.large"*/, "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	"amazon.buenosaires.1": {"amazon.buenosaires.1", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 
 	"amazon.lima.1": {"amazon.lima.1", "t3.medium", "ubuntu-minimal/images/hvm-ssd/ubuntu-jammy-22.04-amd64-minimal-*"},
 
@@ -167,7 +167,7 @@ var prodRelayMap = map[string][]string{
 	"amazon.miami.1": {"amazon.miami.1", "c6i.large", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 	*/
 
-	//"amazon.queretaro.1": {"amazon.queretaro.1", "c5.xlarge", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	"amazon.queretaro.1": {"amazon.queretaro.1", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 
 	/*
 	"amazon.losangeles.1": {"amazon.losangeles.1", "c5.large", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
