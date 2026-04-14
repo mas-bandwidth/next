@@ -172,14 +172,6 @@ provider "aws" {
   shared_config_files      = var.config
   shared_credentials_files = var.credentials
   profile                  = var.profile
-  alias                    = "me-south-1"
-  region                   = "me-south-1"
-}
-
-provider "aws" { 
-  shared_config_files      = var.config
-  shared_credentials_files = var.credentials
-  profile                  = var.profile
   alias                    = "ap-northeast-1"
   region                   = "ap-northeast-1"
 }
@@ -457,15 +449,6 @@ module "region_ap_northeast_2" {
   ssh_public_key_file = var.ssh_public_key_file
   providers = {
     aws = aws.ap-northeast-2
-  }
-}
-
-module "region_me_south_1" { 
-  source              = "./region"
-  vpn_address         = var.vpn_address
-  ssh_public_key_file = var.ssh_public_key_file
-  providers = {
-    aws = aws.me-south-1
   }
 }
 
@@ -2054,7 +2037,6 @@ locals {
     "eu-west-1",
     "ap-northeast-3",
     "ap-northeast-2",
-    "me-south-1",
     "ap-northeast-1",
     "sa-east-1",
     "ap-east-1",

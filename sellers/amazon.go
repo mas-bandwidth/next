@@ -48,8 +48,6 @@ var devRelayMap = map[string][]string{
 
 var prodRelayMap = map[string][]string{
 
-	// todo: try t3.mediums in more places and check acceleration quality
-
 	/*
 	"amazon.osaka.1": {"amazon.osaka.1", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 	"amazon.osaka.2": {"amazon.osaka.2", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
@@ -174,9 +172,11 @@ var prodRelayMap = map[string][]string{
 	"amazon.losangeles.2": {"amazon.losangeles.2", "c5.large", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 	*/
 
+	/*
 	"amazon.bahrain.1": {"amazon.bahrain.1", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
-	// "amazon.bahrain.2": {"amazon.bahrain.2", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	"amazon.bahrain.2": {"amazon.bahrain.2", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 	"amazon.bahrain.3": {"amazon.bahrain.3", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	*/
 
 	// "amazon.uae.1": {"amazon.uae.1", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 	/*
@@ -184,8 +184,8 @@ var prodRelayMap = map[string][]string{
 	"amazon.uae.3": {"amazon.uae.3", "c5.large", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 	*/
 
-	"amazon.telaviv.1": {"amazon.telaviv.1", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 	/*
+	"amazon.telaviv.1": {"amazon.telaviv.1", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 	"amazon.telaviv.2": {"amazon.telaviv.2", "c5.large", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 	"amazon.telaviv.3": {"amazon.telaviv.3", "c5.large", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 	*/
@@ -206,7 +206,7 @@ var prodRelayMap = map[string][]string{
 	"amazon.ireland.3": {"amazon.ireland.3", "c5.large", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 	*/
 
-	"amazon.oman.1":  {"amazon.oman.1", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
+	// "amazon.oman.1":  {"amazon.oman.1", "t3.medium", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
 
 	/*
 	"amazon.spain.1": {"amazon.spain.1", "c5.large", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"},
@@ -224,6 +224,9 @@ var prodRelayMap = map[string][]string{
 // Exclude regions
 
 var excludedRegions = map[string]bool{
+	"me-south-1": true,
+	"me-south-2": true,
+	"me-south-3": true,
 	//"ap-southeast-6": true,
 }
 
