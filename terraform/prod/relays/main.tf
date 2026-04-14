@@ -687,12 +687,14 @@ locals {
       mrc             = 43
     },
 
+    /*
     "google.telaviv.3" = {
       datacenter_name = "google.telaviv.3"
       type            = "e2-highcpu-2"
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
       mrc             = 43
     },
+    */
 
     /*
     "google.paris.1" = {
@@ -1035,11 +1037,13 @@ locals {
     },
     */
 
+    /*
     "zenlayer.saopaulo" = {
       datacenter_name = "zenlayer.saopaulo"
       public_address  = "128.14.222.42"
       mrc             = 719
     },
+    */
 
     /*
     "zenlayer.bogota" = {
@@ -1059,12 +1063,14 @@ locals {
     },
     */
 
+    /*
     "zenlayer.riyadh" = {
       datacenter_name  = "zenlayer.riyadh"
       public_address   = "162.128.75.95"
       internal_address = "10.130.112.2"
       mrc              = 52
     },
+    */
 
     "zenlayer.frankfurt" = {
       datacenter_name  = "zenlayer.frankfurt"
@@ -1072,6 +1078,7 @@ locals {
       mrc              = 219
     },
 
+    /*
     "zenlayer.london" = {
       datacenter_name  = "zenlayer.london"
       public_address   = "98.98.142.118"
@@ -1083,6 +1090,7 @@ locals {
       public_address   = "104.166.176.246"
       mrc              = 289
     },
+    */
 
     "zenlayer.dubai" = {
       datacenter_name  = "zenlayer.dubai"
@@ -1090,6 +1098,7 @@ locals {
       mrc              = 409
     },
 
+    /*
     "zenlayer.ashburn" = {
       datacenter_name  = "zenlayer.ashburn"
       public_address   = "128.14.84.78"
@@ -1119,6 +1128,7 @@ locals {
       public_address   = "128.14.73.78"
       mrc              = 339
     },
+    */
 
   }
 }
@@ -1366,23 +1376,29 @@ locals {
 
   latitude_relays = {
 
+    /*
     "latitude.amsterdam" = {
       datacenter_name = "latitude.amsterdam"
       public_address  = "206.223.236.57"
       mrc             = 190 
     },
+    */
 
+    /*
     "latitude.singapore" = {
       datacenter_name = "latitude.singapore"
       public_address  = "67.213.122.157"
       mrc             = 226
     },
+    */
     
+    /*
     "latitude.newyork" = {
       datacenter_name = "latitude.newyork"
       public_address  = "206.223.233.117"
       mrc             = 190
     },
+    */
 
     "latitude.siliconvalley" = {
       datacenter_name = "latitude.siliconvalley"
@@ -1390,17 +1406,21 @@ locals {
       mrc             = 190
     },
 
+    /*
     "latitude.bogota" = {
       datacenter_name = "latitude.bogota"
       public_address  = "103.219.169.121"
       mrc             = 261
     },
+    */
 
+    /*
     "latitude.buenosaires" = {
       datacenter_name = "latitude.buenosaires"
       public_address  = "103.106.58.63"
       mrc             = 261
     },
+    */
 
     "latitude.dallas" = {
       datacenter_name = "latitude.dallas"
@@ -1426,35 +1446,45 @@ locals {
       mrc             = 118
     },
 
+    /*
     "latitude.miami" = {
       datacenter_name = "latitude.miami"
       public_address  = "69.67.150.47"
       mrc             = 179
     },
+    */
 
+    /*
     "latitude.losangeles" = {
       datacenter_name = "latitude.losangeles"
       public_address  = "67.213.124.239"
       mrc             = 189
     },
+    */
 
+    /*
     "latitude.santiago" = {
       datacenter_name = "latitude.santiago"
       public_address  = "45.250.252.203"
       mrc             = 92
     },
+    */
 
+    /*
     "latitude.london" = {
       datacenter_name = "latitude.london"
       public_address  = "103.50.32.156"
       mrc             = 179
     },
+    */
 
+    /*
     "latitude.mexico" = {
       datacenter_name = "latitude.mexico"
       public_address  = "103.88.234.141"
       mrc             = 261
     }
+    */
 
     "latitude.frankfurt" = {
       datacenter_name = "latitude.frankfurt"

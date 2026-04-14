@@ -2162,7 +2162,7 @@ module "relay_amazon_bahrain_1" {
 	  name              = "amazon.frankfurt.1"
 	  zone              = local.datacenter_map["amazon.frankfurt.1"].zone
 	  region            = local.datacenter_map["amazon.frankfurt.1"].region
-	  type              = "t3.large"
+	  type              = "t3.xlarge"
 	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
 	  security_group_id = module.region_eu_central_1.security_group_id
 	  vpn_address       = var.vpn_address
@@ -2175,7 +2175,7 @@ module "relay_amazon_bahrain_1" {
 	  name              = "amazon.frankfurt.2"
 	  zone              = local.datacenter_map["amazon.frankfurt.2"].zone
 	  region            = local.datacenter_map["amazon.frankfurt.2"].region
-	  type              = "t3.large"
+	  type              = "t3.xlarge"
 	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
 	  security_group_id = module.region_eu_central_1.security_group_id
 	  vpn_address       = var.vpn_address
@@ -2188,7 +2188,7 @@ module "relay_amazon_bahrain_1" {
 	  name              = "amazon.frankfurt.3"
 	  zone              = local.datacenter_map["amazon.frankfurt.3"].zone
 	  region            = local.datacenter_map["amazon.frankfurt.3"].region
-	  type              = "t3.large"
+	  type              = "t3.xlarge"
 	  ami               = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
 	  security_group_id = module.region_eu_central_1.security_group_id
 	  vpn_address       = var.vpn_address
@@ -2531,7 +2531,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
-	      "mrc"              = 72
+	      "mrc"              = 170
 	    }
 
 	    "amazon.frankfurt.2" = {
@@ -2548,7 +2548,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
-	      "mrc"              = 72
+	      "mrc"              = 170
 	    }
 
 	    "amazon.frankfurt.3" = {
@@ -2565,7 +2565,7 @@ module "relay_amazon_bahrain_1" {
 	      "ssh_port"         = 22
 	      "ssh_user"         = "ubuntu"
 	      "bandwidth_price"  = 2
-	      "mrc"              = 72
+	      "mrc"              = 170
 	    }
 
 	    "amazon.lima.1" = {

@@ -51,7 +51,6 @@ TODO
 	Need replacements:
 
 		zenlayer.dallas
-		serversdotcom.dallas
 
 	-----------
 
@@ -100,4 +99,3 @@ Sanjose near peak:
 │ datapacket.sanjose     │ 79.127.255.82:40000 │ 16111202d7815e21 │ 0     │ online │ 3d     │ 5        │ relay-148 │ 301 │
 │ serversdotcom.sanjose  │ 50.115.10.103:40000 │ 55daada8ffa3536c │ 0     │ online │ 3d     │ 3        │ relay-148 │ 60  │
 │ latitude.siliconvalley │ 206.223.239.17:40000 │ d0c7b2620514728 │ 1     │ online │ 3d     │ 2        │ relay-148 │ 190 
-
