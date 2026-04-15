@@ -1168,11 +1168,18 @@ locals {
 
   datapacket_relays = {
 
-    "datapacket.chicago" = {
-      datacenter_name = "datapacket.sanjose"
-      ssh_address = "46.151.196.239"
-      public_address = "46.151.196.239"
-      mrc = 116
+    "datapacket.ashburn" = {
+      datacenter_name = "datapacket.ashburn"
+      ssh_address = "79.127.223.38"
+      public_address = "79.127.223.38"
+      mrc = 234
+    }
+
+    "datapacket.dallas" = {
+      datacenter_name = "datapacket.dallas"
+      ssh_address = "212.102.40.186"
+      public_address = "212.102.40.186"
+      mrc = 196
     }
 
     "datapacket.sanjose" = {
@@ -1180,6 +1187,21 @@ locals {
       ssh_address = "79.127.255.82"
       public_address = "79.127.255.82"
       mrc = 301
+    }
+
+    "datapacket.frankfurt" = {
+      datacenter_name = "datapacket.frankfurt"
+      ssh_address = "89.222.124.57"
+      public_address = "89.222.124.57"
+      mrc = 221
+    }
+
+    /*
+    "datapacket.chicago" = {
+      datacenter_name = "datapacket.sanjose"
+      ssh_address = "46.151.196.239"
+      public_address = "46.151.196.239"
+      mrc = 116
     }
 
     "datapacket.seattle" = {
@@ -1231,32 +1253,11 @@ locals {
       mrc = 244
     }
 
-    "datapacket.dallas" = {
-      datacenter_name = "datapacket.dallas"
-      ssh_address = "212.102.40.186"
-      public_address = "212.102.40.186"
-      mrc = 196
-    }
-
     "datapacket.istanbul" = {
       datacenter_name = "datapacket.istanbul"
       ssh_address = "169.150.215.57"
       public_address = "169.150.215.57"
       mrc = 300
-    }
-
-    "datapacket.ashburn" = {
-      datacenter_name = "datapacket.ashburn"
-      ssh_address = "79.127.223.38"
-      public_address = "79.127.223.38"
-      mrc = 234
-    }
-
-    "datapacket.frankfurt" = {
-      datacenter_name = "datapacket.frankfurt"
-      ssh_address = "89.222.124.57"
-      public_address = "89.222.124.57"
-      mrc = 221
     }
 
     "datapacket.santiago" = {
@@ -1286,6 +1287,7 @@ locals {
       public_address = "138.199.51.243"
       mrc = 267
     }
+    */
 
   }
 }
@@ -1305,7 +1307,7 @@ locals {
 
   i3d_relays = {
 
-    // todo: remove. too expensive
+    /*
     "i3d.saopaulo" = {
       datacenter_name = "i3d.saopaulo"
       public_address  = "185.50.104.109"
@@ -1318,7 +1320,6 @@ locals {
       mrc             = 92
     },
 
-    // todo: remove
     "i3d.ashburn.b" = {
       datacenter_name = "i3d.ashburn"
       public_address  = "162.244.55.42"
@@ -1331,21 +1332,18 @@ locals {
       mrc             = 156
     },
 
-    // todo: remove
     "i3d.dubai.b" = {
       datacenter_name = "i3d.dubai"
       public_address  = "185.179.202.104"
       mrc             = 156
     },
 
-    // todo: remove. too expensive
     "i3d.frankfurt" = {
       datacenter_name = "i3d.frankfurt"
       public_address  = "188.122.68.101"
       mrc             = 0
     },
 
-    // todo: remove?
     "i3d.losangeles" = {
       datacenter_name = "i3d.losangeles"
       public_address  = "162.245.204.237"
@@ -1357,6 +1355,7 @@ locals {
       public_address  = "138.128.136.133"
       mrc             = 190
     },
+    */
 
   }
 }
@@ -1428,17 +1427,21 @@ locals {
       mrc             = 189
     },
 
+    /*
     "latitude.chicago" = {
       datacenter_name = "latitude.chicago"
       public_address  = "186.233.187.217"
       mrc             = 189
     },
+    */
 
+    /*
     "latitude.saopaulo" = {
       datacenter_name = "latitude.saopaulo"
       public_address  = "103.88.235.93"
       mrc             = 179
     },
+    */
 
     "latitude.ashburn" = {
       datacenter_name = "latitude.ashburn"
@@ -1510,6 +1513,7 @@ locals {
 
   gcore_relays = {
 
+    /*
     "gcore.saopaulo" = {
       datacenter_name = "gcore.saopaulo"
       public_address  = "92.38.150.8"
@@ -1544,6 +1548,7 @@ locals {
       ssh_user        = "root"
       mrc             = 172
     },
+    */
 
   }
 }
