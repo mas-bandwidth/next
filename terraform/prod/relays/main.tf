@@ -1655,6 +1655,7 @@ locals {
 
   ovh_relays = {
 
+    /*
     "ovh.ashburn" = {
       datacenter_name = "ovh.ashburn"
       public_address  = "40.160.32.142"
@@ -1666,6 +1667,7 @@ locals {
       public_address  = "51.89.11.27"
       mrc = 149
     },
+    */
 
   }
 }
@@ -1771,6 +1773,7 @@ locals {
 
   serversdotcom_relays = {
 
+    /*
     "serversdotcom.washingtondc" = {
       datacenter_name  = "serversdotcom.washingtondc"
       public_address   = "209.192.155.142"
@@ -1794,6 +1797,7 @@ locals {
       ssh_user         = "cloud-user"
       mrc              = 60
     },
+    */
 
     "serversdotcom.dallas" = {
       datacenter_name  = "serversdotcom.dallas"
@@ -1857,11 +1861,13 @@ locals {
       mrc             = 172
     },
 
+    /*
     "velia.frankfurt" = {
       datacenter_name = "velia.frankfurt"
       public_address  = "37.61.208.81"
       mrc             = 402
     },
+    */
 
   }
 }
