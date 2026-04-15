@@ -5,7 +5,7 @@ name: Happy Path
 agent:
   machine:
     type: f1-standard-4
-    os_image: ubuntu2004
+    os_image: ubuntu2204
 
 global_job_config:
   secrets:
