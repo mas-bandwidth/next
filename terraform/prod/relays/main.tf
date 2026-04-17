@@ -510,6 +510,7 @@ locals {
       mrc             = 43
     },
 
+    /*
     "google.santiago.2" = {
       datacenter_name = "google.santiago.2"
       type            = "e2-highcpu-2"
@@ -523,6 +524,7 @@ locals {
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
       mrc             = 43
     },
+    */
 
     "google.frankfurt.1" = {
       datacenter_name = "google.frankfurt.1"
@@ -617,6 +619,7 @@ locals {
       mrc             = 43
     },
 
+    /*
     "google.queretaro.2" = {
       datacenter_name = "google.queretaro.2"
       type            = "e2-highcpu-2"
@@ -630,6 +633,7 @@ locals {
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
       mrc             = 43
     },
+    */
 
     "google.doha.1" = {
       datacenter_name = "google.doha.1"
@@ -638,6 +642,7 @@ locals {
       mrc             = 43
     },
 
+    /*
     "google.doha.2" = {
       datacenter_name = "google.doha.2"
       type            = "e2-highcpu-2" # c4-highcpu-4"
@@ -651,6 +656,7 @@ locals {
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
       mrc             = 43
     },
+    */
 
     "google.dammam.1" = {
       datacenter_name = "google.dammam.1"
@@ -659,6 +665,7 @@ locals {
       mrc             = 43
     },
 
+    /*
     "google.dammam.2" = {
       datacenter_name = "google.dammam.2"
       type            = "e2-highcpu-2"
@@ -672,6 +679,7 @@ locals {
       image           = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
       mrc             = 43
     },
+    */
 
     "google.telaviv.1" = {
       datacenter_name = "google.telaviv.1"
@@ -680,6 +688,7 @@ locals {
       mrc             = 43
     },
 
+    /*
     "google.telaviv.2" = {
       datacenter_name = "google.telaviv.2"
       type            = "e2-highcpu-2"
@@ -687,7 +696,6 @@ locals {
       mrc             = 43
     },
 
-    /*
     "google.telaviv.3" = {
       datacenter_name = "google.telaviv.3"
       type            = "e2-highcpu-2"
@@ -1849,6 +1857,7 @@ locals {
 
   velia_relays = {
 
+    /*
     "velia.stlouis" = {
       datacenter_name = "velia.stlouis"
       public_address  = "103.66.180.167"
@@ -1861,7 +1870,6 @@ locals {
       mrc             = 172
     },
 
-    /*
     "velia.frankfurt" = {
       datacenter_name = "velia.frankfurt"
       public_address  = "37.61.208.81"
