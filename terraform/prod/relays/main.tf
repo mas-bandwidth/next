@@ -1695,6 +1695,7 @@ locals {
 
   hivelocity_relays = {
 
+    /*
     "hivelocity.losangeles" = {
       datacenter_name = "hivelocity.losangeles"
       public_address  = "107.155.127.114"
@@ -1712,7 +1713,8 @@ locals {
       public_address  = "162.254.151.130"
       mrc = 121
     },
-
+    */
+    
   }
 }
 
