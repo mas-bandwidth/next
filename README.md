@@ -6,7 +6,9 @@
 
 Network Next is a **network accelerator** for multiplayer games.
 
-Network Next is source available and free to use when you host the software for your own game with fewer than 10k peak CCU. For games at or above 10k peak CCU please [contact us](glenn@networknext.com) for pricing.
+Network Next is source available and free to use when you host the software for your own game with fewer than 10k peak CCU. 
+
+For games above 10k peak CCU please [contact us](glenn@networknext.com) for pricing.
 
 # Install Network Next
 
