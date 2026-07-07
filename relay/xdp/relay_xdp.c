@@ -1041,7 +1041,7 @@ SEC("relay_xdp") int relay_xdp_filter( struct xdp_md *ctx )
                             {
                                 // next magic
 
-                                __u8 * magic = state->previous_magic;
+                                __u8 * magic = state->next_magic;
 
                                 __u64 hash = 0xCBF29CE484222325;
 
@@ -2112,8 +2112,6 @@ SEC("relay_xdp") int relay_xdp_filter( struct xdp_md *ctx )
 
                                 __u64 server_to_client_sequence = session->special_server_to_client_sequence;
 
-                                __sync_bool_compare_and_swap( &session->special_server_to_client_sequence, server_to_client_sequence, packet_sequence );
-
                                 if ( packet_sequence <= server_to_client_sequence )
                                 {
                                     relay_printf( "continue response packet already received" );
@@ -2159,7 +2157,7 @@ SEC("relay_xdp") int relay_xdp_filter( struct xdp_md *ctx )
                                     return XDP_DROP;
                                 }
 
-                                session->special_server_to_client_sequence = packet_sequence;
+                                __sync_bool_compare_and_swap( &session->special_server_to_client_sequence, server_to_client_sequence, packet_sequence );
 
                                 relay_printf( "continue response packet forward to previous hop" );
 
