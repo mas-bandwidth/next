@@ -1756,6 +1756,15 @@ func MakeRouteDecision_TakeNetworkNext(userId uint64, routeMatrix []RouteEntry, 
 			}
 		}
 
+		// the first slice always goes direct, because we have not sent down client relays to ping yet
+
+		if sliceNumber == 0 {
+			if debug != nil {
+				*debug += "first slice. sending down client relays to ping\n"
+			}
+			return false
+		}
+
 		// print out number of source relays that are routable + dest relays
 
 		if debug != nil {
@@ -1766,12 +1775,7 @@ func MakeRouteDecision_TakeNetworkNext(userId uint64, routeMatrix []RouteEntry, 
 					numRoutableSourceRelays++
 				}
 			}
-			if sliceNumber != 0 {
-				*debug += fmt.Sprintf("%d/%d source relays are routable\n", numRoutableSourceRelays, numSourceRelays)
-			} else {
-				*debug += "first slice. sending down client relays to ping\n"
-				return false
-			}
+			*debug += fmt.Sprintf("%d/%d source relays are routable\n", numRoutableSourceRelays, numSourceRelays)
 			numDestRelays := len(destRelays)
 			if numDestRelays == 1 {
 				*debug += fmt.Sprintf("1 dest relay\n")
