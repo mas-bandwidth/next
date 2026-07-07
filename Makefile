@@ -18,7 +18,7 @@ SDKNAME5 = libnext
 MODULE ?= "github.com/networknext/next/modules/common"
 
 BUILD_TIME ?= $(shell date -u +'%Y-%m-%d|%H:%M:%S')
-COMMIT_MESSAGE ?= $(shell git log -1 --pretty=%B | tr "\n" " " | tr \' '*')
+COMMIT_MESSAGE ?= $(shell git log -1 --pretty=%s | tr '"' '*' | tr \' '*')
 COMMIT_HASH ?= $(shell git rev-parse --short HEAD) 
 
 # Build and run tests by default
