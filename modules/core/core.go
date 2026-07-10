@@ -174,6 +174,11 @@ func AnonymizeAddress(address net.UDPAddr) net.UDPAddr {
 	if ipv4 != nil {
 		return net.UDPAddr{IP: net.IPv4(ipv4[0], ipv4[1], ipv4[2], 0), Port: 0}
 	} else {
+		// IMPORTANT: address.IP is a slice, so we must copy it before zeroing,
+		// otherwise we corrupt the caller's address in place
+		ip := make(net.IP, len(address.IP))
+		copy(ip, address.IP)
+		address.IP = ip
 		address.Port = 0
 		address.IP[6] = 0
 		address.IP[7] = 0
@@ -1697,7 +1702,7 @@ func EarlyOutDirect(userId uint64, routeShader *RouteShader, routeState *RouteSt
 		return true
 	}
 
-	if (userId % 100) > uint64(routeShader.SelectionPercent) {
+	if (userId % 100) >= uint64(routeShader.SelectionPercent) {
 		if debug != nil {
 			*debug += "user is not selected\n"
 		}

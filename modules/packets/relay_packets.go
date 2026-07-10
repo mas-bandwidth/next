@@ -104,7 +104,7 @@ func (packet *RelayUpdateRequestPacket) Read(buffer []byte) error {
 
 	encoding.ReadUint8(buffer, &index, &packet.Version)
 
-	if packet.Version < RelayUpdateRequestPacket_VersionMin && packet.Version > RelayUpdateRequestPacket_VersionMax {
+	if packet.Version < RelayUpdateRequestPacket_VersionMin || packet.Version > RelayUpdateRequestPacket_VersionMax {
 		return errors.New("invalid relay update request packet version")
 	}
 
@@ -124,7 +124,7 @@ func (packet *RelayUpdateRequestPacket) Read(buffer []byte) error {
 		return errors.New("could not read num samples")
 	}
 
-	if packet.NumSamples < 0 || packet.NumSamples > constants.MaxRelays {
+	if packet.NumSamples > constants.MaxRelays {
 		return errors.New(fmt.Sprintf("invalid num samples: %d", packet.NumSamples))
 	}
 
@@ -305,7 +305,7 @@ func (packet *RelayUpdateResponsePacket) Read(buffer []byte) error {
 		return errors.New("could not read num relays")
 	}
 
-	if packet.NumRelays < 0 || packet.NumRelays > constants.MaxRelays {
+	if packet.NumRelays > constants.MaxRelays {
 		return errors.New("invalid num relays")
 	}
 

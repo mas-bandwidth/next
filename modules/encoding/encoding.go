@@ -215,11 +215,15 @@ func ReadBytes(data []byte, index *int, value []byte, bytes uint32) bool {
 }
 
 func ReadAddress(data []byte, index *int, address *net.UDPAddr) bool {
+	if *index+1 > len(data) {
+		return false
+	}
 	addressType := data[*index]
 	switch addressType {
 	case IPAddressNone:
 		*address = net.UDPAddr{}
 		*index += 1
+		return true
 	case IPAddressIPv4:
 		if *index+7 > len(data) {
 			return false
@@ -231,7 +235,9 @@ func ReadAddress(data []byte, index *int, address *net.UDPAddr) bool {
 		if *index+19 > len(data) {
 			return false
 		}
-		*address = net.UDPAddr{IP: data[*index+1:], Port: ((int)(binary.LittleEndian.Uint16(data[*index+17:])))}
+		ip := make(net.IP, 16)
+		copy(ip, data[*index+1:*index+17])
+		*address = net.UDPAddr{IP: ip, Port: ((int)(binary.LittleEndian.Uint16(data[*index+17:])))}
 		*index += 19
 		return true
 	}

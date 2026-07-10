@@ -342,8 +342,8 @@ func (m *RouteMatrix) Analyze() RouteMatrixAnalysis {
 	analysis.AverageRouteLength = float32(averageRouteLength)
 
 	if relayPairs > 0 {
-		analysis.NoRoutePercent = float32(relayPairsWithNoRoutes/relayPairs) * 100.0
-		analysis.OneRoutePercent = float32(relayPairsWithOneRoute/relayPairs) * 100.0
+		analysis.NoRoutePercent = float32(float64(relayPairsWithNoRoutes)/float64(relayPairs)) * 100.0
+		analysis.OneRoutePercent = float32(float64(relayPairsWithOneRoute)/float64(relayPairs)) * 100.0
 	}
 
 	return analysis
