@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"hash/fnv"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/networknext/next/modules/common"
@@ -19,6 +20,11 @@ func main() {
 	service := common.CreateService("magic_backend")
 
 	magicUpdateSeconds = envvar.GetInt("MAGIC_UPDATE_SECONDS", 60)
+
+	if magicUpdateSeconds <= 0 {
+		core.Error("MAGIC_UPDATE_SECONDS must be greater than zero")
+		os.Exit(1)
+	}
 
 	core.Debug("magic update seconds: %d", magicUpdateSeconds)
 
