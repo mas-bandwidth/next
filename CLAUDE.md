@@ -71,7 +71,21 @@ Rules learned the hard way:
 
 ## State as of 2026-07-11
 
-All merged to main (through `9cee7d3b6`) and validated green on CI (test-229 through test-234):
+All merged to main (through `8eaf5e17b`) and validated green on CI (test-229 through test-236):
+
+- Server backend robustness (`6642c698f`, test-235): packet-handler goroutines now recover from
+  panics instead of crashing the process (a validly-signed packet with an unhandled type used to
+  hit `panic("unknown packet type")` — filters pass types 50-60 but only 5 are handled); unknown
+  packet types now log-and-drop; fixed `serverRelayInsertBatchSize` never set (typo assigned
+  `clientRelayInsertBatchSize` twice — inserter flushed every message); unknown-buyer in server
+  init now returns before a nil `*Buyer` deref; fixed always-false `env == "local" && env ==
+  "docker"` check.
+- Bounded UDP packet handler concurrency (`8eaf5e17b`, test-236): `x/sync/semaphore` caps
+  in-flight handlers (default 16384, `UDP_MAX_CONCURRENT_PACKETS`); read loop blocks at the cap
+  so bursts are absorbed/dropped by the kernel socket buffer instead of unbounded goroutines.
+  Benchmarked before committing: throughput-neutral vs unbounded; NOTE a goroutine-pool library
+  (ants) was benchmarked ~12% SLOWER — pool handoff costs more than Go goroutine spawn here, so
+  don't "optimize" this into a worker pool without re-measuring.
 
 - Fixed relay gateway + relay backend bugs (`9cee7d3b6`, test-234): packet loss integer
   division in analytics (uint16 math reported 0% or 100% only), inverted error check leaking
