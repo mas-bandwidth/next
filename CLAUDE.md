@@ -71,7 +71,15 @@ Rules learned the hard way:
 
 ## State as of 2026-07-11
 
-All merged to main (through `8eaf5e17b`) and validated green on CI (test-229 through test-236):
+All merged to main (through `768d3eb06`) and validated green on CI (test-229 through test-237):
+
+- Routing-critical fixes (`768d3eb06`, test-237): database hot reload (`watchDatabase`) was
+  validating and generating relay data from the OLD database instead of the newly loaded one
+  (corrupt DBs passed validation; relay data lagged one reload behind; in-place relay sort
+  raced concurrent readers) — both branches fixed, disk branch also gained the missing
+  `GenerateRelaySecretKeys`. And the slice-0 "send down client relays, don't route yet"
+  early-out in `MakeRouteDecision_TakeNetworkNext` only applied when buyer debug was enabled —
+  buyer debug altered routing decisions; now hoisted so debug is purely observational.
 
 - Server backend robustness (`6642c698f`, test-235): packet-handler goroutines now recover from
   panics instead of crashing the process (a validly-signed packet with an unhandled type used to
