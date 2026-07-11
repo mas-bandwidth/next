@@ -5145,7 +5145,8 @@ func test_session_expired_route_response_packet() {
 		token := core.RouteToken{}
 		token.SessionId = sessionId
 		token.SessionVersion = sessionVersion
-		token.ExpireTimestamp = uint64(time.Now().Unix())
+		// IMPORTANT: the session must be created reliably, then expire before the probes (sent 10 seconds later)
+		token.ExpireTimestamp = uint64(time.Now().Unix()) + 5
 		token.NextAddress = clientAddress
 		token.PrevAddress = clientAddress
 		core.WriteEncryptedRouteToken(&token, packet[18:], testSecretKey)
@@ -5265,7 +5266,8 @@ func test_session_expired_continue_request_packet() {
 		token := core.RouteToken{}
 		token.SessionId = sessionId
 		token.SessionVersion = sessionVersion
-		token.ExpireTimestamp = uint64(time.Now().Unix())
+		// IMPORTANT: the session must be created reliably, then expire before the probes (sent 10 seconds later)
+		token.ExpireTimestamp = uint64(time.Now().Unix()) + 5
 		token.NextAddress = clientAddress
 		token.PrevAddress = clientAddress
 		core.WriteEncryptedRouteToken(&token, packet[18:], testSecretKey)
@@ -5373,7 +5375,8 @@ func test_session_expired_continue_response_packet() {
 		token := core.RouteToken{}
 		token.SessionId = sessionId
 		token.SessionVersion = sessionVersion
-		token.ExpireTimestamp = uint64(time.Now().Unix())
+		// IMPORTANT: the session must be created reliably, then expire before the probes (sent 10 seconds later)
+		token.ExpireTimestamp = uint64(time.Now().Unix()) + 5
 		token.NextAddress = clientAddress
 		token.PrevAddress = clientAddress
 		core.WriteEncryptedRouteToken(&token, packet[18:], testSecretKey)
@@ -5493,7 +5496,8 @@ func test_session_expired_client_to_server_packet() {
 		token := core.RouteToken{}
 		token.SessionId = sessionId
 		token.SessionVersion = sessionVersion
-		token.ExpireTimestamp = uint64(time.Now().Unix())
+		// IMPORTANT: the session must be created reliably, then expire before the probes (sent 10 seconds later)
+		token.ExpireTimestamp = uint64(time.Now().Unix()) + 5
 		token.NextAddress = clientAddress
 		token.PrevAddress = clientAddress
 		core.WriteEncryptedRouteToken(&token, packet[18:], testSecretKey)
@@ -5613,7 +5617,8 @@ func test_session_expired_server_to_client_packet() {
 		token := core.RouteToken{}
 		token.SessionId = sessionId
 		token.SessionVersion = sessionVersion
-		token.ExpireTimestamp = uint64(time.Now().Unix())
+		// IMPORTANT: the session must be created reliably, then expire before the probes (sent 10 seconds later)
+		token.ExpireTimestamp = uint64(time.Now().Unix()) + 5
 		token.NextAddress = clientAddress
 		token.PrevAddress = clientAddress
 		core.WriteEncryptedRouteToken(&token, packet[18:], testSecretKey)
@@ -5733,7 +5738,8 @@ func test_session_expired_session_ping_packet() {
 		token := core.RouteToken{}
 		token.SessionId = sessionId
 		token.SessionVersion = sessionVersion
-		token.ExpireTimestamp = uint64(time.Now().Unix())
+		// IMPORTANT: the session must be created reliably, then expire before the probes (sent 10 seconds later)
+		token.ExpireTimestamp = uint64(time.Now().Unix()) + 5
 		token.NextAddress = clientAddress
 		token.PrevAddress = clientAddress
 		core.WriteEncryptedRouteToken(&token, packet[18:], testSecretKey)
@@ -5855,7 +5861,8 @@ func test_session_expired_session_pong_packet() {
 		token := core.RouteToken{}
 		token.SessionId = sessionId
 		token.SessionVersion = sessionVersion
-		token.ExpireTimestamp = uint64(time.Now().Unix())
+		// IMPORTANT: the session must be created reliably, then expire before the probes (sent 10 seconds later)
+		token.ExpireTimestamp = uint64(time.Now().Unix()) + 5
 		token.NextAddress = clientAddress
 		token.PrevAddress = clientAddress
 		core.WriteEncryptedRouteToken(&token, packet[18:], testSecretKey)
