@@ -758,6 +758,7 @@ blocks:
             - cp envs/local.env .env
 
             - cd ~/next
+            - mkdir -p dist
             - make dist/relay-debug-asan
 
             - cd dist
