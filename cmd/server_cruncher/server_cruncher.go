@@ -224,12 +224,25 @@ func serverBatchHandler(w http.ResponseWriter, r *http.Request) {
 
 	body = body[8:]
 
+	const bytesPerUpdate = 8 // serverId
+
 	index := 0
 	for j := range constants.NumBuckets {
 		var numUpdates uint32
-		encoding.ReadUint32(body[:], &index, &numUpdates)
-		batch := make([]ServerUpdate, numUpdates)
+		if !encoding.ReadUint32(body[:], &index, &numUpdates) {
+			core.Error("server batch truncated reading bucket count")
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		// bound the allocation to what the remaining body can actually contain, so a malformed
+		// count can't drive an enormous allocation (OOM)
+		if int(numUpdates) > (len(body)-index)/bytesPerUpdate {
+			core.Error("server batch bucket claims %d updates but body is too small", numUpdates)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
 		if numUpdates > 0 {
+			batch := make([]ServerUpdate, numUpdates)
 			for i := 0; i < int(numUpdates); i++ {
 				encoding.ReadUint64(body, &index, &batch[i].serverId)
 			}

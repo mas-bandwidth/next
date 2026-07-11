@@ -410,12 +410,25 @@ func sessionBatchHandler(w http.ResponseWriter, r *http.Request) {
 
 	body = body[8:]
 
+	const bytesPerUpdate = 8 + 1 + 4 + 4 // sessionId + next + latitude + longitude
+
 	index := 0
 	for j := range constants.NumBuckets {
 		var numUpdates uint32
-		encoding.ReadUint32(body[:], &index, &numUpdates)
-		batch := make([]SessionUpdate, numUpdates)
+		if !encoding.ReadUint32(body[:], &index, &numUpdates) {
+			core.Error("session batch truncated reading bucket count")
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		// bound the allocation to what the remaining body can actually contain, so a malformed
+		// count can't drive an enormous allocation (OOM)
+		if int(numUpdates) > (len(body)-index)/bytesPerUpdate {
+			core.Error("session batch bucket claims %d updates but body is too small", numUpdates)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
 		if numUpdates > 0 {
+			batch := make([]SessionUpdate, numUpdates)
 			for i := 0; i < int(numUpdates); i++ {
 				encoding.ReadUint64(body[:], &index, &batch[i].sessionId)
 				encoding.ReadUint8(body[:], &index, &batch[i].next)
