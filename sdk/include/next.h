@@ -14,7 +14,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 
-#define NEXT_ADVANCED_PACKET_FILTER                               0
+#define NEXT_ADVANCED_PACKET_FILTER                               1
 
 #if !defined( NEXT_DEVELOPMENT )
 #define NEXT_DEVELOPMENT 0
