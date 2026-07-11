@@ -8,6 +8,7 @@ import (
 
 	"github.com/networknext/next/modules/core"
 
+	"golang.org/x/sync/semaphore"
 	"golang.org/x/sys/unix"
 )
 
@@ -17,6 +18,7 @@ type UDPServerConfig struct {
 	SocketReadBuffer  int
 	SocketWriteBuffer int
 	MaxPacketSize     int
+	MaxConcurrent     int // max packet handlers in flight across all threads (backpressure under bursty load)
 	BindAddress       net.UDPAddr
 }
 
@@ -32,6 +34,16 @@ func CreateUDPServer(ctx context.Context, config UDPServerConfig, packetHandler 
 	udpServer := UDPServer{}
 	udpServer.config = config
 	udpServer.conn = make([]*net.UDPConn, config.NumThreads)
+
+	// bound the number of in-flight packet handlers so a burst of traffic can't
+	// spawn unbounded goroutines. when the limit is reached the read loop blocks
+	// on Acquire and stops draining the socket, so overflow is absorbed by the
+	// kernel receive buffer (and ultimately dropped) rather than growing memory.
+	maxConcurrent := config.MaxConcurrent
+	if maxConcurrent <= 0 {
+		maxConcurrent = 16384
+	}
+	sem := semaphore.NewWeighted(int64(maxConcurrent))
 
 	lc := net.ListenConfig{
 		Control: func(network string, address string, c syscall.RawConn) error {
@@ -84,7 +96,13 @@ func CreateUDPServer(ctx context.Context, config UDPServerConfig, packetHandler 
 					break
 				}
 
+				// block here when at the in-flight limit — this is the backpressure point
+				if err := sem.Acquire(ctx, 1); err != nil {
+					break // context cancelled (shutdown)
+				}
+
 				go func(conn *net.UDPConn, from *net.UDPAddr, packet []byte) {
+					defer sem.Release(1)
 					// a panic while processing one packet must not take down the whole process
 					defer func() {
 						if r := recover(); r != nil {

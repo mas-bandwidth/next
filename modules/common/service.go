@@ -458,6 +458,7 @@ func (service *Service) StartUDPServer(packetHandler func(conn *net.UDPConn, fro
 	config.SocketReadBuffer = envvar.GetInt("UDP_SOCKET_READ_BUFFER", 1024*1024)
 	config.SocketWriteBuffer = envvar.GetInt("UDP_SOCKET_READ_BUFFER", 1024*1024)
 	config.MaxPacketSize = envvar.GetInt("UDP_MAX_PACKET_SIZE", 1384)
+	config.MaxConcurrent = envvar.GetInt("UDP_MAX_CONCURRENT_PACKETS", 16384)
 	config.BindAddress = envvar.GetAddress("UDP_BIND_ADDRESS", core.ParseAddress(fmt.Sprintf("0.0.0.0:%d", config.Port)))
 	if service.Local {
 		config.BindAddress = core.ParseAddress(fmt.Sprintf("127.0.0.1:%d", config.Port))
@@ -467,6 +468,7 @@ func (service *Service) StartUDPServer(packetHandler func(conn *net.UDPConn, fro
 	core.Debug("udp socket read buffer: %d", config.SocketReadBuffer)
 	core.Debug("udp socket write buffer: %d", config.SocketWriteBuffer)
 	core.Debug("udp max packet size: %d", config.MaxPacketSize)
+	core.Debug("udp max concurrent packets: %d", config.MaxConcurrent)
 	service.udpServer = CreateUDPServer(service.Context, config, packetHandler)
 }
 
