@@ -656,9 +656,9 @@ void next_client_internal_process_network_next_packet( next_client_internal_t * 
                     if ( !next_advanced_packet_filter( packet_data, client->previous_magic, from_address_data, to_address_data, packet_bytes ) )
                     {
                         char buffer[NEXT_MAX_ADDRESS_STRING_LENGTH];
-                        next_printf( NEXT_LOG_LEVEL_DEBUG, "client advanced packet filter dropped packet from %s [%d] (%d bytes)", packet_id, packet_bytes );
+                        next_printf( NEXT_LOG_LEVEL_DEBUG, "client advanced packet filter dropped packet from %s [%d] (%d bytes)", next_address_to_string( from, buffer ), packet_id, packet_bytes );
+                        return;
                     }
-                    return;
                 }
             }
         }
@@ -982,7 +982,6 @@ void next_client_internal_process_network_next_packet( next_client_internal_t * 
         if ( next_read_packet( NEXT_CLIENT_RELAY_UPDATE_PACKET, packet_data, begin, end, &packet, next_signed_packets, next_encrypted_packets, &packet_sequence, NULL, client->client_receive_key, &client->internal_replay_protection ) != packet_id )
         {
             next_printf( NEXT_LOG_LEVEL_DEBUG, "client ignored client relay update packet from server. could not read packet" );
-            return;
             return;
         }
 

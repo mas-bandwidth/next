@@ -2066,7 +2066,7 @@ void next_server_internal_process_network_next_packet( next_server_internal_t * 
         if ( entry->previous_session_events != 0 )
         {   
             char address_buffer[NEXT_MAX_ADDRESS_STRING_LENGTH];
-            next_printf( NEXT_LOG_LEVEL_DEBUG, "server flushed session events %x to backend for session %016" PRIx64 " at address %s", entry->previous_session_events, entry->session_id, next_address_to_string( from, address_buffer ));
+            next_printf( NEXT_LOG_LEVEL_DEBUG, "server flushed session events %" PRIx64 " to backend for session %016" PRIx64 " at address %s", entry->previous_session_events, entry->session_id, next_address_to_string( from, address_buffer ));
             entry->previous_session_events = 0;
         }
 
@@ -3048,13 +3048,13 @@ void next_server_internal_session_events( next_server_internal_t * server, const
     if ( !entry )
     {
         char buffer[NEXT_MAX_ADDRESS_STRING_LENGTH];
-        next_printf( NEXT_LOG_LEVEL_DEBUG, "could not find session at address %s. not adding session event %x", next_address_to_string( address, buffer ), session_events );
+        next_printf( NEXT_LOG_LEVEL_DEBUG, "could not find session at address %s. not adding session event %" PRIx64, next_address_to_string( address, buffer ), session_events );
         return;
     }
 
     entry->current_session_events |= session_events;
     char buffer[NEXT_MAX_ADDRESS_STRING_LENGTH];
-    next_printf( NEXT_LOG_LEVEL_DEBUG, "server set session event %x for session %" PRIx64 " at address %s", session_events, entry->session_id, next_address_to_string( address, buffer ) );
+    next_printf( NEXT_LOG_LEVEL_DEBUG, "server set session event %" PRIx64 " for session %" PRIx64 " at address %s", session_events, entry->session_id, next_address_to_string( address, buffer ) );
 }
 
 void next_server_internal_flush_session_update( next_server_internal_t * server )
@@ -3110,7 +3110,7 @@ void next_server_internal_flush( next_server_internal_t * server )
 
     next_server_internal_flush_session_update( server );
 
-    next_printf( NEXT_LOG_LEVEL_DEBUG, "server flush started. %d session updates to flush", server->num_session_updates_to_flush );
+    next_printf( NEXT_LOG_LEVEL_DEBUG, "server flush started. %" PRIu64 " session updates to flush", server->num_session_updates_to_flush );
 }
 
 void next_server_internal_pump_commands( next_server_internal_t * server )
@@ -3785,7 +3785,7 @@ void next_server_internal_backend_update( next_server_internal_t * server )
 
         next_server_internal_send_packet_to_backend( server, packet_data, packet_bytes );
 
-        next_printf( NEXT_LOG_LEVEL_DEBUG, "server resent server update packet to backend", packet.num_sessions );
+        next_printf( NEXT_LOG_LEVEL_DEBUG, "server resent server update packet to backend (%d sessions)", packet.num_sessions );
 
         server->server_update_resend_time = current_time + 1.0;
     }

@@ -57,7 +57,7 @@
 
 // -------------------------------------------------
 
-void next_printf( const char * format, ... );
+void next_printf( const char * format, ... ) NEXT_PRINTF_FORMAT(1,2);
 
 static void default_assert_function( const char * condition, const char * function, const char * file, int line )
 {

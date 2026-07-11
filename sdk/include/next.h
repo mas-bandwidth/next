@@ -111,6 +111,12 @@
     #endif
 #endif
 
+#if defined(__GNUC__) || defined(__clang__)
+    #define NEXT_PRINTF_FORMAT(format_index,args_index) __attribute__((format(printf,format_index,args_index)))
+#else
+    #define NEXT_PRINTF_FORMAT(format_index,args_index)
+#endif
+
 #if defined(NN_NINTENDO_SDK)
     #define NEXT_PLATFORM NEXT_PLATFORM_SWITCH
 #elif defined(__ORBIS__)
@@ -310,7 +316,7 @@ NEXT_EXPORT_FUNC void next_log_level( int level );
 
 NEXT_EXPORT_FUNC void next_log_function( void (*function)( int level, const char * format, ... ) );
 
-NEXT_EXPORT_FUNC void next_printf( int level, const char * format, ... );
+NEXT_EXPORT_FUNC void next_printf( int level, const char * format, ... ) NEXT_PRINTF_FORMAT(2,3);
 
 // ------------------------------------------
 
