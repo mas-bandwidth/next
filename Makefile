@@ -85,19 +85,19 @@ format:
 SDK_FLAGS := -DNEXT_DEVELOPMENT=1 -DNEXT_COMPILE_WITH_TESTS=1 
 
 dist/$(SDKNAME5).so: $(shell find sdk -type f)
-	@cd dist && $(CXX) $(CXX_FLAGS) $(SDK_FLAGS) -fPIC -I../sdk/include -shared -o $(SDKNAME5).so ../sdk/source/*.cpp $(SDK_LDFLAGS) $(APP_LDFLAGS)
+	@cd dist && $(CXX) $(CXX_FLAGS) $(SDK_FLAGS) -fPIC -I../sdk/include -I../sdk/serialize -shared -o $(SDKNAME5).so ../sdk/source/*.cpp $(SDK_LDFLAGS) $(APP_LDFLAGS)
 	@echo $@
 
 dist/client: dist/$(SDKNAME5).so cmd/client/client.cpp
-	@cd dist && $(CXX) $(CXX_FLAGS) $(SDK_FLAGS) -I../sdk/include -o client ../cmd/client/client.cpp $(SDKNAME5).so $(APP_LDFLAGS)
+	@cd dist && $(CXX) $(CXX_FLAGS) $(SDK_FLAGS) -I../sdk/include -I../sdk/serialize -o client ../cmd/client/client.cpp $(SDKNAME5).so $(APP_LDFLAGS)
 	@echo $@
 
 dist/server: dist/$(SDKNAME5).so cmd/server/server.cpp
-	@cd dist && $(CXX) $(CXX_FLAGS) $(SDK_FLAGS) -I../sdk/include -o server ../cmd/server/server.cpp $(SDKNAME5).so $(APP_LDFLAGS)
+	@cd dist && $(CXX) $(CXX_FLAGS) $(SDK_FLAGS) -I../sdk/include -I../sdk/serialize -o server ../cmd/server/server.cpp $(SDKNAME5).so $(APP_LDFLAGS)
 	@echo $@
 
 dist/test: dist/$(SDKNAME5).so sdk/test.cpp
-	@cd dist && $(CXX) $(CXX_FLAGS) $(SDK_FLAGS) -I../sdk/include -o test ../sdk/test.cpp $(SDKNAME5).so $(APP_LDFLAGS)
+	@cd dist && $(CXX) $(CXX_FLAGS) $(SDK_FLAGS) -I../sdk/include -I../sdk/serialize -o test ../sdk/test.cpp $(SDKNAME5).so $(APP_LDFLAGS)
 	@echo $@
 
 # Build relay
@@ -115,19 +115,19 @@ dist/relay-debug-asan: relay/reference/*
 # Functional tests (sdk)
 
 dist/func_server: dist/$(SDKNAME5).so cmd/func_server/*
-	@cd dist && $(CXX) $(CXX_FLAGS) -I../sdk/include -o func_server ../cmd/func_server/func_server.cpp $(SDKNAME5).so $(APP_LDFLAGS)
+	@cd dist && $(CXX) $(CXX_FLAGS) -I../sdk/include -I../sdk/serialize -o func_server ../cmd/func_server/func_server.cpp $(SDKNAME5).so $(APP_LDFLAGS)
 	@echo $@
 
 dist/func_client: dist/$(SDKNAME5).so cmd/func_client/*
-	@cd dist && $(CXX) $(CXX_FLAGS) -I../sdk/include -o func_client ../cmd/func_client/func_client.cpp $(SDKNAME5).so $(APP_LDFLAGS)
+	@cd dist && $(CXX) $(CXX_FLAGS) -I../sdk/include -I../sdk/serialize -o func_client ../cmd/func_client/func_client.cpp $(SDKNAME5).so $(APP_LDFLAGS)
 	@echo $@
 
 # Raspberry
 
 dist/raspberry_client: dist/$(SDKNAME5).so cmd/raspberry_client/raspberry_client.cpp
-	@cd dist && $(CXX) $(CXX_FLAGS) -I../sdk/include -o raspberry_client ../cmd/raspberry_client/raspberry_client.cpp $(SDKNAME5).so $(APP_LDFLAGS)
+	@cd dist && $(CXX) $(CXX_FLAGS) -I../sdk/include -I../sdk/serialize -o raspberry_client ../cmd/raspberry_client/raspberry_client.cpp $(SDKNAME5).so $(APP_LDFLAGS)
 	@echo $@
 
 dist/raspberry_server: dist/$(SDKNAME5).so cmd/raspberry_server/raspberry_server.cpp
-	@cd dist && $(CXX) $(CXX_FLAGS) -I../sdk/include -o raspberry_server ../cmd/raspberry_server/raspberry_server.cpp $(SDKNAME5).so $(APP_LDFLAGS)
+	@cd dist && $(CXX) $(CXX_FLAGS) -I../sdk/include -I../sdk/serialize -o raspberry_server ../cmd/raspberry_server/raspberry_server.cpp $(SDKNAME5).so $(APP_LDFLAGS)
 	@echo $@

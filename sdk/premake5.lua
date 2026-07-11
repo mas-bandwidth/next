@@ -28,10 +28,11 @@ project "next"
 	files {
 		"include/next.h",
 		"include/next_*.h",
+		"serialize/serialize.h",
 		"source/next.cpp",
 		"source/next_*.cpp",
 	}
-	includedirs { "include", "sodium" }
+	includedirs { "include", "serialize", "sodium" }
 	filter "system:windows"
 		linkoptions { "/ignore:4221" }
 		disablewarnings { "4324" }
