@@ -71,77 +71,63 @@ Rules learned the hard way:
 
 ## State as of 2026-07-11
 
-All merged to main (through `97e1b2213`) and validated green on CI (test-229 through test-240):
+Big bug-fix + hardening pass this session: commits `4c0672efa` .. `96b112a5b` on main, validated
+green on CI test-229 .. test-241 (test-241 in flight at time of writing; all prior green). The
+per-commit detail is in git log; below is what a future session actually needs to NOT re-break or
+re-investigate.
 
-- Fixed unbounded-allocation OOM DoS in session_cruncher/server_cruncher batch handlers
-  (`97e1b2213`, test-240): `numUpdates` was read from the POST body and passed straight to
-  `make()`, so a 12-byte request could drive a multi-GB allocation. Now bounded to the
-  remaining body size; truncated batches rejected. (`encoding.Read*` byte helpers ARE
-  bounds-checked — return false without advancing — so there was no OOB, just the OOM.)
-- KNOWN CI FLAKE: the Build pipeline's "Sodium" job wgets libsodium 1.0.18 from
-  download.libsodium.org, builds it, and pushes libsodium.so as a workflow artifact (consumed
-  later by upload-artifacts.yml -> GCS). External-host DNS/network hiccups fail it (seen at
-  test-239). Just re-run with `./dist/deploy test`. Decision (2026-07-11): leave it for now;
-  if it keeps flaking, cache the sodium download/build in a Semaphore CI artifact rather than
-  re-fetching from the external host. Do NOT remove the vendored sdk/sodium/ (flattened,
-  Unreal-plugin-friendly) — it's what SDK Tests CI builds against (no system sodium installed
-  there), the `next` tool bundles into the customer SDK example, and next.sln references. It is
-  separate from this download job.
+### Deployment state (changes how you weigh severity)
 
-- Vendored the canonical serialize library (`a566e3cd9`, test-238): `sdk/serialize/serialize.h`
-  is mas-bandwidth/serialize v1.4.3, verbatim, BSD-licensed, CANONICAL — never edit it; update
-  with `sdk/serialize/update.sh` then validate on CI (see `sdk/serialize/README.md`).
-  `next_bitpacker.h`/`next_stream.h`/`next_serialize.h` are now thin adapters (~1300 lines of
-  forked serializer deleted); the only SDK-specific serialize helper is `serialize_address`.
-  Wire compatibility verified: SDK's old uint64 encoding == canonical serialize_bits(v,64)
-  (lo then hi), all standard macros byte-identical, full functional suite green.
+Nothing is running in dev/staging/prod right now — deployed in the past, not currently. So no
+config/deploy change this session had live exposure or historical-data/migration impact; they
+take effect on the next deploy. See memory `next-deployment-state.md`. If it gets redeployed,
+that fact is stale — reverify.
 
-- Routing-critical fixes (`768d3eb06`, test-237): database hot reload (`watchDatabase`) was
-  validating and generating relay data from the OLD database instead of the newly loaded one
-  (corrupt DBs passed validation; relay data lagged one reload behind; in-place relay sort
-  raced concurrent readers) — both branches fixed, disk branch also gained the missing
-  `GenerateRelaySecretKeys`. And the slice-0 "send down client relays, don't route yet"
-  early-out in `MakeRouteDecision_TakeNetworkNext` only applied when buyer debug was enabled —
-  buyer debug altered routing decisions; now hoisted so debug is purely observational.
+### Standing invariants — do NOT break these
 
-- Server backend robustness (`6642c698f`, test-235): packet-handler goroutines now recover from
-  panics instead of crashing the process (a validly-signed packet with an unhandled type used to
-  hit `panic("unknown packet type")` — filters pass types 50-60 but only 5 are handled); unknown
-  packet types now log-and-drop; fixed `serverRelayInsertBatchSize` never set (typo assigned
-  `clientRelayInsertBatchSize` twice — inserter flushed every message); unknown-buyer in server
-  init now returns before a nil `*Buyer` deref; fixed always-false `env == "local" && env ==
-  "docker"` check. (The counter renumber shifts BigQuery counter history for indices 15-19,
-  but no environments were live before this change, so there is no historical-data impact.)
-- Bounded UDP packet handler concurrency (`8eaf5e17b`, test-236): `x/sync/semaphore` caps
-  in-flight handlers (default 16384, `UDP_MAX_CONCURRENT_PACKETS`); read loop blocks at the cap
-  so bursts are absorbed/dropped by the kernel socket buffer instead of unbounded goroutines.
-  Benchmarked before committing: throughput-neutral vs unbounded; NOTE a goroutine-pool library
-  (ants) was benchmarked ~12% SLOWER — pool handoff costs more than Go goroutine spawn here, so
-  don't "optimize" this into a worker pool without re-measuring.
+- **`sdk/serialize/serialize.h` is CANONICAL and vendored verbatim** (mas-bandwidth/serialize
+  v1.4.3, BSD). Never hand-edit it. Update via `sdk/serialize/update.sh` then validate on CI
+  (`sdk/serialize/README.md`). `next_bitpacker.h`/`next_stream.h`/`next_serialize.h` are thin
+  adapters over it; the only SDK-specific serialize helper is `serialize_address`. Any wire-format
+  change here breaks every deployed relay/backend — the functional suite is the wire-compat check.
+- **Do NOT remove the vendored `sdk/sodium/`** (flattened, Unreal-plugin-friendly). SDK Tests CI
+  builds against it with no system sodium installed; the `next` tool bundles it into the customer
+  SDK example; `sdk/visualstudio/next.sln` references it. It is SEPARATE from the Build pipeline's
+  "Sodium" job that wgets+builds libsodium 1.0.18 for a GCS artifact.
+- **Advanced packet filter is ON everywhere** (`NEXT_ADVANCED_PACKET_FILTER=1` in sdk/include/next.h,
+  `RELAY_ADVANCED_PACKET_FILTER=1` in relay/xdp/relay_xdp.c). Magic values are now load-bearing.
+  The XDP filter mirrors the reference relay exactly (all {current,previous,next} magic x
+  {public,internal} address combos). Keep the Go/SDK/reference/XDP pittle+chonkle implementations
+  byte-identical.
+- **UDP packet-handler concurrency is bounded** by `x/sync/semaphore` (default 16384,
+  `UDP_MAX_CONCURRENT_PACKETS`), same goroutine-per-packet model with a `defer recover()`. A
+  goroutine-POOL library (ants) benchmarked ~12% SLOWER — do not "optimize" into a worker pool
+  without re-measuring.
+- **`ENABLE_DEBUG` must stay unset/false in prod** (removed from terraform/prod this session; dev
+  keeps it). It registers 7 unauthenticated `/debug/*` endpoints on the public api domain that
+  leak relay fleet topology.
+- **`core.Optimize`/`Optimize2` invariant**: sort only `working[:numRoutes]`, never the whole
+  scratch buffer (regression test in core_test.go guards it).
 
-- Fixed relay gateway + relay backend bugs (`9cee7d3b6`, test-234): packet loss integer
-  division in analytics (uint16 math reported 0% or 100% only), inverted error check leaking
-  every forwarded connection in the gateway, `PostRelayUpdateRequest` blocking main so
-  `WaitForShutdown` never ran, `/relay_counters` panic for relays that haven't reported,
-  data race on relay counters. Also renumbered relay pong counters 15-18 -> 16-19 (slot 15
-  collided with `RELAY_PING_PACKET_UNKNOWN_RELAY`) — BigQuery relay counter history for
-  indices 15-19 changes meaning at this commit. `database.Validate()` now rejects
-  > `constants.MaxRelays` relays.
+### Open items (not yet done)
 
-- Fixed `Optimize`/`Optimize2` sorting the entire scratch buffer instead of `working[:numRoutes]`
-  (route corruption bug, see assessment below — now has a regression test in core_test.go).
-- Fixed SDK client advanced packet filter dropping previous-magic packets, plus a format-string
-  crash in its drop log; added `NEXT_PRINTF_FORMAT` (printf format checking) to `next_printf`,
-  which caught five more format bugs in next_server.cpp logs — all fixed.
-- `NEXT_ADVANCED_PACKET_FILTER` is now 1 (sdk/include/next.h) and `RELAY_ADVANCED_PACKET_FILTER`
-  is now 1 (relay/xdp/relay_xdp.c). Receive-side filter verification is ON everywhere.
-- XDP relay advanced filter restructured to match the reference relay exactly: one
-  `relay_advanced_packet_filter` helper tried for all {current,previous,next} magic x
-  {public,internal} address combinations. Helper cross-validated against Go
-  (`core.GeneratePittle`/`GenerateChonkle`) on 10k random vectors.
-- CAVEAT: CI compiles relay_xdp.o but never loads it — the BPF verifier only runs at
-  `ip link set xdp` time. Load the XDP relay on a real Linux box before the next relay
-  release tag.
+- **XDP relay: verifier-load on a real Linux box before the next `relay-*` release tag.** CI
+  compiles `relay_xdp.o` but never loads it; the BPF verifier only runs at `ip link set xdp` time,
+  and the filter was restructured this session.
+- **API auth is thin** (single shared HS256 secret, `admin`/`portal` booleans, no token expiry).
+  Known structural item — a deliberate hardening project if wanted, not a bug.
+- **CI flake — Build "Sodium" job** wgets libsodium from download.libsodium.org; external-host
+  DNS/network hiccups fail it (seen test-239). Just re-run `./dist/deploy test`. If it recurs,
+  cache the sodium download/build in a Semaphore artifact rather than re-fetching. Do NOT solve it
+  by touching the vendored sdk/sodium/ (see invariant above).
+
+### Reviewed and cleared this session (don't re-audit without reason)
+
+Route-token wire interop (Go<->SDK byte layout), the bitpacked `encoding` ReadStream and byte-level
+`encoding.Read*` helpers (all bounds-checked), replay protection / ping-history / loss/jitter
+trackers, SDK client/route/relay-manager receive paths, admin SQL (fully parameterized, no
+injection), portal handlers (safe path-var parsing, `DoPagination_Simple` clamps), autodetect,
+raspberry_backend, magic_backend. The confirmed bugs found in these areas are all fixed (see git log).
 
 ## Codebase assessment (Claude audit, 2026-07-11)
 
