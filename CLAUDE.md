@@ -104,7 +104,8 @@ All merged to main (through `97e1b2213`) and validated green on CI (test-229 thr
   packet types now log-and-drop; fixed `serverRelayInsertBatchSize` never set (typo assigned
   `clientRelayInsertBatchSize` twice — inserter flushed every message); unknown-buyer in server
   init now returns before a nil `*Buyer` deref; fixed always-false `env == "local" && env ==
-  "docker"` check.
+  "docker"` check. (The counter renumber shifts BigQuery counter history for indices 15-19,
+  but no environments were live before this change, so there is no historical-data impact.)
 - Bounded UDP packet handler concurrency (`8eaf5e17b`, test-236): `x/sync/semaphore` caps
   in-flight handlers (default 16384, `UDP_MAX_CONCURRENT_PACKETS`); read loop blocks at the cap
   so bursts are absorbed/dropped by the kernel socket buffer instead of unbounded goroutines.
