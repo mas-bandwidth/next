@@ -71,7 +71,16 @@ Rules learned the hard way:
 
 ## State as of 2026-07-11
 
-All merged to main (through `cba43c4f2`) and validated green on CI (test-229 through test-233):
+All merged to main (through `9cee7d3b6`) and validated green on CI (test-229 through test-234):
+
+- Fixed relay gateway + relay backend bugs (`9cee7d3b6`, test-234): packet loss integer
+  division in analytics (uint16 math reported 0% or 100% only), inverted error check leaking
+  every forwarded connection in the gateway, `PostRelayUpdateRequest` blocking main so
+  `WaitForShutdown` never ran, `/relay_counters` panic for relays that haven't reported,
+  data race on relay counters. Also renumbered relay pong counters 15-18 -> 16-19 (slot 15
+  collided with `RELAY_PING_PACKET_UNKNOWN_RELAY`) — BigQuery relay counter history for
+  indices 15-19 changes meaning at this commit. `database.Validate()` now rejects
+  > `constants.MaxRelays` relays.
 
 - Fixed `Optimize`/`Optimize2` sorting the entire scratch buffer instead of `working[:numRoutes]`
   (route corruption bug, see assessment below — now has a regression test in core_test.go).
@@ -100,8 +109,8 @@ terraform (~20k), and docs. Portal (Vue 3) was only skimmed.
   C-style Go: flat, explicit, data-oriented, almost no interfaces or generics, goroutines +
   RWMutexes used plainly (see `modules/common/service.go`). Once you've read one module you can
   predict the shape of every other. Zero TODO/FIXME/HACK comments in the Go code. `go vet` is
-  clean except unkeyed `SDKVersion` struct literals; `gofmt` is clean except 3 files
-  (`modules/admin/admin.go`, `modules/crypto/crypto.go`, `cmd/relay_gateway/relay_gateway.go`).
+  clean except unkeyed `SDKVersion` struct literals; `gofmt` is clean except 2 files
+  (`modules/admin/admin.go`, `modules/crypto/crypto.go`).
 - **Test culture.** 86 unit tests in core alone, ~155 parallel functional-test CI jobs, soak
   tests, load-test harnesses, seeded/reproducible functional tests with watchdogs. The
   functional-test hardening (see above) shows real maintenance discipline.
