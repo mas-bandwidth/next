@@ -451,12 +451,14 @@ func (relayManager *RelayManager) GetRelaysCSV(currentTime int64, relayIds []uin
 
 func (relayManager *RelayManager) GetRelayCounters(relayId uint64) []uint64 {
 	relayManager.mutex.RLock()
+	defer relayManager.mutex.RUnlock()
 	sourceEntry, ok := relayManager.SourceEntries[relayId]
-	relayManager.mutex.RUnlock()
 	if !ok {
 		return []uint64{}
 	}
-	return sourceEntry.Counters[:]
+	counters := make([]uint64, len(sourceEntry.Counters))
+	copy(counters, sourceEntry.Counters[:])
+	return counters
 }
 
 func (relayManager *RelayManager) GetTotalCounters() []uint64 {

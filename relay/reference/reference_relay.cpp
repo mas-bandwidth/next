@@ -105,10 +105,10 @@
 #define RELAY_COUNTER_RELAY_PING_PACKET_WRONG_SIZE                                              14
 #define RELAY_COUNTER_RELAY_PING_PACKET_UNKNOWN_RELAY                                           15
 
-#define RELAY_COUNTER_RELAY_PONG_PACKET_SENT                                                    15
-#define RELAY_COUNTER_RELAY_PONG_PACKET_RECEIVED                                                16
-#define RELAY_COUNTER_RELAY_PONG_PACKET_WRONG_SIZE                                              17
-#define RELAY_COUNTER_RELAY_PONG_PACKET_UNKNOWN_RELAY                                           18
+#define RELAY_COUNTER_RELAY_PONG_PACKET_SENT                                                    16
+#define RELAY_COUNTER_RELAY_PONG_PACKET_RECEIVED                                                17
+#define RELAY_COUNTER_RELAY_PONG_PACKET_WRONG_SIZE                                              18
+#define RELAY_COUNTER_RELAY_PONG_PACKET_UNKNOWN_RELAY                                           19
 
 #define RELAY_COUNTER_CLIENT_PING_PACKET_RECEIVED                                               20
 #define RELAY_COUNTER_CLIENT_PING_PACKET_WRONG_SIZE                                             21

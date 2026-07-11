@@ -17,6 +17,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/networknext/next/modules/constants"
 	"github.com/networknext/next/modules/core"
 	"github.com/networknext/next/modules/crypto"
 
@@ -222,6 +223,10 @@ func (database *Database) Validate() error {
 
 	if database.IsEmpty() {
 		return fmt.Errorf("database is empty")
+	}
+
+	if len(database.Relays) > constants.MaxRelays {
+		return fmt.Errorf("too many relays: %d > %d. services use fixed size arrays of constants.MaxRelays", len(database.Relays), constants.MaxRelays)
 	}
 
 	if len(database.Relays) != len(database.RelayMap) {
@@ -1364,7 +1369,6 @@ func ExtractDatabase(config string) (*Database, error) {
 		}
 		if len(relay.PrivateKey) != 32 {
 			return nil, fmt.Errorf("relay private key must be 32 bytes\n")
-			os.Exit(1)
 		}
 
 		relay.MaxSessions = row.max_sessions

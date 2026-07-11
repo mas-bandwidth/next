@@ -69,10 +69,24 @@ Rules learned the hard way:
 - Scenario-timing sleeps (session durations, mid-session kills, ping-stats warmup) are
   intentional — do not convert those to polls.
 
-## State as of 2026-07-10
+## State as of 2026-07-11
 
-All of the above is merged to main (through `f4a3afd52`) and validated: test-226/test-227 runs
-had all ~155 functional jobs green, including the historically flaky ones. Nothing in flight.
+All merged to main (through `cba43c4f2`) and validated green on CI (test-229 through test-233):
+
+- Fixed `Optimize`/`Optimize2` sorting the entire scratch buffer instead of `working[:numRoutes]`
+  (route corruption bug, see assessment below — now has a regression test in core_test.go).
+- Fixed SDK client advanced packet filter dropping previous-magic packets, plus a format-string
+  crash in its drop log; added `NEXT_PRINTF_FORMAT` (printf format checking) to `next_printf`,
+  which caught five more format bugs in next_server.cpp logs — all fixed.
+- `NEXT_ADVANCED_PACKET_FILTER` is now 1 (sdk/include/next.h) and `RELAY_ADVANCED_PACKET_FILTER`
+  is now 1 (relay/xdp/relay_xdp.c). Receive-side filter verification is ON everywhere.
+- XDP relay advanced filter restructured to match the reference relay exactly: one
+  `relay_advanced_packet_filter` helper tried for all {current,previous,next} magic x
+  {public,internal} address combinations. Helper cross-validated against Go
+  (`core.GeneratePittle`/`GenerateChonkle`) on 10k random vectors.
+- CAVEAT: CI compiles relay_xdp.o but never loads it — the BPF verifier only runs at
+  `ip link set xdp` time. Load the XDP relay on a real Linux box before the next relay
+  release tag.
 
 ## Codebase assessment (Claude audit, 2026-07-11)
 
@@ -100,19 +114,22 @@ terraform (~20k), and docs. Portal (Vue 3) was only skimmed.
   GCS, encrypted database blobs (`envs/*.bin`), the API JWT signing secret (`API_PRIVATE_KEY`)
   kept out of the repo, per-install keys regenerated via `next keygen`.
 
-### Confirmed bug found during this audit
+### Confirmed bug found during this audit (FIXED 2026-07-11, kept for the lesson)
 
 `modules/core/core.go` — in both `Optimize` (line ~427) and `Optimize2` (line ~634), when a
-relay pair has more than `MaxIndirects` (8) indirect routes, `sort.SliceStable(working, ...)`
-sorts the ENTIRE scratch buffer (length numRelays), not `working[:numRoutes]`. Stale entries
-from previously-processed pairs (or zeros on a goroutine's first sort) leak into the top 8 with
-wrong relay indices and wrong costs, and phase 2 trusts the stored cost when it calls
+relay pair had more than `MaxIndirects` (8) indirect routes, `sort.SliceStable(working, ...)`
+sorted the ENTIRE scratch buffer (length numRelays), not `working[:numRoutes]`. Stale entries
+from previously-processed pairs (or zeros on a goroutine's first sort) leaked into the top 8
+with wrong relay indices and wrong costs, and phase 2 trusted the stored cost when it called
 `AddRoute`. Verified empirically: with a seeded random 100-relay cost matrix, 61 of ~59k emitted
-routes have claimed costs that don't match the actual sum of their link costs — including
-claimed-cost-0 routes through relay index 0 that actually cost 251ms and sort as the *best*
-route for their pair. In production since commit `600ebd1f4` (2023-01-31, "try this"). Fix is
-one line per site: sort `working[:numRoutes]`. The unit tests never caught it because no test
-builds a topology with >8 indirects and verifies emitted route costs against the cost matrix.
+routes had claimed costs that didn't match the actual sum of their link costs — including
+claimed-cost-0 routes through relay index 0 that actually cost 251ms and sorted as the *best*
+route for their pair. In production since commit `600ebd1f4` (2023-01-31, "try this"), fixed in
+`4c0672efa` with a regression test. The unit tests never caught it because no test built a
+topology with >8 indirects and verified emitted route costs against the cost matrix. The SDK
+client had the same class of bug (compiled-out `NEXT_ADVANCED_PACKET_FILTER` code that
+bit-rotted), fixed in `7ecd565ba`. Lesson: code behind a disabled compile flag and math with
+undocumented invariants are where the bugs live in this codebase.
 
 ### Structural weaknesses (honest, in rough priority order)
 

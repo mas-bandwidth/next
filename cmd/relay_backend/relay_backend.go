@@ -326,7 +326,7 @@ func main() {
 
 	UpdateInitialDelayState(service)
 
-	PostRelayUpdateRequest(service)
+	go PostRelayUpdateRequest(service)
 
 	service.WaitForShutdown()
 }
@@ -488,7 +488,7 @@ func PostRelayUpdateRequest(service *common.Service) {
 
 			rtt := relayUpdateRequest.SampleRTT[i]
 			jitter := relayUpdateRequest.SampleJitter[i]
-			pl := float32(relayUpdateRequest.SamplePacketLoss[i] / 65535.0 * 100.0)
+			pl := float32(relayUpdateRequest.SamplePacketLoss[i]) / 65535.0 * 100.0
 
 			if rtt < 255 && int32(jitter) <= maxJitter && pl <= maxPacketLoss {
 				numRoutable++
@@ -670,8 +670,8 @@ func relayHistoryHandler(service *common.Service, relayManager *common.RelayMana
 		var routeMatrix common.RouteMatrix
 		err := routeMatrix.Read(data)
 		if err != nil {
-			fmt.Fprintf(w, "error: could not read route matrix: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(w, "error: could not read route matrix: %v", err)
 			return
 		}
 
@@ -795,10 +795,10 @@ func initCounterNames() {
 	counterNames[13] = "RELAY_COUNTER_RELAY_PING_PACKET_EXPIRED"
 	counterNames[14] = "RELAY_COUNTER_RELAY_PING_PACKET_WRONG_SIZE"
 	counterNames[15] = "RELAY_COUNTER_RELAY_PING_PACKET_UNKNOWN_RELAY"
-	counterNames[15] = "RELAY_COUNTER_RELAY_PONG_PACKET_SENT"
-	counterNames[16] = "RELAY_COUNTER_RELAY_PONG_PACKET_RECEIVED"
-	counterNames[17] = "RELAY_COUNTER_RELAY_PONG_PACKET_WRONG_SIZE"
-	counterNames[18] = "RELAY_COUNTER_RELAY_PONG_PACKET_UNKNOWN_RELAY"
+	counterNames[16] = "RELAY_COUNTER_RELAY_PONG_PACKET_SENT"
+	counterNames[17] = "RELAY_COUNTER_RELAY_PONG_PACKET_RECEIVED"
+	counterNames[18] = "RELAY_COUNTER_RELAY_PONG_PACKET_WRONG_SIZE"
+	counterNames[19] = "RELAY_COUNTER_RELAY_PONG_PACKET_UNKNOWN_RELAY"
 	counterNames[20] = "RELAY_COUNTER_CLIENT_PING_PACKET_RECEIVED"
 	counterNames[21] = "RELAY_COUNTER_CLIENT_PING_PACKET_WRONG_SIZE"
 	counterNames[22] = "RELAY_COUNTER_CLIENT_PING_PACKET_RESPONDED_WITH_PONG"
@@ -897,6 +897,9 @@ func relayCountersHandler(service *common.Service, relayManager *common.RelayMan
 		}
 		relayId := relayData.RelayIds[relayIndex]
 		counters := relayManager.GetRelayCounters(relayId)
+		if len(counters) == 0 {
+			counters = make([]uint64, constants.NumRelayCounters)
+		}
 		w.Header().Set("Content-Type", "text/html")
 		const htmlHeader = `<!DOCTYPE html>
 		<html lang="en">

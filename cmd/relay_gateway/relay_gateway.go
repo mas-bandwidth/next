@@ -2,17 +2,17 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
+	"maps"
 	"net"
 	"net/http"
 	"os"
+	"slices"
+	"sort"
 	"sync"
 	"time"
-	"context"
-	"slices"
-	"maps"
-	"sort"
 
 	"github.com/redis/go-redis/v9"
 
@@ -331,7 +331,7 @@ func RelayUpdateHandler(getRelayData func() *common.RelayData, getMagicValues fu
 				forward_request, err := http.NewRequest("POST", url, buffer)
 				if err == nil {
 					response, err := httpClient.Do(forward_request)
-					if err != nil && response != nil {
+					if err == nil {
 						io.Copy(io.Discard, response.Body)
 						response.Body.Close()
 					}
@@ -345,7 +345,7 @@ func RelayBackendsHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	mutex.Lock()
 	for i := range relayBackendAddresses {
-		fmt.Fprintf(w, "%s\n", relayBackendAddresses[i])		
+		fmt.Fprintf(w, "%s\n", relayBackendAddresses[i])
 	}
 	mutex.Unlock()
 }
@@ -402,7 +402,7 @@ func updateRelayBackendInstances(service *common.Service, redisClient redis.Cmda
 	addressMap := map[string]int{}
 
 	for i := range currentKeys {
-	    addressMap[currentKeys[i]] = 1
+		addressMap[currentKeys[i]] = 1
 	}
 
 	for i := range previousKeys {
