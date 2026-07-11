@@ -71,7 +71,16 @@ Rules learned the hard way:
 
 ## State as of 2026-07-11
 
-All merged to main (through `a566e3cd9`) and validated green on CI (test-229 through test-238):
+All merged to main (through `97e1b2213`) and validated green on CI (test-229 through test-240):
+
+- Fixed unbounded-allocation OOM DoS in session_cruncher/server_cruncher batch handlers
+  (`97e1b2213`, test-240): `numUpdates` was read from the POST body and passed straight to
+  `make()`, so a 12-byte request could drive a multi-GB allocation. Now bounded to the
+  remaining body size; truncated batches rejected. (`encoding.Read*` byte helpers ARE
+  bounds-checked — return false without advancing — so there was no OOB, just the OOM.)
+- KNOWN CI FLAKE: the SDK build downloads libsodium from download.libsodium.org at build
+  time; DNS/network hiccups fail the "Build libsodium.so" job (seen at test-239). Re-run
+  with `./dist/deploy test`. Vendoring libsodium (like netcode does) would remove this.
 
 - Vendored the canonical serialize library (`a566e3cd9`, test-238): `sdk/serialize/serialize.h`
   is mas-bandwidth/serialize v1.4.3, verbatim, BSD-licensed, CANONICAL — never edit it; update
