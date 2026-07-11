@@ -717,7 +717,6 @@ module "api" {
     ./bootstrap.sh -t ${var.tag} -b ${local.google_artifacts_bucket} -a api.tar.gz
     cat <<EOF > /app/app.env
     ENV=prod
-    ENABLE_DEBUG=true
     ENABLE_REDIS_TIME_SERIES=true
     REDIS_TIME_SERIES_HOSTNAME="${module.redis_time_series.address}:6379"
     REDIS_PORTAL_HOSTNAME="${google_redis_instance.redis.host}:6379"
