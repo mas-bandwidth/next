@@ -78,9 +78,15 @@ All merged to main (through `97e1b2213`) and validated green on CI (test-229 thr
   `make()`, so a 12-byte request could drive a multi-GB allocation. Now bounded to the
   remaining body size; truncated batches rejected. (`encoding.Read*` byte helpers ARE
   bounds-checked — return false without advancing — so there was no OOB, just the OOM.)
-- KNOWN CI FLAKE: the SDK build downloads libsodium from download.libsodium.org at build
-  time; DNS/network hiccups fail the "Build libsodium.so" job (seen at test-239). Re-run
-  with `./dist/deploy test`. Vendoring libsodium (like netcode does) would remove this.
+- KNOWN CI FLAKE: the Build pipeline's "Sodium" job wgets libsodium 1.0.18 from
+  download.libsodium.org, builds it, and pushes libsodium.so as a workflow artifact (consumed
+  later by upload-artifacts.yml -> GCS). External-host DNS/network hiccups fail it (seen at
+  test-239). Just re-run with `./dist/deploy test`. Decision (2026-07-11): leave it for now;
+  if it keeps flaking, cache the sodium download/build in a Semaphore CI artifact rather than
+  re-fetching from the external host. Do NOT remove the vendored sdk/sodium/ (flattened,
+  Unreal-plugin-friendly) — it's what SDK Tests CI builds against (no system sodium installed
+  there), the `next` tool bundles into the customer SDK example, and next.sln references. It is
+  separate from this download job.
 
 - Vendored the canonical serialize library (`a566e3cd9`, test-238): `sdk/serialize/serialize.h`
   is mas-bandwidth/serialize v1.4.3, verbatim, BSD-licensed, CANONICAL — never edit it; update
