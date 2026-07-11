@@ -2,7 +2,6 @@ package common
 
 import (
 	"fmt"
-	"math/rand"
 	"net"
 
 	"github.com/networknext/next/modules/constants"
@@ -129,12 +128,12 @@ func GenerateRandomCostMatrix(numRelays int) CostMatrix {
 	costMatrix.DestRelays = make([]bool, numRelays)
 
 	for i := 0; i < numRelays; i++ {
-		costMatrix.RelayIds[i] = rand.Uint64()
+		costMatrix.RelayIds[i] = RandomUint64()
 		costMatrix.RelayAddresses[i] = RandomAddress()
 		costMatrix.RelayNames[i] = RandomString(constants.MaxRelayNameLength)
-		costMatrix.RelayLatitudes[i] = rand.Float32()
-		costMatrix.RelayLongitudes[i] = rand.Float32()
-		costMatrix.RelayDatacenterIds[i] = rand.Uint64()
+		costMatrix.RelayLatitudes[i] = RandomFloat32()
+		costMatrix.RelayLongitudes[i] = RandomFloat32()
+		costMatrix.RelayDatacenterIds[i] = RandomUint64()
 		costMatrix.DestRelays[i] = RandomBool()
 	}
 

@@ -16,6 +16,7 @@ import (
 	"os/exec"
 	"reflect"
 	"runtime"
+	"strconv"
 	"time"
 
 	"github.com/networknext/next/modules/admin"
@@ -1882,6 +1883,16 @@ func main() {
 	}()
 
 	for i := range tests {
+		seed := time.Now().UnixNano()
+		if value := os.Getenv("TEST_SEED"); value != "" {
+			var err error
+			seed, err = strconv.ParseInt(value, 10, 64)
+			if err != nil {
+				panic(fmt.Sprintf("invalid TEST_SEED '%s'", value))
+			}
+		}
+		fmt.Printf("random seed = %d\n", seed)
+		common.SeedRandom(seed)
 		tests[i]()
 	}
 

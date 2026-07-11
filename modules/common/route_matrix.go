@@ -3,7 +3,6 @@ package common
 import (
 	"fmt"
 	"math"
-	"math/rand"
 	"net"
 
 	"github.com/networknext/next/modules/constants"
@@ -368,12 +367,12 @@ func GenerateRandomRouteMatrix(numRelays int) RouteMatrix {
 	routeMatrix.DestRelays = make([]bool, numRelays)
 
 	for i := 0; i < numRelays; i++ {
-		routeMatrix.RelayIds[i] = rand.Uint64()
+		routeMatrix.RelayIds[i] = RandomUint64()
 		routeMatrix.RelayAddresses[i] = RandomAddress()
 		routeMatrix.RelayNames[i] = RandomString(constants.MaxRelayNameLength)
-		routeMatrix.RelayLatitudes[i] = rand.Float32()
-		routeMatrix.RelayLongitudes[i] = rand.Float32()
-		routeMatrix.RelayDatacenterIds[i] = rand.Uint64()
+		routeMatrix.RelayLatitudes[i] = RandomFloat32()
+		routeMatrix.RelayLongitudes[i] = RandomFloat32()
+		routeMatrix.RelayDatacenterIds[i] = RandomUint64()
 		routeMatrix.DestRelays[i] = RandomBool()
 	}
 
@@ -386,7 +385,7 @@ func GenerateRandomRouteMatrix(numRelays int) RouteMatrix {
 	routeMatrix.BinFileData = make([]byte, routeMatrix.BinFileBytes)
 	RandomBytes(routeMatrix.BinFileData)
 
-	routeMatrix.CreatedAt = rand.Uint64()
+	routeMatrix.CreatedAt = RandomUint64()
 
 	numEntries := core.TriMatrixLength(numRelays)
 

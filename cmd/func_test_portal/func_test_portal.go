@@ -627,5 +627,15 @@ func test_portal() {
 }
 
 func main() {
+	seed := time.Now().UnixNano()
+	if value := os.Getenv("TEST_SEED"); value != "" {
+		var err error
+		seed, err = strconv.ParseInt(value, 10, 64)
+		if err != nil {
+			panic(fmt.Sprintf("invalid TEST_SEED '%s'", value))
+		}
+	}
+	fmt.Printf("random seed = %d\n", seed)
+	common.SeedRandom(seed)
 	test_portal()
 }

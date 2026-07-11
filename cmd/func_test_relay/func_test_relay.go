@@ -19,7 +19,9 @@ import (
 	"os/exec"
 	"reflect"
 	"runtime"
+	"strconv"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -83,7 +85,55 @@ type RelayConfig struct {
 	disable_destroy                   bool
 }
 
-func relay(name string, port int, configArray ...RelayConfig) (*exec.Cmd, *bytes.Buffer) {
+// Buffer is a thread safe bytes.Buffer, so tests can poll process output while the process is running
+type Buffer struct {
+	mutex  sync.Mutex
+	buffer bytes.Buffer
+}
+
+func (b *Buffer) Write(p []byte) (int, error) {
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
+	return b.buffer.Write(p)
+}
+
+func (b *Buffer) String() string {
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
+	return b.buffer.String()
+}
+
+func waitForOutput(output *Buffer, substring string, timeout time.Duration) bool {
+	return waitForOutputCount(output, substring, 1, timeout)
+}
+
+func waitForOutputCount(output *Buffer, substring string, count int, timeout time.Duration) bool {
+	deadline := time.Now().Add(timeout)
+	for time.Now().Before(deadline) {
+		if strings.Count(output.String(), substring) >= count {
+			return true
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+	return false
+}
+
+// UDP packets can be lost even on loopback when the machine is under load, so resend until the
+// relay logs that it processed the packet. Counts occurrences of the substring so tests that
+// trigger the same output line multiple times wait for a new occurrence, not an old one.
+// Best effort: if the substring never shows up, fall through and let the counter checks fail
+// the test with the full relay output.
+func sendPacketUntilOutput(conn *net.UDPConn, packet []byte, to *net.UDPAddr, output *Buffer, substring string) {
+	count := strings.Count(output.String(), substring) + 1
+	for i := 0; i < 10; i++ {
+		conn.WriteToUDP(packet, to)
+		if waitForOutputCount(output, substring, count, time.Second) {
+			return
+		}
+	}
+}
+
+func relay(name string, port int, configArray ...RelayConfig) (*exec.Cmd, *Buffer) {
 
 	var config RelayConfig
 	if len(configArray) == 1 {
@@ -166,7 +216,7 @@ func relay(name string, port int, configArray ...RelayConfig) (*exec.Cmd, *bytes
 
 	// fmt.Printf("%s\n", cmd.Env)
 
-	var output bytes.Buffer
+	var output Buffer
 	cmd.Stdout = &output
 	cmd.Stderr = &output
 	cmd.Start()
@@ -174,7 +224,7 @@ func relay(name string, port int, configArray ...RelayConfig) (*exec.Cmd, *bytes
 	return cmd, &output
 }
 
-func backend(mode string) (*exec.Cmd, *bytes.Buffer) {
+func backend(mode string) (*exec.Cmd, *Buffer) {
 
 	cmd := exec.Command(backendBin)
 	if cmd == nil {
@@ -187,7 +237,7 @@ func backend(mode string) (*exec.Cmd, *bytes.Buffer) {
 		cmd.Env = append(cmd.Env, fmt.Sprintf("BACKEND_MODE=%s", mode))
 	}
 
-	var output bytes.Buffer
+	var output Buffer
 	cmd.Stdout = &output
 	cmd.Stderr = &output
 	cmd.Start()
@@ -769,7 +819,7 @@ func test_client_ping_packet_wrong_size() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -802,6 +852,8 @@ func test_client_ping_packet_wrong_size() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "wrong size", 10*time.Second)
+
 	conn.Close()
 
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -831,7 +883,7 @@ func test_client_ping_packet_expired() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -863,6 +915,8 @@ func test_client_ping_packet_expired() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "ping expired", 10*time.Second)
+
 	conn.Close()
 
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -892,7 +946,7 @@ func test_client_ping_packet_did_not_verify() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -926,6 +980,8 @@ func test_client_ping_packet_did_not_verify() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "ping token did not verify", 10*time.Second)
+
 	conn.Close()
 
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -955,7 +1011,7 @@ func test_client_ping_packet_responded_with_pong() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -1024,6 +1080,8 @@ func test_client_ping_packet_responded_with_pong() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "replying with client pong packet", 10*time.Second)
+
 	conn.Close()
 
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -1059,7 +1117,7 @@ func test_server_ping_packet_wrong_size() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -1092,6 +1150,8 @@ func test_server_ping_packet_wrong_size() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "wrong size", 10*time.Second)
+
 	conn.Close()
 
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -1121,7 +1181,7 @@ func test_server_ping_packet_expired() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -1153,6 +1213,8 @@ func test_server_ping_packet_expired() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "ping expired", 10*time.Second)
+
 	conn.Close()
 
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -1182,7 +1244,7 @@ func test_server_ping_packet_did_not_verify() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -1216,6 +1278,8 @@ func test_server_ping_packet_did_not_verify() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "ping token did not verify", 10*time.Second)
+
 	conn.Close()
 
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -1245,7 +1309,7 @@ func test_server_ping_packet_responded_with_pong() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -1309,6 +1373,8 @@ func test_server_ping_packet_responded_with_pong() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "replying with server pong packet", 10*time.Second)
+
 	conn.Close()
 
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -1344,7 +1410,7 @@ func test_relay_pong_packet_wrong_size() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -1377,6 +1443,8 @@ func test_relay_pong_packet_wrong_size() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "relay pong packet is wrong size", 10*time.Second)
+
 	conn.Close()
 
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -1406,7 +1474,7 @@ func test_relay_ping_packet_wrong_size() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -1439,6 +1507,8 @@ func test_relay_ping_packet_wrong_size() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "wrong size", 10*time.Second)
+
 	conn.Close()
 
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -1468,7 +1538,7 @@ func test_relay_ping_packet_expired() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -1500,6 +1570,8 @@ func test_relay_ping_packet_expired() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "ping expired", 10*time.Second)
+
 	conn.Close()
 
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -1529,7 +1601,7 @@ func test_relay_ping_packet_did_not_verify() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -1563,6 +1635,8 @@ func test_relay_ping_packet_did_not_verify() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "ping token did not verify", 10*time.Second)
+
 	conn.Close()
 
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -1594,7 +1668,7 @@ func test_route_request_packet_wrong_size() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -1627,6 +1701,8 @@ func test_route_request_packet_wrong_size() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "route request packet is the wrong size", 10*time.Second)
+
 	conn.Close()
 
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -1656,7 +1732,7 @@ func test_route_request_packet_could_not_decrypt_route_token() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -1689,6 +1765,8 @@ func test_route_request_packet_could_not_decrypt_route_token() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "could not decrypt route token", 10*time.Second)
+
 	conn.Close()
 
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -1718,7 +1796,7 @@ func test_route_request_packet_token_expired() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -1761,6 +1839,8 @@ func test_route_request_packet_token_expired() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "route token expired", 10*time.Second)
+
 	conn.Close()
 
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -1790,7 +1870,7 @@ func test_route_request_packet_forward_to_next_hop() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -1850,6 +1930,8 @@ func test_route_request_packet_forward_to_next_hop() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "forward to next hop", 10*time.Second)
+
 	conn.Close()
 
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -1886,7 +1968,7 @@ func test_route_response_packet_wrong_size() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -1919,6 +2001,8 @@ func test_route_response_packet_wrong_size() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "route response packet is the wrong size", 10*time.Second)
+
 	conn.Close()
 
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -1948,7 +2032,7 @@ func test_route_response_packet_could_not_find_session() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -1980,6 +2064,8 @@ func test_route_response_packet_could_not_find_session() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "could not find session", 10*time.Second)
+
 	conn.Close()
 
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -2009,7 +2095,7 @@ func test_route_response_packet_already_received() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -2047,7 +2133,7 @@ func test_route_response_packet_already_received() {
 	packetLength := len(packet)
 	core.GeneratePittle(packet[1:3], fromAddress[:], toAddress[:], packetLength)
 	core.GenerateChonkle(packet[3:18], magic[:], fromAddress[:], toAddress[:], packetLength)
-	conn.WriteToUDP(packet, &serverAddress)
+	sendPacketUntilOutput(conn, packet, &serverAddress, relay_stdout, "forward to next hop")
 
 	// now send a bunch of route response packets with sequence number 0, they will trigger already received
 	// (sequence number starts at zero...)
@@ -2066,6 +2152,8 @@ func test_route_response_packet_already_received() {
 		}
 		time.Sleep(time.Second)
 	}
+
+	waitForOutput(relay_stdout, "already received", 10*time.Second)
 
 	conn.Close()
 
@@ -2099,7 +2187,7 @@ func test_route_response_packet_header_did_not_verify() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -2137,9 +2225,7 @@ func test_route_response_packet_header_did_not_verify() {
 	packetLength := len(packet)
 	core.GeneratePittle(packet[1:3], fromAddress[:], toAddress[:], packetLength)
 	core.GenerateChonkle(packet[3:18], magic[:], fromAddress[:], toAddress[:], packetLength)
-	conn.WriteToUDP(packet, &serverAddress)
-
-	time.Sleep(time.Second)
+	sendPacketUntilOutput(conn, packet, &serverAddress, relay_stdout, "forward to next hop")
 
 	// send a route response packet with sequence number > 0, so it passes already received test, but does not verify
 
@@ -2153,10 +2239,8 @@ func test_route_response_packet_header_did_not_verify() {
 		packetLength := len(packet)
 		core.GeneratePittle(packet[1:3], fromAddress[:], toAddress[:], packetLength)
 		core.GenerateChonkle(packet[3:18], magic[:], fromAddress[:], toAddress[:], packetLength)
-		conn.WriteToUDP(packet, &serverAddress)
+		sendPacketUntilOutput(conn, packet, &serverAddress, relay_stdout, "header did not verify")
 	}
-
-	time.Sleep(time.Second)
 
 	conn.Close()
 
@@ -2206,7 +2290,7 @@ func test_route_response_packet_forward_to_previous_hop() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -2253,9 +2337,7 @@ func test_route_response_packet_forward_to_previous_hop() {
 	packetLength := len(packet)
 	core.GeneratePittle(packet[1:3], fromAddress[:], toAddress[:], packetLength)
 	core.GenerateChonkle(packet[3:18], magic[:], fromAddress[:], toAddress[:], packetLength)
-	conn.WriteToUDP(packet, &serverAddress)
-
-	time.Sleep(time.Second)
+	sendPacketUntilOutput(conn, packet, &serverAddress, relay_stdout, "forward to next hop")
 
 	// send a valid route response packet so it gets forwarded to previous hop (client address)
 
@@ -2282,7 +2364,7 @@ func test_route_response_packet_forward_to_previous_hop() {
 
 		core.GenerateChonkle(packet[3:18], magic[:], fromAddress[:], toAddress[:], packetLength)
 
-		conn.WriteToUDP(packet, &serverAddress)
+		sendPacketUntilOutput(conn, packet, &serverAddress, relay_stdout, "forward to previous hop")
 	}
 
 	time.Sleep(time.Second)
@@ -2321,7 +2403,7 @@ func test_continue_request_packet_wrong_size() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -2354,6 +2436,8 @@ func test_continue_request_packet_wrong_size() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "continue request packet is the wrong size", 10*time.Second)
+
 	conn.Close()
 
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -2383,7 +2467,7 @@ func test_continue_request_packet_could_not_decrypt_continue_token() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -2416,6 +2500,8 @@ func test_continue_request_packet_could_not_decrypt_continue_token() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "could not decrypt continue token", 10*time.Second)
+
 	conn.Close()
 
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -2445,7 +2531,7 @@ func test_continue_request_packet_token_expired() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -2486,6 +2572,8 @@ func test_continue_request_packet_token_expired() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "continue token expired", 10*time.Second)
+
 	conn.Close()
 
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -2515,7 +2603,7 @@ func test_continue_request_packet_could_not_find_session() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -2557,6 +2645,8 @@ func test_continue_request_packet_could_not_find_session() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "could not find session", 10*time.Second)
+
 	conn.Close()
 
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -2586,7 +2676,7 @@ func test_continue_request_packet_forward_to_next_hop() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -2625,7 +2715,7 @@ func test_continue_request_packet_forward_to_next_hop() {
 		packetLength := len(packet)
 		core.GeneratePittle(packet[1:3], fromAddress[:], toAddress[:], packetLength)
 		core.GenerateChonkle(packet[3:18], magic[:], fromAddress[:], toAddress[:], packetLength)
-		conn.WriteToUDP(packet, &serverAddress)
+		sendPacketUntilOutput(conn, packet, &serverAddress, relay_stdout, "forward to next hop")
 	}
 
 	// now send continue request packets and listen to see that they get forwarded
@@ -2665,6 +2755,8 @@ func test_continue_request_packet_forward_to_next_hop() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutputCount(relay_stdout, "forward to next hop", 2, 10*time.Second)
+
 	conn.Close()
 
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -2702,7 +2794,7 @@ func test_continue_response_packet_wrong_size() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -2735,6 +2827,8 @@ func test_continue_response_packet_wrong_size() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "continue response packet is the wrong size", 10*time.Second)
+
 	conn.Close()
 
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -2764,7 +2858,7 @@ func test_continue_response_packet_could_not_find_session() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -2796,6 +2890,8 @@ func test_continue_response_packet_could_not_find_session() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "could not find session", 10*time.Second)
+
 	conn.Close()
 
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -2825,7 +2921,7 @@ func test_continue_response_packet_already_received() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -2863,7 +2959,7 @@ func test_continue_response_packet_already_received() {
 	packetLength := len(packet)
 	core.GeneratePittle(packet[1:3], fromAddress[:], toAddress[:], packetLength)
 	core.GenerateChonkle(packet[3:18], magic[:], fromAddress[:], toAddress[:], packetLength)
-	conn.WriteToUDP(packet, &serverAddress)
+	sendPacketUntilOutput(conn, packet, &serverAddress, relay_stdout, "forward to next hop")
 
 	// now send a bunch of continue response packets with sequence number 0, they will trigger already received
 	// (sequence number starts at zero...)
@@ -2882,6 +2978,8 @@ func test_continue_response_packet_already_received() {
 		}
 		time.Sleep(time.Second)
 	}
+
+	waitForOutput(relay_stdout, "already received", 10*time.Second)
 
 	conn.Close()
 
@@ -2915,7 +3013,7 @@ func test_continue_response_packet_header_did_not_verify() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -2953,9 +3051,7 @@ func test_continue_response_packet_header_did_not_verify() {
 	packetLength := len(packet)
 	core.GeneratePittle(packet[1:3], fromAddress[:], toAddress[:], packetLength)
 	core.GenerateChonkle(packet[3:18], magic[:], fromAddress[:], toAddress[:], packetLength)
-	conn.WriteToUDP(packet, &serverAddress)
-
-	time.Sleep(time.Second)
+	sendPacketUntilOutput(conn, packet, &serverAddress, relay_stdout, "forward to next hop")
 
 	// send a continue response packet with sequence number > 0, so it passes already received test, but does not verify
 
@@ -2969,10 +3065,8 @@ func test_continue_response_packet_header_did_not_verify() {
 		packetLength := len(packet)
 		core.GeneratePittle(packet[1:3], fromAddress[:], toAddress[:], packetLength)
 		core.GenerateChonkle(packet[3:18], magic[:], fromAddress[:], toAddress[:], packetLength)
-		conn.WriteToUDP(packet, &serverAddress)
+		sendPacketUntilOutput(conn, packet, &serverAddress, relay_stdout, "header did not verify")
 	}
-
-	time.Sleep(time.Second)
 
 	conn.Close()
 
@@ -3006,7 +3100,7 @@ func test_continue_response_packet_forward_to_previous_hop() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -3053,9 +3147,7 @@ func test_continue_response_packet_forward_to_previous_hop() {
 	packetLength := len(packet)
 	core.GeneratePittle(packet[1:3], fromAddress[:], toAddress[:], packetLength)
 	core.GenerateChonkle(packet[3:18], magic[:], fromAddress[:], toAddress[:], packetLength)
-	conn.WriteToUDP(packet, &serverAddress)
-
-	time.Sleep(time.Second)
+	sendPacketUntilOutput(conn, packet, &serverAddress, relay_stdout, "forward to next hop")
 
 	// send a valid continue response packet so it gets forwarded to previous hop (client address)
 
@@ -3082,7 +3174,7 @@ func test_continue_response_packet_forward_to_previous_hop() {
 
 		core.GenerateChonkle(packet[3:18], magic[:], fromAddress[:], toAddress[:], packetLength)
 
-		conn.WriteToUDP(packet, &serverAddress)
+		sendPacketUntilOutput(conn, packet, &serverAddress, relay_stdout, "forward to previous hop")
 	}
 
 	time.Sleep(time.Second)
@@ -3121,7 +3213,7 @@ func test_client_to_server_packet_too_small() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -3154,6 +3246,8 @@ func test_client_to_server_packet_too_small() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "packet too small", 10*time.Second)
+
 	conn.Close()
 
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -3183,7 +3277,7 @@ func test_client_to_server_packet_too_big() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -3216,6 +3310,8 @@ func test_client_to_server_packet_too_big() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "packet too big", 10*time.Second)
+
 	conn.Close()
 
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -3245,7 +3341,7 @@ func test_client_to_server_packet_could_not_find_session() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -3277,6 +3373,8 @@ func test_client_to_server_packet_could_not_find_session() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "could not find session", 10*time.Second)
+
 	conn.Close()
 
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -3306,7 +3404,7 @@ func test_client_to_server_packet_already_received() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -3344,7 +3442,7 @@ func test_client_to_server_packet_already_received() {
 	packetLength := len(packet)
 	core.GeneratePittle(packet[1:3], fromAddress[:], toAddress[:], packetLength)
 	core.GenerateChonkle(packet[3:18], magic[:], fromAddress[:], toAddress[:], packetLength)
-	conn.WriteToUDP(packet, &serverAddress)
+	sendPacketUntilOutput(conn, packet, &serverAddress, relay_stdout, "forward to next hop")
 
 	// now send a bunch of client to server packets with sequence number 0, they will trigger already received
 	// (sequence number starts at zero...)
@@ -3363,6 +3461,8 @@ func test_client_to_server_packet_already_received() {
 		}
 		time.Sleep(time.Second)
 	}
+
+	waitForOutput(relay_stdout, "already received", 10*time.Second)
 
 	conn.Close()
 
@@ -3396,7 +3496,7 @@ func test_client_to_server_packet_header_did_not_verify() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -3434,9 +3534,7 @@ func test_client_to_server_packet_header_did_not_verify() {
 	packetLength := len(packet)
 	core.GeneratePittle(packet[1:3], fromAddress[:], toAddress[:], packetLength)
 	core.GenerateChonkle(packet[3:18], magic[:], fromAddress[:], toAddress[:], packetLength)
-	conn.WriteToUDP(packet, &serverAddress)
-
-	time.Sleep(time.Second)
+	sendPacketUntilOutput(conn, packet, &serverAddress, relay_stdout, "forward to next hop")
 
 	// send a client to server packet with sequence number > 0, so it passes already received test, but does not verify
 
@@ -3450,10 +3548,8 @@ func test_client_to_server_packet_header_did_not_verify() {
 		packetLength := len(packet)
 		core.GeneratePittle(packet[1:3], fromAddress[:], toAddress[:], packetLength)
 		core.GenerateChonkle(packet[3:18], magic[:], fromAddress[:], toAddress[:], packetLength)
-		conn.WriteToUDP(packet, &serverAddress)
+		sendPacketUntilOutput(conn, packet, &serverAddress, relay_stdout, "could not verify header")
 	}
-
-	time.Sleep(time.Second)
 
 	conn.Close()
 
@@ -3487,7 +3583,7 @@ func test_client_to_server_packet_forward_to_next_hop() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -3535,7 +3631,7 @@ func test_client_to_server_packet_forward_to_next_hop() {
 		packetLength := len(packet)
 		core.GeneratePittle(packet[1:3], fromAddress[:], toAddress[:], packetLength)
 		core.GenerateChonkle(packet[3:18], magic[:], fromAddress[:], toAddress[:], packetLength)
-		conn.WriteToUDP(packet, &serverAddress)
+		sendPacketUntilOutput(conn, packet, &serverAddress, relay_stdout, "forward to next hop")
 	}
 
 	// now send client to server packets and listen to see that they get forwarded
@@ -3588,6 +3684,8 @@ func test_client_to_server_packet_forward_to_next_hop() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutputCount(relay_stdout, "forward to next hop", 2, 10*time.Second)
+
 	conn.Close()
 
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -3624,7 +3722,7 @@ func test_server_to_client_packet_too_small() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -3657,6 +3755,8 @@ func test_server_to_client_packet_too_small() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "too small", 10*time.Second)
+
 	conn.Close()
 
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -3686,7 +3786,7 @@ func test_server_to_client_packet_too_big() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -3719,6 +3819,8 @@ func test_server_to_client_packet_too_big() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "too big", 10*time.Second)
+
 	conn.Close()
 
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -3748,7 +3850,7 @@ func test_server_to_client_packet_could_not_find_session() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -3780,6 +3882,8 @@ func test_server_to_client_packet_could_not_find_session() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "could not find session", 10*time.Second)
+
 	conn.Close()
 
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -3809,7 +3913,7 @@ func test_server_to_client_packet_already_received() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -3847,7 +3951,7 @@ func test_server_to_client_packet_already_received() {
 	packetLength := len(packet)
 	core.GeneratePittle(packet[1:3], fromAddress[:], toAddress[:], packetLength)
 	core.GenerateChonkle(packet[3:18], magic[:], fromAddress[:], toAddress[:], packetLength)
-	conn.WriteToUDP(packet, &serverAddress)
+	sendPacketUntilOutput(conn, packet, &serverAddress, relay_stdout, "forward to next hop")
 
 	// now send a bunch of server to client packets with sequence number 0, they will trigger already received
 	// (sequence number starts at zero...)
@@ -3866,6 +3970,8 @@ func test_server_to_client_packet_already_received() {
 		}
 		time.Sleep(time.Second)
 	}
+
+	waitForOutput(relay_stdout, "already received", 10*time.Second)
 
 	conn.Close()
 
@@ -3899,7 +4005,7 @@ func test_server_to_client_packet_header_did_not_verify() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -3937,9 +4043,7 @@ func test_server_to_client_packet_header_did_not_verify() {
 	packetLength := len(packet)
 	core.GeneratePittle(packet[1:3], fromAddress[:], toAddress[:], packetLength)
 	core.GenerateChonkle(packet[3:18], magic[:], fromAddress[:], toAddress[:], packetLength)
-	conn.WriteToUDP(packet, &serverAddress)
-
-	time.Sleep(time.Second)
+	sendPacketUntilOutput(conn, packet, &serverAddress, relay_stdout, "forward to next hop")
 
 	// send a server to client packet with sequence number > 0, so it passes already received test, but does not verify
 
@@ -3953,10 +4057,8 @@ func test_server_to_client_packet_header_did_not_verify() {
 		packetLength := len(packet)
 		core.GeneratePittle(packet[1:3], fromAddress[:], toAddress[:], packetLength)
 		core.GenerateChonkle(packet[3:18], magic[:], fromAddress[:], toAddress[:], packetLength)
-		conn.WriteToUDP(packet, &serverAddress)
+		sendPacketUntilOutput(conn, packet, &serverAddress, relay_stdout, "could not verify header")
 	}
-
-	time.Sleep(time.Second)
 
 	conn.Close()
 
@@ -3990,7 +4092,7 @@ func test_server_to_client_packet_forward_to_previous_hop() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -4038,7 +4140,7 @@ func test_server_to_client_packet_forward_to_previous_hop() {
 		packetLength := len(packet)
 		core.GeneratePittle(packet[1:3], fromAddress[:], toAddress[:], packetLength)
 		core.GenerateChonkle(packet[3:18], magic[:], fromAddress[:], toAddress[:], packetLength)
-		conn.WriteToUDP(packet, &serverAddress)
+		sendPacketUntilOutput(conn, packet, &serverAddress, relay_stdout, "forward to next hop")
 	}
 
 	// now send server to client packets and listen to see that they get forwarded
@@ -4091,6 +4193,8 @@ func test_server_to_client_packet_forward_to_previous_hop() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "forward to previous hop", 10*time.Second)
+
 	conn.Close()
 
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -4127,7 +4231,7 @@ func test_session_ping_packet_wrong_size() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -4160,6 +4264,8 @@ func test_session_ping_packet_wrong_size() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "wrong size", 10*time.Second)
+
 	conn.Close()
 
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -4189,7 +4295,7 @@ func test_session_ping_packet_could_not_find_session() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -4221,6 +4327,8 @@ func test_session_ping_packet_could_not_find_session() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "could not find session", 10*time.Second)
+
 	conn.Close()
 
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -4250,7 +4358,7 @@ func test_session_ping_packet_already_received() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -4288,7 +4396,7 @@ func test_session_ping_packet_already_received() {
 	packetLength := len(packet)
 	core.GeneratePittle(packet[1:3], fromAddress[:], toAddress[:], packetLength)
 	core.GenerateChonkle(packet[3:18], magic[:], fromAddress[:], toAddress[:], packetLength)
-	conn.WriteToUDP(packet, &serverAddress)
+	sendPacketUntilOutput(conn, packet, &serverAddress, relay_stdout, "forward to next hop")
 
 	// now send a bunch of session ping packets with sequence number 0, they will trigger already received
 	// (sequence number starts at zero...)
@@ -4307,6 +4415,8 @@ func test_session_ping_packet_already_received() {
 		}
 		time.Sleep(time.Second)
 	}
+
+	waitForOutput(relay_stdout, "already received", 10*time.Second)
 
 	conn.Close()
 
@@ -4340,7 +4450,7 @@ func test_session_ping_packet_header_did_not_verify() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -4378,9 +4488,7 @@ func test_session_ping_packet_header_did_not_verify() {
 	packetLength := len(packet)
 	core.GeneratePittle(packet[1:3], fromAddress[:], toAddress[:], packetLength)
 	core.GenerateChonkle(packet[3:18], magic[:], fromAddress[:], toAddress[:], packetLength)
-	conn.WriteToUDP(packet, &serverAddress)
-
-	time.Sleep(time.Second)
+	sendPacketUntilOutput(conn, packet, &serverAddress, relay_stdout, "forward to next hop")
 
 	// send a session ping packet with sequence number > 0, so it passes already received test, but does not verify
 
@@ -4394,10 +4502,8 @@ func test_session_ping_packet_header_did_not_verify() {
 		packetLength := len(packet)
 		core.GeneratePittle(packet[1:3], fromAddress[:], toAddress[:], packetLength)
 		core.GenerateChonkle(packet[3:18], magic[:], fromAddress[:], toAddress[:], packetLength)
-		conn.WriteToUDP(packet, &serverAddress)
+		sendPacketUntilOutput(conn, packet, &serverAddress, relay_stdout, "could not verify header")
 	}
-
-	time.Sleep(time.Second)
 
 	conn.Close()
 
@@ -4431,7 +4537,7 @@ func test_session_ping_packet_forward_to_next_hop() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -4479,7 +4585,7 @@ func test_session_ping_packet_forward_to_next_hop() {
 		packetLength := len(packet)
 		core.GeneratePittle(packet[1:3], fromAddress[:], toAddress[:], packetLength)
 		core.GenerateChonkle(packet[3:18], magic[:], fromAddress[:], toAddress[:], packetLength)
-		conn.WriteToUDP(packet, &serverAddress)
+		sendPacketUntilOutput(conn, packet, &serverAddress, relay_stdout, "forward to next hop")
 	}
 
 	// now send session ping packets and listen to see that they get forwarded
@@ -4532,6 +4638,8 @@ func test_session_ping_packet_forward_to_next_hop() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutputCount(relay_stdout, "forward to next hop", 2, 10*time.Second)
+
 	conn.Close()
 
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -4568,7 +4676,7 @@ func test_session_pong_packet_wrong_size() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -4601,6 +4709,8 @@ func test_session_pong_packet_wrong_size() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "wrong size", 10*time.Second)
+
 	conn.Close()
 
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -4630,7 +4740,7 @@ func test_session_pong_packet_could_not_find_session() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -4662,6 +4772,8 @@ func test_session_pong_packet_could_not_find_session() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "could not find session", 10*time.Second)
+
 	conn.Close()
 
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -4691,7 +4803,7 @@ func test_session_pong_packet_already_received() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -4729,7 +4841,7 @@ func test_session_pong_packet_already_received() {
 	packetLength := len(packet)
 	core.GeneratePittle(packet[1:3], fromAddress[:], toAddress[:], packetLength)
 	core.GenerateChonkle(packet[3:18], magic[:], fromAddress[:], toAddress[:], packetLength)
-	conn.WriteToUDP(packet, &serverAddress)
+	sendPacketUntilOutput(conn, packet, &serverAddress, relay_stdout, "forward to next hop")
 
 	// now send a bunch of session ping packets with sequence number 0, they will trigger already received
 	// (sequence number starts at zero...)
@@ -4748,6 +4860,8 @@ func test_session_pong_packet_already_received() {
 		}
 		time.Sleep(time.Second)
 	}
+
+	waitForOutput(relay_stdout, "already received", 10*time.Second)
 
 	conn.Close()
 
@@ -4781,7 +4895,7 @@ func test_session_pong_packet_header_did_not_verify() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -4819,11 +4933,9 @@ func test_session_pong_packet_header_did_not_verify() {
 	packetLength := len(packet)
 	core.GeneratePittle(packet[1:3], fromAddress[:], toAddress[:], packetLength)
 	core.GenerateChonkle(packet[3:18], magic[:], fromAddress[:], toAddress[:], packetLength)
-	conn.WriteToUDP(packet, &serverAddress)
+	sendPacketUntilOutput(conn, packet, &serverAddress, relay_stdout, "forward to next hop")
 
-	time.Sleep(time.Second)
-
-	// send a session ping packet with sequence number > 0, so it passes already received test, but does not verify
+	// send a session pong packet with sequence number > 0, so it passes already received test, but does not verify
 
 	{
 		packet := make([]byte, 18+25+8)
@@ -4835,10 +4947,8 @@ func test_session_pong_packet_header_did_not_verify() {
 		packetLength := len(packet)
 		core.GeneratePittle(packet[1:3], fromAddress[:], toAddress[:], packetLength)
 		core.GenerateChonkle(packet[3:18], magic[:], fromAddress[:], toAddress[:], packetLength)
-		conn.WriteToUDP(packet, &serverAddress)
+		sendPacketUntilOutput(conn, packet, &serverAddress, relay_stdout, "could not verify header")
 	}
-
-	time.Sleep(time.Second)
 
 	conn.Close()
 
@@ -4872,7 +4982,7 @@ func test_session_pong_packet_forward_to_previous_hop() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -4920,7 +5030,7 @@ func test_session_pong_packet_forward_to_previous_hop() {
 		packetLength := len(packet)
 		core.GeneratePittle(packet[1:3], fromAddress[:], toAddress[:], packetLength)
 		core.GenerateChonkle(packet[3:18], magic[:], fromAddress[:], toAddress[:], packetLength)
-		conn.WriteToUDP(packet, &serverAddress)
+		sendPacketUntilOutput(conn, packet, &serverAddress, relay_stdout, "forward to next hop")
 	}
 
 	// now send session pong packets and listen to see that they get forwarded
@@ -4975,6 +5085,8 @@ func test_session_pong_packet_forward_to_previous_hop() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "forward to previous hop", 10*time.Second)
+
 	conn.Close()
 
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -5012,7 +5124,7 @@ func test_session_expired_route_response_packet() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -5059,7 +5171,7 @@ func test_session_expired_route_response_packet() {
 		packetLength := len(packet)
 		core.GeneratePittle(packet[1:3], fromAddress[:], toAddress[:], packetLength)
 		core.GenerateChonkle(packet[3:18], magic[:], fromAddress[:], toAddress[:], packetLength)
-		conn.WriteToUDP(packet, &serverAddress)
+		sendPacketUntilOutput(conn, packet, &serverAddress, relay_stdout, "forward to next hop")
 	}
 
 	// now wait until the session should expire
@@ -5101,6 +5213,8 @@ func test_session_expired_route_response_packet() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "session expired", 10*time.Second)
+
 	// verify everything is OK
 
 	conn.Close()
@@ -5130,7 +5244,7 @@ func test_session_expired_continue_request_packet() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -5177,7 +5291,7 @@ func test_session_expired_continue_request_packet() {
 		packetLength := len(packet)
 		core.GeneratePittle(packet[1:3], fromAddress[:], toAddress[:], packetLength)
 		core.GenerateChonkle(packet[3:18], magic[:], fromAddress[:], toAddress[:], packetLength)
-		conn.WriteToUDP(packet, &serverAddress)
+		sendPacketUntilOutput(conn, packet, &serverAddress, relay_stdout, "forward to next hop")
 	}
 
 	// now wait until the session should expire
@@ -5206,6 +5320,8 @@ func test_session_expired_continue_request_packet() {
 		}
 		time.Sleep(time.Second)
 	}
+
+	waitForOutput(relay_stdout, "session expired", 10*time.Second)
 
 	// verify everything is OK
 
@@ -5236,7 +5352,7 @@ func test_session_expired_continue_response_packet() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -5283,7 +5399,7 @@ func test_session_expired_continue_response_packet() {
 		packetLength := len(packet)
 		core.GeneratePittle(packet[1:3], fromAddress[:], toAddress[:], packetLength)
 		core.GenerateChonkle(packet[3:18], magic[:], fromAddress[:], toAddress[:], packetLength)
-		conn.WriteToUDP(packet, &serverAddress)
+		sendPacketUntilOutput(conn, packet, &serverAddress, relay_stdout, "forward to next hop")
 	}
 
 	// now wait until the session should expire
@@ -5325,6 +5441,8 @@ func test_session_expired_continue_response_packet() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "session expired", 10*time.Second)
+
 	// verify everything is OK
 
 	conn.Close()
@@ -5354,7 +5472,7 @@ func test_session_expired_client_to_server_packet() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -5401,7 +5519,7 @@ func test_session_expired_client_to_server_packet() {
 		packetLength := len(packet)
 		core.GeneratePittle(packet[1:3], fromAddress[:], toAddress[:], packetLength)
 		core.GenerateChonkle(packet[3:18], magic[:], fromAddress[:], toAddress[:], packetLength)
-		conn.WriteToUDP(packet, &serverAddress)
+		sendPacketUntilOutput(conn, packet, &serverAddress, relay_stdout, "forward to next hop")
 	}
 
 	// now wait until the session should expire
@@ -5443,6 +5561,8 @@ func test_session_expired_client_to_server_packet() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "session expired", 10*time.Second)
+
 	// verify everything is OK
 
 	conn.Close()
@@ -5472,7 +5592,7 @@ func test_session_expired_server_to_client_packet() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -5519,7 +5639,7 @@ func test_session_expired_server_to_client_packet() {
 		packetLength := len(packet)
 		core.GeneratePittle(packet[1:3], fromAddress[:], toAddress[:], packetLength)
 		core.GenerateChonkle(packet[3:18], magic[:], fromAddress[:], toAddress[:], packetLength)
-		conn.WriteToUDP(packet, &serverAddress)
+		sendPacketUntilOutput(conn, packet, &serverAddress, relay_stdout, "forward to next hop")
 	}
 
 	// now wait until the session should expire
@@ -5561,6 +5681,8 @@ func test_session_expired_server_to_client_packet() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "session expired", 10*time.Second)
+
 	// verify everything is OK
 
 	conn.Close()
@@ -5590,7 +5712,7 @@ func test_session_expired_session_ping_packet() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -5637,7 +5759,7 @@ func test_session_expired_session_ping_packet() {
 		packetLength := len(packet)
 		core.GeneratePittle(packet[1:3], fromAddress[:], toAddress[:], packetLength)
 		core.GenerateChonkle(packet[3:18], magic[:], fromAddress[:], toAddress[:], packetLength)
-		conn.WriteToUDP(packet, &serverAddress)
+		sendPacketUntilOutput(conn, packet, &serverAddress, relay_stdout, "forward to next hop")
 	}
 
 	// now wait until the session should expire
@@ -5681,6 +5803,8 @@ func test_session_expired_session_ping_packet() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "session expired", 10*time.Second)
+
 	// verify everything is OK
 
 	conn.Close()
@@ -5710,7 +5834,7 @@ func test_session_expired_session_pong_packet() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	lc := net.ListenConfig{}
 
@@ -5757,7 +5881,7 @@ func test_session_expired_session_pong_packet() {
 		packetLength := len(packet)
 		core.GeneratePittle(packet[1:3], fromAddress[:], toAddress[:], packetLength)
 		core.GenerateChonkle(packet[3:18], magic[:], fromAddress[:], toAddress[:], packetLength)
-		conn.WriteToUDP(packet, &serverAddress)
+		sendPacketUntilOutput(conn, packet, &serverAddress, relay_stdout, "forward to next hop")
 	}
 
 	// now wait until the session should expire
@@ -5799,6 +5923,8 @@ func test_session_expired_session_pong_packet() {
 		time.Sleep(time.Second)
 	}
 
+	waitForOutput(relay_stdout, "session expired", 10*time.Second)
+
 	// verify everything is OK
 
 	conn.Close()
@@ -5828,9 +5954,7 @@ func test_relay_backend_stats() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
-
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	// send a route request packet to create a session on the relay
 
@@ -5870,11 +5994,13 @@ func test_relay_backend_stats() {
 	packetLength := len(packet)
 	core.GeneratePittle(packet[1:3], fromAddress[:], toAddress[:], packetLength)
 	core.GenerateChonkle(packet[3:18], magic[:], fromAddress[:], toAddress[:], packetLength)
-	conn.WriteToUDP(packet, &serverAddress)
+	sendPacketUntilOutput(conn, packet, &serverAddress, relay_stdout, "forward to next hop")
 
 	// wait and make sure we see stats in the backend
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(backend_stdout, "session count = 1", 15*time.Second)
+	waitForOutput(backend_stdout, "envelope bandwidth up kbps = 512", 15*time.Second)
+	waitForOutput(backend_stdout, "envelope bandwidth down kbps = 1024", 15*time.Second)
 
 	backend_cmd.Process.Signal(os.Interrupt)
 	relay_cmd.Process.Signal(os.Interrupt)
@@ -5915,7 +6041,7 @@ func test_relay_backend_counters() {
 
 	relay_cmd, relay_stdout := relay("relay", 2000, config)
 
-	time.Sleep(5 * time.Second)
+	waitForOutput(relay_stdout, "Relay initialized", 30*time.Second)
 
 	// send a route request packet to create a session on the relay
 
@@ -5953,13 +6079,11 @@ func test_relay_backend_counters() {
 	packetLength := len(packet)
 	core.GeneratePittle(packet[1:3], fromAddress[:], toAddress[:], packetLength)
 	core.GenerateChonkle(packet[3:18], magic[:], fromAddress[:], toAddress[:], packetLength)
-	conn.WriteToUDP(packet, &serverAddress)
+	sendPacketUntilOutput(conn, packet, &serverAddress, relay_stdout, "forward to next hop")
 
-	// verify that we see the session created counter on the relay backned
+	// verify that we see the session created counter on the relay backend
 
-	for range 10 {
-		time.Sleep(time.Second)
-	}
+	waitForOutput(backend_stdout, "counter 6: 1", 15*time.Second)
 
 	backend_cmd.Process.Signal(os.Interrupt)
 	relay_cmd.Process.Signal(os.Interrupt)
@@ -6117,6 +6241,16 @@ func main() {
 	}()
 
 	for i := range tests {
+		seed := time.Now().UnixNano()
+		if value := os.Getenv("TEST_SEED"); value != "" {
+			var err error
+			seed, err = strconv.ParseInt(value, 10, 64)
+			if err != nil {
+				panic(fmt.Sprintf("invalid TEST_SEED '%s'", value))
+			}
+		}
+		fmt.Printf("random seed = %d\n", seed)
+		common.SeedRandom(seed)
 		tests[i]()
 	}
 }

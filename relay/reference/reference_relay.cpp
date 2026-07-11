@@ -5820,6 +5820,11 @@ static relay_platform_thread_return_t RELAY_PLATFORM_THREAD_FUNC ping_thread_fun
 
 int main()
 {
+#if RELAY_LOGS
+    // IMPORTANT: stdout must be line buffered so the functional tests can poll relay debug output through a pipe while the relay is running
+    setvbuf( stdout, NULL, _IOLBF, 0 );
+#endif // #if RELAY_LOGS
+
     uint64_t start_time = time( NULL );
 
     printf( "Network Next Relay (%s)\n", RELAY_VERSION );
@@ -6443,29 +6448,6 @@ int main()
 
     // =============================================================
 
-#if RELAY_TEST
-
-    // print counters for functional tests
-
-    if ( relay_print_counters )
-    {
-        printf( "\n===========================================================================\n" );
-
-        for ( int i = 0; i < RELAY_NUM_COUNTERS; i++ )
-        {
-            if ( main.relay_stats.counters[i] != 0 )
-            {
-                printf( "counter %d: %" PRId64 "\n", i, main.relay_stats.counters[i] );
-            }
-        }
-
-        printf( "===========================================================================\n\n" );
-    }
-
-#endif // #if RELAY_TEST
-
-    // =============================================================
-
     printf( "Cleaning up\n" );
 
     printf( "Waiting for ping thread\n" );
@@ -6491,6 +6473,37 @@ int main()
         relay_platform_thread_join( relay_thread[i] );
         relay_platform_thread_destroy( relay_thread[i] );
     }
+
+#if RELAY_TEST
+
+    // print counters for functional tests
+    // IMPORTANT: sum counters directly from the relay threads after they have joined. the stats
+    // messages pumped through main_update are periodic snapshots taken once per-second, per-thread,
+    // so they can miss counter increments that happen in the final second before shutdown.
+
+    if ( relay_print_counters )
+    {
+        printf( "\n===========================================================================\n" );
+
+        for ( int i = 0; i < RELAY_NUM_COUNTERS; i++ )
+        {
+            uint64_t total = 0;
+
+            for ( int j = 0; j < num_threads; j++ )
+            {
+                total += relay[j].counters[i];
+            }
+
+            if ( total != 0 )
+            {
+                printf( "counter %d: %" PRId64 "\n", i, total );
+            }
+        }
+
+        printf( "===========================================================================\n\n" );
+    }
+
+#endif // #if RELAY_TEST
 
     for ( int i = 0; i < num_threads; i++ )
     {
