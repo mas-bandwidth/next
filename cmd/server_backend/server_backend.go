@@ -126,7 +126,7 @@ func main() {
 	sessionInsertBatchSize = envvar.GetInt("SESSION_INSERT_BATCH_SIZE", 10000)
 	serverInsertBatchSize = envvar.GetInt("SERVER_INSERT_BATCH_SIZE", 10000)
 	clientRelayInsertBatchSize = envvar.GetInt("CLIENT_RELAY_INSERT_BATCH_SIZE", 10000)
-	clientRelayInsertBatchSize = envvar.GetInt("SERVER_RELAY_INSERT_BATCH_SIZE", 10000)
+	serverRelayInsertBatchSize = envvar.GetInt("SERVER_RELAY_INSERT_BATCH_SIZE", 10000)
 	enableRedisTimeSeries = envvar.GetBool("ENABLE_REDIS_TIME_SERIES", false)
 	redisTimeSeriesCluster = envvar.GetStringArray("REDIS_TIME_SERIES_CLUSTER", []string{})
 	redisTimeSeriesHostname = envvar.GetString("REDIS_TIME_SERIES_HOSTNAME", "127.0.0.1:6379")
@@ -449,7 +449,8 @@ func packetHandler(conn *net.UDPConn, from *net.UDPAddr, packetData []byte) {
 	if service.Env == "dev" {
 		handler.LocateIP = locateIP_Dev
 		handler.GetISPAndCountry = getISPAndCountry_Dev
-	} else if service.Env == "local" && service.Env == "docker" {
+	} else if service.Env == "local" || service.Env == "docker" {
+		handler.LocateIP = locateIP_Local
 		handler.GetISPAndCountry = getISPAndCountry_Local
 	}
 

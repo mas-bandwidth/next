@@ -84,7 +84,15 @@ func CreateUDPServer(ctx context.Context, config UDPServerConfig, packetHandler 
 					break
 				}
 
-				go packetHandler(udpServer.conn[thread], from, receiveBuffer[:receivePacketBytes])
+				go func(conn *net.UDPConn, from *net.UDPAddr, packet []byte) {
+					// a panic while processing one packet must not take down the whole process
+					defer func() {
+						if r := recover(); r != nil {
+							core.Error("recovered from panic in packet handler: %v", r)
+						}
+					}()
+					packetHandler(conn, from, packet)
+				}(udpServer.conn[thread], from, receiveBuffer[:receivePacketBytes])
 			}
 
 			udpServer.conn[thread].Close()

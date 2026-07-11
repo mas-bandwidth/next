@@ -214,7 +214,7 @@ func SDK_PacketHandler(handler *SDK_Handler, conn *net.UDPConn, from *net.UDPAdd
 		break
 
 	default:
-		panic("unknown packet type")
+		core.Debug("ignoring packet with unknown type %d from %s", packetType, from.String())
 	}
 }
 
@@ -256,7 +256,7 @@ func SDK_SendResponsePacket[P packets.Packet](handler *SDK_Handler, conn *net.UD
 		break
 
 	default:
-		panic("unknown response packet type")
+		core.Error("tried to send response packet with unknown type %d", packetType)
 	}
 }
 
@@ -291,6 +291,8 @@ func SDK_ProcessServerInitRequestPacket(handler *SDK_Handler, conn *net.UDPConn,
 		core.Warn("unknown buyer: %016x", requestPacket.BuyerId)
 		responsePacket.Response = packets.SDK_ServerInitResponseUnknownBuyer
 		handler.Events[SDK_HandlerEvent_UnknownBuyer] = true
+		SDK_SendResponsePacket(handler, conn, from, packets.SDK_SERVER_INIT_RESPONSE_PACKET, responsePacket)
+		return
 	}
 
 	if !buyer.Live {
