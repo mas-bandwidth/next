@@ -424,7 +424,7 @@ func Optimize(numRelays int, numSegments int, cost []uint8, relayPrice []uint8, 
 					}
 
 					if numRoutes > constants.MaxIndirects {
-						sort.SliceStable(working, func(i, j int) bool { return working[i].cost < working[j].cost })
+						sort.SliceStable(working[:numRoutes], func(i, j int) bool { return working[i].cost < working[j].cost })
 						indirect[i][j] = make([]Indirect, constants.MaxIndirects)
 						copy(indirect[i][j], working[:constants.MaxIndirects])
 					} else if numRoutes > 0 {
@@ -631,7 +631,7 @@ func Optimize2(numRelays int, numSegments int, cost []uint8, relayPrice []uint8,
 					}
 
 					if numRoutes > constants.MaxIndirects {
-						sort.SliceStable(working, func(i, j int) bool { return working[i].cost < working[j].cost })
+						sort.SliceStable(working[:numRoutes], func(i, j int) bool { return working[i].cost < working[j].cost })
 						indirect[i][j] = make([]Indirect, constants.MaxIndirects)
 						copy(indirect[i][j], working[:constants.MaxIndirects])
 					} else if numRoutes > 0 {

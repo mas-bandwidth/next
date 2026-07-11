@@ -1249,6 +1249,87 @@ func TestSlowerRoute(t *testing.T) {
 	}
 }
 
+// verify that every route in the route matrix has a claimed cost equal to the actual
+// sum of link costs along its relay path. a mismatch means a stale scratch-buffer entry
+// leaked into the indirect matrix (regression test for sorting the whole working slice
+// instead of working[:numRoutes] when a relay pair has more than MaxIndirects routes).
+
+func checkRouteCosts(t *testing.T, routeMatrix []core.RouteEntry, numRelays int, costMatrix []uint8) {
+	numRoutes := 0
+	for i := 0; i < numRelays; i++ {
+		for j := 0; j < i; j++ {
+			entry := &routeMatrix[core.TriMatrixIndex(i, j)]
+			for r := 0; r < int(entry.NumRoutes); r++ {
+				numRoutes++
+				actualCost := int32(0)
+				numRouteRelays := int(entry.RouteNumRelays[r])
+				for v := 0; v < numRouteRelays-1; v++ {
+					a := int(entry.RouteRelays[r][v])
+					b := int(entry.RouteRelays[r][v+1])
+					actualCost += int32(costMatrix[core.TriMatrixIndex(a, b)])
+				}
+				assert.Equal(t, actualCost, entry.RouteCost[r], "pair (%d,%d) route %d: relays %v", i, j, r, entry.RouteRelays[r][:numRouteRelays])
+			}
+		}
+	}
+	assert.True(t, numRoutes > 0)
+}
+
+func TestOptimizeRouteCosts(t *testing.T) {
+
+	t.Parallel()
+
+	rng := rand.New(rand.NewSource(42))
+
+	numRelays := 100
+	numSegments := 8
+
+	costMatrix := make([]uint8, core.TriMatrixLength(numRelays))
+	for i := range costMatrix {
+		costMatrix[i] = uint8(1 + rng.Intn(254))
+	}
+
+	relayPrice := make([]uint8, numRelays)
+	relayDatacenters := make([]uint64, numRelays)
+	for i := range relayDatacenters {
+		relayDatacenters[i] = uint64(i + 1)
+	}
+
+	routeMatrix := core.Optimize(numRelays, numSegments, costMatrix, relayPrice, relayDatacenters)
+
+	checkRouteCosts(t, routeMatrix, numRelays, costMatrix)
+}
+
+func TestOptimize2RouteCosts(t *testing.T) {
+
+	t.Parallel()
+
+	rng := rand.New(rand.NewSource(42))
+
+	numRelays := 100
+	numSegments := 8
+
+	costMatrix := make([]uint8, core.TriMatrixLength(numRelays))
+	for i := range costMatrix {
+		costMatrix[i] = uint8(1 + rng.Intn(254))
+	}
+
+	relayPrice := make([]uint8, numRelays)
+	relayDatacenters := make([]uint64, numRelays)
+	for i := range relayDatacenters {
+		relayDatacenters[i] = uint64(i + 1)
+	}
+
+	destinationRelay := make([]bool, numRelays)
+	for i := range destinationRelay {
+		destinationRelay[i] = true
+	}
+
+	routeMatrix := core.Optimize2(numRelays, numSegments, costMatrix, relayPrice, relayDatacenters, destinationRelay)
+
+	checkRouteCosts(t, routeMatrix, numRelays, costMatrix)
+}
+
 func TestRouteToken(t *testing.T) {
 
 	t.Parallel()
