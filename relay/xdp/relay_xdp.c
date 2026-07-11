@@ -20,7 +20,7 @@
 #include <linux/string.h>
 #include <bpf/bpf_helpers.h>
 
-#define RELAY_ADVANCED_PACKET_FILTER 0
+#define RELAY_ADVANCED_PACKET_FILTER 1
 
 #include "relay_shared.h"
 
@@ -713,8 +713,6 @@ SEC("relay_xdp") int relay_xdp_filter( struct xdp_md *ctx )
                         sum += ( packet_bytes >> 8 );
                         sum += ( packet_bytes      ) & 0xFF;
 
-                        char * sum_data = (char*) &sum;
-
                         __u8 sum_0 = ( sum      ) & 0xFF;
                         __u8 sum_1 = ( sum >> 8 );
 
@@ -740,8 +738,6 @@ SEC("relay_xdp") int relay_xdp_filter( struct xdp_md *ctx )
 
                             sum += ( packet_bytes >> 8 );
                             sum += ( packet_bytes      ) & 0xFF;
-
-                            char * sum_data = (char*) &sum;
 
                             __u8 sum_0 = ( sum      ) & 0xFF;
                             __u8 sum_1 = ( sum >> 8 );
