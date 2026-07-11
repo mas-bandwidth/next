@@ -6412,20 +6412,41 @@ int main()
 
         main.shutting_down = true;
 
-        uint seconds = 0;
-        while ( seconds <= 60 && main_update( &main ) == RELAY_OK )
+        int shutdown_time = 60;
+        int shutdown_extra_time = 30;
+
+#if RELAY_TEST
+
+        // IMPORTANT: let the functional tests shrink the shutdown times so test_clean_shutdown runs quickly
+
+        const char * shutdown_time_env = relay_platform_getenv( "RELAY_SHUTDOWN_TIME" );
+        if ( shutdown_time_env )
         {
-            printf( "Shutting down in %d seconds\n", 60 - seconds );
+            shutdown_time = atoi( shutdown_time_env );
+        }
+
+        const char * shutdown_extra_time_env = relay_platform_getenv( "RELAY_SHUTDOWN_EXTRA_TIME" );
+        if ( shutdown_extra_time_env )
+        {
+            shutdown_extra_time = atoi( shutdown_extra_time_env );
+        }
+
+#endif // #if RELAY_TEST
+
+        int seconds = 0;
+        while ( seconds <= shutdown_time && main_update( &main ) == RELAY_OK )
+        {
+            printf( "Shutting down in %d seconds\n", shutdown_time - seconds );
             fflush( stdout );
             relay_platform_sleep( 1.0 );
             seconds++;
         }
 
-        if ( seconds < 60 )
+        if ( seconds < shutdown_time )
         {
-            printf( "Sleeping for extra 30 seconds for safety...\n" );
+            printf( "Sleeping for extra %d seconds for safety...\n", shutdown_extra_time );
             fflush( stdout );
-            relay_platform_sleep( 30.0 );
+            relay_platform_sleep( shutdown_extra_time );
         }
 
         printf( "Clean shutdown completed\n" );

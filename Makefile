@@ -106,6 +106,12 @@ dist/relay-debug: relay/reference/*
 	@$(CXX) $(CXX_FLAGS) -DRELAY_TEST=1 -DRELAY_LOGS=1 -o dist/relay-debug relay/reference/*.cpp $(SDK_LDFLAGS) $(APP_LDFLAGS)
 	@echo $@
 
+# Build relay with address sanitizer, for running the relay functional tests against it
+
+dist/relay-debug-asan: relay/reference/*
+	@$(CXX) $(CXX_FLAGS) -fsanitize=address -fno-omit-frame-pointer -DRELAY_TEST=1 -DRELAY_LOGS=1 -o dist/relay-debug-asan relay/reference/*.cpp $(SDK_LDFLAGS) $(APP_LDFLAGS)
+	@echo $@
+
 # Functional tests (sdk)
 
 dist/func_server: dist/$(SDKNAME5).so cmd/func_server/*

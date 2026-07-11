@@ -18,7 +18,6 @@ import (
 	"os/exec"
 	"reflect"
 	"runtime"
-	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -1079,15 +1078,13 @@ func test_relay_backend() {
 	}
 }
 
-type test_function func()
-
 var googleProjectID string
 
 func main() {
 
 	googleProjectID = "local"
 
-	allTests := []test_function{
+	allTests := []func(){
 		test_magic_backend,
 		test_cost_matrix_read_write,
 		test_route_matrix_read_write,
@@ -1097,43 +1094,7 @@ func main() {
 		test_relay_backend,
 	}
 
-	var tests []test_function
-
-	if len(os.Args) > 1 {
-		funcName := os.Args[1]
-		for _, test := range allTests {
-			name := runtime.FuncForPC(reflect.ValueOf(test).Pointer()).Name()
-			name = name[len("main."):]
-			if funcName == name {
-				tests = append(tests, test)
-				break
-			}
-		}
-		if len(tests) == 0 {
-			panic(fmt.Sprintf("could not find any test: '%s'", funcName))
-		}
-	} else {
-		tests = allTests // No command line args, run all tests
-	}
-
-	go func() {
-		time.Sleep(time.Duration(len(tests)*120) * time.Second)
-		panic("tests took too long!")
-	}()
-
 	fmt.Printf("\n")
 
-	for i := range tests {
-		seed := time.Now().UnixNano()
-		if value := os.Getenv("TEST_SEED"); value != "" {
-			var err error
-			seed, err = strconv.ParseInt(value, 10, 64)
-			if err != nil {
-				panic(fmt.Sprintf("invalid TEST_SEED '%s'", value))
-			}
-		}
-		fmt.Printf("random seed = %d\n", seed)
-		common.SeedRandom(seed)
-		tests[i]()
-	}
+	common.RunTests(allTests)
 }

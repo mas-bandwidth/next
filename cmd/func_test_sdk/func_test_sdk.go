@@ -6,16 +6,15 @@
 package main
 
 import (
-	"bytes"
 	"encoding/base64"
 	"fmt"
 	"os"
 	"os/exec"
-	"reflect"
-	"runtime"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/networknext/next/modules/common"
 )
 
 func Base64String(value string) []byte {
@@ -42,7 +41,7 @@ const (
 	serverBin  = "./func_server"
 )
 
-func backend(mode string) (*exec.Cmd, *bytes.Buffer) {
+func backend(mode string) (*exec.Cmd, *common.Buffer) {
 
 	cmd := exec.Command(backendBin)
 	if cmd == nil {
@@ -55,7 +54,7 @@ func backend(mode string) (*exec.Cmd, *bytes.Buffer) {
 		cmd.Env = append(cmd.Env, fmt.Sprintf("BACKEND_MODE=%s", mode))
 	}
 
-	var output bytes.Buffer
+	var output common.Buffer
 	cmd.Stdout = &output
 	cmd.Stderr = &output
 	cmd.Start()
@@ -68,7 +67,7 @@ type RelayConfig struct {
 	fake_packet_loss_start_time float32
 }
 
-func relay(name string, port int, configArray ...RelayConfig) (*exec.Cmd, *bytes.Buffer) {
+func relay(name string, port int, configArray ...RelayConfig) (*exec.Cmd, *common.Buffer) {
 
 	var config RelayConfig
 	if len(configArray) == 1 {
@@ -91,7 +90,7 @@ func relay(name string, port int, configArray ...RelayConfig) (*exec.Cmd, *bytes
 	cmd.Env = append(cmd.Env, fmt.Sprintf("RELAY_FAKE_PACKET_LOSS_PERCENT=%f", config.fake_packet_loss_percent))
 	cmd.Env = append(cmd.Env, fmt.Sprintf("RELAY_FAKE_PACKET_LOSS_START_TIME=%f", config.fake_packet_loss_start_time))
 
-	var output bytes.Buffer
+	var output common.Buffer
 	cmd.Stdout = &output
 	cmd.Stderr = &output
 	cmd.Start()
@@ -117,7 +116,7 @@ type ClientConfig struct {
 	big_packets               bool
 }
 
-func client(config *ClientConfig) (*exec.Cmd, *bytes.Buffer, *bytes.Buffer) {
+func client(config *ClientConfig) (*exec.Cmd, *common.Buffer, *common.Buffer) {
 
 	cmd := exec.Command(clientBin)
 	if cmd == nil {
@@ -189,8 +188,8 @@ func client(config *ClientConfig) (*exec.Cmd, *bytes.Buffer, *bytes.Buffer) {
 		cmd.Env = append(cmd.Env, "CLIENT_BIG_PACKETS=1")
 	}
 
-	var stdout bytes.Buffer
-	var stderr bytes.Buffer
+	var stdout common.Buffer
+	var stderr common.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 	cmd.Start()
@@ -217,7 +216,7 @@ type ServerConfig struct {
 	flush                          bool
 }
 
-func server(config *ServerConfig) (*exec.Cmd, *bytes.Buffer) {
+func server(config *ServerConfig) (*exec.Cmd, *common.Buffer) {
 
 	cmd := exec.Command(serverBin)
 	if cmd == nil {
@@ -293,7 +292,7 @@ func server(config *ServerConfig) (*exec.Cmd, *bytes.Buffer) {
 		cmd.Env = append(cmd.Env, "SERVER_FLUSH=1")
 	}
 
-	var output bytes.Buffer
+	var output common.Buffer
 	cmd.Stdout = &output
 	cmd.Stderr = &output
 	cmd.Start()
@@ -358,7 +357,7 @@ func print_client_counters(client_counters []uint64) {
 	}
 }
 
-func client_check(client_counters []uint64, client_stdout *bytes.Buffer, server_stdout *bytes.Buffer, backend_stdout *bytes.Buffer, condition bool, relay_stdouts ...*bytes.Buffer) {
+func client_check(client_counters []uint64, client_stdout *common.Buffer, server_stdout *common.Buffer, backend_stdout *common.Buffer, condition bool, relay_stdouts ...*common.Buffer) {
 	if !condition {
 		if backend_stdout != nil {
 			fmt.Printf("\n--------------------------------------------------------------------------\n")
@@ -380,7 +379,7 @@ func client_check(client_counters []uint64, client_stdout *bytes.Buffer, server_
 	}
 }
 
-func server_check(server_stdout *bytes.Buffer, backend_stdout *bytes.Buffer, condition bool) {
+func server_check(server_stdout *common.Buffer, backend_stdout *common.Buffer, condition bool) {
 	if !condition {
 		if backend_stdout != nil {
 			fmt.Printf("\n--------------------------------------------------------------------------\n")
@@ -1273,14 +1272,16 @@ func test_connect_to_another_server_next() {
 
 	fmt.Printf("test_connect_to_another_server_next\n")
 
-	relay_1_cmd, _ := relay("relay.1", 2000)
-	relay_2_cmd, _ := relay("relay.2", 2001)
-	relay_3_cmd, _ := relay("relay.3", 2002)
+	relay_1_cmd, relay_1_stdout := relay("relay.1", 2000)
+	relay_2_cmd, relay_2_stdout := relay("relay.2", 2001)
+	relay_3_cmd, relay_3_stdout := relay("relay.3", 2002)
 
 	backend_cmd, backend_stdout := backend("DEFAULT")
 
-	// IMPORTANT: give the relays time initialize with the backend
-	time.Sleep(time.Second * 10)
+	// IMPORTANT: wait for the relays to initialize with the backend
+	common.WaitForOutput(relay_1_stdout, "Relay initialized", 30*time.Second)
+	common.WaitForOutput(relay_2_stdout, "Relay initialized", 30*time.Second)
+	common.WaitForOutput(relay_3_stdout, "Relay initialized", 30*time.Second)
 
 	serverConfig1 := &ServerConfig{}
 	serverConfig1.buyer_private_key = TestBuyerPrivateKey
@@ -1386,14 +1387,16 @@ func test_packet_loss_next() {
 
 	fmt.Printf("test_packet_loss_next\n")
 
-	relay_1_cmd, _ := relay("relay.1", 2000)
-	relay_2_cmd, _ := relay("relay.2", 2001)
-	relay_3_cmd, _ := relay("relay.3", 2002)
+	relay_1_cmd, relay_1_stdout := relay("relay.1", 2000)
+	relay_2_cmd, relay_2_stdout := relay("relay.2", 2001)
+	relay_3_cmd, relay_3_stdout := relay("relay.3", 2002)
 
 	backend_cmd, backend_stdout := backend("DEFAULT")
 
-	// IMPORTANT: give the relays time to initialize with the backend
-	time.Sleep(time.Second * 10)
+	// IMPORTANT: wait for the relays to initialize with the backend
+	common.WaitForOutput(relay_1_stdout, "Relay initialized", 30*time.Second)
+	common.WaitForOutput(relay_2_stdout, "Relay initialized", 30*time.Second)
+	common.WaitForOutput(relay_3_stdout, "Relay initialized", 30*time.Second)
 
 	serverConfig := &ServerConfig{}
 	serverConfig.buyer_private_key = TestBuyerPrivateKey
@@ -1455,14 +1458,9 @@ func test_server_under_load() {
 	relay_2_cmd, relay_2_stdout := relay("relay.2", 2001)
 	relay_3_cmd, relay_3_stdout := relay("relay.3", 2002)
 
-	relaysInited := false
-	for range 60 {
-		if strings.Contains(relay_1_stdout.String(), "Relay initialized") && strings.Contains(relay_2_stdout.String(), "Relay initialized") && strings.Contains(relay_3_stdout.String(), "Relay initialized") {
-			relaysInited = true
-			break
-		}
-		time.Sleep(time.Second)
-	}
+	relaysInited := common.WaitForOutput(relay_1_stdout, "Relay initialized", 60*time.Second) &&
+		common.WaitForOutput(relay_2_stdout, "Relay initialized", 60*time.Second) &&
+		common.WaitForOutput(relay_3_stdout, "Relay initialized", 60*time.Second)
 
 	if !relaysInited {
 		panic("relays did not init")
@@ -1480,8 +1478,8 @@ func test_server_under_load() {
 	clientConfig.buyer_public_key = TestBuyerPublicKey
 
 	client_cmd := make([]*exec.Cmd, MaxClients)
-	client_stdout := make([]*bytes.Buffer, MaxClients)
-	client_stderr := make([]*bytes.Buffer, MaxClients)
+	client_stdout := make([]*common.Buffer, MaxClients)
+	client_stderr := make([]*common.Buffer, MaxClients)
 	for i := range MaxClients {
 		client_cmd[i], client_stdout[i], client_stderr[i] = client(clientConfig)
 	}
@@ -1900,7 +1898,9 @@ func test_server_ready_success() {
 
 	backend_cmd, backend_stdout := backend("DEFAULT")
 
-	time.Sleep(time.Second * 25)
+	common.WaitForOutput(server_stdout, "info: welcome to network next :)", 60*time.Second)
+	common.WaitForOutput(server_stdout, "info: server is ready to receive client connections", 60*time.Second)
+	common.WaitForOutput(server_stdout, "info: server datacenter is 'local'", 60*time.Second)
 
 	server_cmd.Process.Signal(os.Interrupt)
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -1927,7 +1927,9 @@ func test_server_ready_fallback_to_direct() {
 
 	server_cmd, server_stdout := server(serverConfig)
 
-	time.Sleep(time.Second * 25)
+	common.WaitForOutput(server_stdout, "info: server init timed out. falling back to direct mode only :(", 60*time.Second)
+	common.WaitForOutput(server_stdout, "info: server is ready to receive client connections", 60*time.Second)
+	common.WaitForOutput(server_stdout, "info: server datacenter is 'local'", 60*time.Second)
 
 	server_cmd.Process.Signal(os.Interrupt)
 
@@ -1955,7 +1957,10 @@ func test_server_ready_autodetect_cloud() {
 
 	backend_cmd, backend_stdout := backend("DEFAULT")
 
-	time.Sleep(time.Second * 25)
+	common.WaitForOutput(server_stdout, "info: server attempting to autodetect datacenter", 60*time.Second)
+	common.WaitForOutput(server_stdout, "info: server autodetect datacenter: not in google cloud", 60*time.Second)
+	common.WaitForOutput(server_stdout, "info: server autodetect datacenter: not in amazon cloud", 60*time.Second)
+	common.WaitForOutput(server_stdout, "sticking with 'cloud'", 60*time.Second)
 
 	server_cmd.Process.Signal(os.Interrupt)
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -1989,7 +1994,9 @@ func test_server_ready_disable_autodetect_cloud() {
 
 	backend_cmd, backend_stdout := backend("DEFAULT")
 
-	time.Sleep(time.Second * 25)
+	common.WaitForOutput(server_stdout, "info: welcome to network next :)", 60*time.Second)
+	common.WaitForOutput(server_stdout, "info: server is ready to receive client connections", 60*time.Second)
+	common.WaitForOutput(server_stdout, "info: server datacenter is 'cloud'", 60*time.Second)
 
 	server_cmd.Process.Signal(os.Interrupt)
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -2028,7 +2035,10 @@ func test_server_ready_resolve_hostname_timeout() {
 
 	backend_cmd, backend_stdout := backend("DEFAULT")
 
-	time.Sleep(time.Second * 25)
+	common.WaitForOutput(server_stdout, "resolve hostname timed out", 60*time.Second)
+	common.WaitForOutput(server_stdout, "info: server init timed out. falling back to direct mode only :(", 60*time.Second)
+	common.WaitForOutput(server_stdout, "info: server is ready to receive client connections", 60*time.Second)
+	common.WaitForOutput(server_stdout, "info: server datacenter is 'local'", 60*time.Second)
 
 	server_cmd.Process.Signal(os.Interrupt)
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -2061,7 +2071,10 @@ func test_server_ready_autodetect_timeout() {
 
 	backend_cmd, backend_stdout := backend("DEFAULT")
 
-	time.Sleep(time.Second * 25)
+	common.WaitForOutput(server_stdout, "server autodetect datacenter timed out. sticking with 'local'", 60*time.Second)
+	common.WaitForOutput(server_stdout, "info: server init timed out. falling back to direct mode only :(", 60*time.Second)
+	common.WaitForOutput(server_stdout, "info: server is ready to receive client connections", 60*time.Second)
+	common.WaitForOutput(server_stdout, "info: server datacenter is 'local'", 60*time.Second)
 
 	server_cmd.Process.Signal(os.Interrupt)
 	backend_cmd.Process.Signal(os.Interrupt)
@@ -2072,7 +2085,7 @@ func test_server_ready_autodetect_timeout() {
 	serverFallbackToDirect := strings.Contains(server_stdout.String(), "info: server init timed out. falling back to direct mode only :(")
 	serverReady := strings.Contains(server_stdout.String(), "info: server is ready to receive client connections")
 	serverDatacenter := strings.Contains(server_stdout.String(), "info: server datacenter is 'local'")
-	serverTimedOutAutodetect := strings.Contains(server_stdout.String(), "autodetect timed out. sticking with 'local' [249f1fb6f3a680e8]")
+	serverTimedOutAutodetect := strings.Contains(server_stdout.String(), "server autodetect datacenter timed out. sticking with 'local' [249f1fb6f3a680e8]")
 
 	server_check(server_stdout, backend_stdout, serverFallbackToDirect)
 	server_check(server_stdout, backend_stdout, serverReady)
@@ -2468,10 +2481,8 @@ func test_big_packets() {
 
 }
 
-type test_function func()
-
 func main() {
-	allTests := []test_function{
+	allTests := []func(){
 		test_passthrough,
 		test_direct_upgraded,
 		test_accelerated,
@@ -2514,31 +2525,5 @@ func main() {
 		test_big_packets,
 	}
 
-	var tests []test_function
-
-	if len(os.Args) > 1 {
-		funcName := os.Args[1]
-		for _, test := range allTests {
-			name := runtime.FuncForPC(reflect.ValueOf(test).Pointer()).Name()
-			name = name[len("main."):]
-			if funcName == name {
-				tests = append(tests, test)
-				break
-			}
-		}
-		if len(tests) == 0 {
-			panic(fmt.Sprintf("could not find any test: '%s'", funcName))
-		}
-	} else {
-		tests = allTests // No command line args, run all tests
-	}
-
-	go func() {
-		time.Sleep(time.Duration(len(tests)*120) * time.Second)
-		panic("tests took too long!")
-	}()
-
-	for i := range tests {
-		tests[i]()
-	}
+	common.RunTests(allTests, 300*time.Second)
 }
