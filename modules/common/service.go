@@ -799,20 +799,20 @@ func (service *Service) watchDatabase(ctx context.Context, databasePath string, 
 						break
 					}
 
-					err = service.database.Validate()
+					err = newDatabase.Validate()
 					if err != nil {
 						core.Warn("new database does not validate: %v", err)
 						break
 					}
 
-					newRelayData := generateRelayData(service.database)
+					if relayBackendPublicKey != nil && relayBackendPrivateKey != nil {
+						newDatabase.GenerateRelaySecretKeys(relayBackendPublicKey, relayBackendPrivateKey)
+					}
+
+					newRelayData := generateRelayData(newDatabase)
 					if newRelayData == nil {
 						core.Warn("new database failed to generate relay data")
 						break
-					}
-
-					if relayBackendPublicKey != nil && relayBackendPrivateKey != nil {
-						newDatabase.GenerateRelaySecretKeys(relayBackendPublicKey, relayBackendPrivateKey)
 					}
 
 					os.Rename(tempFile, databasePath)
@@ -839,13 +839,17 @@ func (service *Service) watchDatabase(ctx context.Context, databasePath string, 
 						break
 					}
 
-					err = service.database.Validate()
+					err = newDatabase.Validate()
 					if err != nil {
 						core.Warn("new database does not validate: %v", err)
 						break
 					}
 
-					newRelayData := generateRelayData(service.database)
+					if relayBackendPublicKey != nil && relayBackendPrivateKey != nil {
+						newDatabase.GenerateRelaySecretKeys(relayBackendPublicKey, relayBackendPrivateKey)
+					}
+
+					newRelayData := generateRelayData(newDatabase)
 					if newRelayData == nil {
 						core.Warn("new database failed to generate relay data")
 						break
