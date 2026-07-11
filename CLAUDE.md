@@ -71,7 +71,15 @@ Rules learned the hard way:
 
 ## State as of 2026-07-11
 
-All merged to main (through `768d3eb06`) and validated green on CI (test-229 through test-237):
+All merged to main (through `a566e3cd9`) and validated green on CI (test-229 through test-238):
+
+- Vendored the canonical serialize library (`a566e3cd9`, test-238): `sdk/serialize/serialize.h`
+  is mas-bandwidth/serialize v1.4.3, verbatim, BSD-licensed, CANONICAL — never edit it; update
+  with `sdk/serialize/update.sh` then validate on CI (see `sdk/serialize/README.md`).
+  `next_bitpacker.h`/`next_stream.h`/`next_serialize.h` are now thin adapters (~1300 lines of
+  forked serializer deleted); the only SDK-specific serialize helper is `serialize_address`.
+  Wire compatibility verified: SDK's old uint64 encoding == canonical serialize_bits(v,64)
+  (lo then hi), all standard macros byte-identical, full functional suite green.
 
 - Routing-critical fixes (`768d3eb06`, test-237): database hot reload (`watchDatabase`) was
   validating and generating relay data from the OLD database instead of the newly loaded one
