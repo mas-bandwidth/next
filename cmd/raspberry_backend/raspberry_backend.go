@@ -20,8 +20,6 @@ import (
 
 var redisHostname string
 
-var magicUpdateSeconds int
-
 type Update struct {
 	address *net.UDPAddr
 }

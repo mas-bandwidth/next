@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"fmt"
 
-
 	_ "github.com/lib/pq"
 	"golang.org/x/crypto/nacl/box"
 )
@@ -31,20 +30,20 @@ func CreateController(config string) *Controller {
 // -----------------------------------------------------------------------
 
 type RouteShaderData struct {
-	RouteShaderId                 uint64  `json:"route_shader_id"`
-	RouteShaderName               string  `json:"route_shader_name"`
-	ABTest                        bool    `json:"ab_test"`
-	AcceptableLatency             int     `json:"acceptable_latency"`
-	AcceptablePacketLoss          float64 `json:"acceptable_packet_loss"`
-	BandwidthEnvelopeUpKbps       int     `json:"bandwidth_envelope_up_kbps"`
-	BandwidthEnvelopeDownKbps     int     `json:"bandwidth_envelope_down_kbps"`
-	DisableNetworkNext            bool    `json:"disable_network_next"`
-	LatencyReductionThreshold     int     `json:"latency_reduction_threshold"`
-	SelectionPercent              float64 `json:"selection_percent"`
-	MaxLatencyTradeOff            int     `json:"max_latency_trade_off"`
-	RouteSwitchThreshold          int     `json:"route_switch_threshold"`
-	RouteSelectThreshold          int     `json:"route_select_threshold"`
-	ForceNext                     bool    `json:"force_next"`
+	RouteShaderId             uint64  `json:"route_shader_id"`
+	RouteShaderName           string  `json:"route_shader_name"`
+	ABTest                    bool    `json:"ab_test"`
+	AcceptableLatency         int     `json:"acceptable_latency"`
+	AcceptablePacketLoss      float64 `json:"acceptable_packet_loss"`
+	BandwidthEnvelopeUpKbps   int     `json:"bandwidth_envelope_up_kbps"`
+	BandwidthEnvelopeDownKbps int     `json:"bandwidth_envelope_down_kbps"`
+	DisableNetworkNext        bool    `json:"disable_network_next"`
+	LatencyReductionThreshold int     `json:"latency_reduction_threshold"`
+	SelectionPercent          float64 `json:"selection_percent"`
+	MaxLatencyTradeOff        int     `json:"max_latency_trade_off"`
+	RouteSwitchThreshold      int     `json:"route_switch_threshold"`
+	RouteSelectThreshold      int     `json:"route_select_threshold"`
+	ForceNext                 bool    `json:"force_next"`
 }
 
 func (controller *Controller) CreateRouteShader(routeShaderData *RouteShaderData) (uint64, error) {

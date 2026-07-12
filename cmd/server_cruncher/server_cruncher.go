@@ -42,7 +42,6 @@ type Bucket struct {
 var buckets []Bucket
 
 var topServersMutex sync.Mutex
-var topServers *TopServers
 var topServersData []byte
 
 var service *common.Service
@@ -119,7 +118,6 @@ func UpdateTopServers(newTopServers *TopServers) {
 	}
 
 	topServersMutex.Lock()
-	topServers = newTopServers
 	topServersData = data[:index]
 	topServersMutex.Unlock()
 }

@@ -106,7 +106,6 @@ func RunRelayManagerThread(ctx context.Context, numRelays int, updateChan chan *
 
 			case update := <-updateChan:
 				relayManager.ProcessRelayUpdate(time.Now().Unix(), update.relayId, update.relayName, update.relayAddress, update.sessions, update.relayVersion, update.relayFlags, update.numSamples, update.sampleRelayId, update.sampleRTT, update.sampleJitter, update.samplePacketLoss, update.counters[:])
-				break
 
 			case <-ticker.C:
 				start := time.Now()

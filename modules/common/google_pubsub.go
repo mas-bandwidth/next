@@ -107,7 +107,6 @@ func (producer *GooglePubsubProducer) updateMessageChannel(ctx context.Context) 
 
 		case message := <-producer.MessageChannel:
 			producer.sendMessage(ctx, message)
-			break
 		}
 	}
 }
@@ -122,4 +121,3 @@ func (producer *GooglePubsubProducer) sendMessage(ctx context.Context, message [
 	producer.numMessagesSent++
 	producer.mutex.Unlock()
 }
-

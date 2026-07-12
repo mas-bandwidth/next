@@ -309,7 +309,7 @@ func Get(url string, object any) {
 	fmt.Printf("status code is %d\n", response.StatusCode)
 
 	if response.StatusCode != 200 {
-		fmt.Sprintf("warning: status code %d for %s", response.StatusCode, url)
+		fmt.Printf("warning: status code %d for %s\n", response.StatusCode, url)
 		return
 	}
 

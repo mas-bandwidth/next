@@ -75,4 +75,3 @@ func TestRelayData(t *testing.T) {
 		assert.Equal(t, *writeData, readData)
 	}
 }
-

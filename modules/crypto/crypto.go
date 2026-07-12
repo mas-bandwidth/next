@@ -132,8 +132,7 @@ func SecretKey_GenerateRemote(remotePublicKey []byte, remotePrivateKey []byte, l
 
 // ----------------------------------------------------
 
-const 
-(
+const (
 	SDK_CRYPTO_SIGN_BYTES             = 64
 	SDK_CRYPTO_SIGN_PUBLIC_KEY_BYTES  = 32
 	SDK_CRYPTO_SIGN_PRIVATE_KEY_BYTES = 64

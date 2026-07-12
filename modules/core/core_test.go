@@ -2981,8 +2981,6 @@ type TestData struct {
 
 	sliceNumber int32
 
-	realPacketLoss float32
-
 	userId uint64
 }
 

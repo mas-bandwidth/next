@@ -28,7 +28,6 @@ type RedisCountersPublisher struct {
 	config             RedisCountersConfig
 	redisClient        *redis.Client
 	redisClusterClient *redis.ClusterClient
-	mutex              sync.Mutex
 	keys               map[string]bool
 	MessageChannel     chan string
 }

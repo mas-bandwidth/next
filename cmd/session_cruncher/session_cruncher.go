@@ -51,7 +51,6 @@ type Bucket struct {
 var buckets []Bucket
 
 var topSessionsMutex sync.Mutex
-var topSessions *TopSessions
 var topSessionsData []byte
 
 type MapEntry struct {
@@ -269,7 +268,6 @@ func UpdateTopSessions(newTopSessions *TopSessions) {
 	}
 
 	topSessionsMutex.Lock()
-	topSessions = newTopSessions
 	topSessionsData = data
 	topSessionsMutex.Unlock()
 }

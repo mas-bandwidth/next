@@ -718,7 +718,6 @@ type SessionCruncherPublisherConfig struct {
 type SessionCruncherPublisher struct {
 	MessageChannel    chan SessionCruncherEntry
 	config            SessionCruncherPublisherConfig
-	batchStartTime    time.Time
 	mutex             sync.RWMutex
 	lastBatchSendTime time.Time
 	batchMessages     []SessionCruncherEntry
@@ -989,6 +988,10 @@ func getBinary(url string) []byte {
 	var err error
 	var response *http.Response
 	req, err := http.NewRequest("GET", url, bytes.NewBuffer(nil))
+	if err != nil {
+		core.Error("failed to create request for %s: %v", url, err)
+		return nil
+	}
 
 	client := &http.Client{}
 
@@ -1011,7 +1014,7 @@ func getBinary(url string) []byte {
 
 	body, error := io.ReadAll(response.Body)
 	if error != nil {
-		core.Error("could not read response body for %s: %v", url, err)
+		core.Error("could not read response body for %s: %v", url, error)
 		return nil
 	}
 
@@ -1280,7 +1283,6 @@ type ServerCruncherPublisherConfig struct {
 type ServerCruncherPublisher struct {
 	MessageChannel    chan ServerCruncherEntry
 	config            ServerCruncherPublisherConfig
-	batchStartTime    time.Time
 	mutex             sync.RWMutex
 	lastBatchSendTime time.Time
 	batchMessages     []ServerCruncherEntry

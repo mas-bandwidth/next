@@ -68,18 +68,11 @@ const BACKEND_MODE_ZERO_MAGIC = 14
 
 type Backend struct {
 	mutex        sync.RWMutex
-	dirty        bool
 	mode         int
 	relayManager *common.RelayManager
 }
 
 var backend Backend
-
-type ServerEntry struct {
-	address    *net.UDPAddr
-	publicKey  []byte
-	lastUpdate int64
-}
 
 type SessionCacheEntry struct {
 	BuyerID                    uint64

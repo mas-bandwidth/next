@@ -320,8 +320,10 @@ func (manager *RouteManager) AddRoute(cost int32, price int32, relays ...int32) 
 }
 
 func RouteHash(relays ...int32) uint32 {
+	// IMPORTANT: this is FNV-style but the hash deliberately starts at zero, not the FNV
+	// offset basis. Do not change it: route hashes are stored in the serialized route matrix
+	// and compared across services, so any change breaks route lookup during a mixed deploy
 	const prime = uint32(16777619)
-	const offset = uint32(2166136261)
 	hash := uint32(0)
 	for i := range relays {
 		hash ^= uint32(relays[i]>>24) & 0xFF
@@ -1140,7 +1142,6 @@ func GetCurrentRouteCost(routeMatrix []RouteEntry, routeNumRelays int32, routeRe
 	// source and dest relays in the route, we need to reverse the route
 	if routeRelays[0] < routeRelays[routeNumRelays-1] {
 		ReverseRoute(routeRelays[:routeNumRelays])
-		destRelays, sourceRelays = sourceRelays, destRelays
 	}
 
 	// IMPORTANT: We have to handle this. If it's passed in we'll crash out otherwise

@@ -1734,7 +1734,11 @@ func GetJSON(apiKey string, url string, object any) {
 	var err error
 	var response *http.Response
 	for range 30 {
-		req, err := http.NewRequest("GET", url, bytes.NewBuffer(nil))
+		var req *http.Request
+		req, err = http.NewRequest("GET", url, bytes.NewBuffer(nil))
+		if err != nil {
+			break
+		}
 		req.Header.Set("Authorization", "Bearer "+apiKey)
 		client := &http.Client{}
 		response, err = client.Do(req)
@@ -1783,7 +1787,11 @@ func GetText(apiKey string, url string) string {
 	var err error
 	var response *http.Response
 	for range 30 {
-		req, err := http.NewRequest("GET", url, bytes.NewBuffer(nil))
+		var req *http.Request
+		req, err = http.NewRequest("GET", url, bytes.NewBuffer(nil))
+		if err != nil {
+			break
+		}
 		req.Header.Set("Authorization", "Bearer "+apiKey)
 		client := &http.Client{}
 		response, err = client.Do(req)
@@ -1826,7 +1834,11 @@ func GetBinary(apiKey string, url string) []byte {
 	var err error
 	var response *http.Response
 	for range 30 {
-		req, err := http.NewRequest("GET", url, bytes.NewBuffer(nil))
+		var req *http.Request
+		req, err = http.NewRequest("GET", url, bytes.NewBuffer(nil))
+		if err != nil {
+			break
+		}
 		req.Header.Set("Authorization", "Bearer "+apiKey)
 		client := &http.Client{}
 		response, err = client.Do(req)
@@ -2052,7 +2064,7 @@ type AdminRelaysResponse struct {
 func niceUptime(uptimeString string) string {
 	value, _ := strconv.ParseInt(uptimeString, 10, 64)
 	if value > 86400 {
-		return fmt.Sprintf("%dd", int(math.Floor(float64(value/86400))))
+		return fmt.Sprintf("%dd", value/86400)
 	}
 	if value > 3600 {
 		return fmt.Sprintf("%dh", int(math.Floor(float64(value/3600))))
@@ -3166,7 +3178,7 @@ func bashQuiet(command string) string {
 // level 0: user error
 // level 1: program error
 func handleRunTimeError(msg string, level int) {
-	fmt.Printf(msg)
+	fmt.Printf("%s", msg)
 	fmt.Printf("\n")
 	os.Exit(level)
 }
