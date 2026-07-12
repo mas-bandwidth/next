@@ -132,21 +132,41 @@ that fact is stale — reverify.
 
 ### Open items (not yet done)
 
-- **XDP relay: verifier-load on a real Linux box before the next `relay-*` release tag.** CI
-  compiles `relay_xdp.o` but never loads it; the BPF verifier only runs at `ip link set xdp` time,
-  and the filter was restructured this session.
 - **API auth is thin** (single shared HS256 secret, `admin`/`portal` booleans, no token expiry).
-  Known structural item — a deliberate hardening project if wanted, not a bug.
+  Known structural item — a deliberate hardening project if wanted, not a bug. The portal audit
+  below sharpens this: the portal-scope JWT is baked into the public JS bundle, so it protects
+  nothing — front the portal with real auth (IAP / LB auth) and add `exp` to tokens if wanted.
 - **CI flake — Build "Sodium" job** wgets libsodium from download.libsodium.org; external-host
   DNS/network hiccups fail it (seen test-239). Just re-run `./dist/deploy test`. If it recurs,
   cache the sodium download/build in a Semaphore artifact rather than re-fetching. Do NOT solve it
   by touching the vendored sdk/sodium/ (see invariant above).
-- **Major-version dependency migrations** (deliberate projects, not bumps — all direct deps are
-  otherwise current as of 2026-07-12, `ebca6bca5`, with `toolchain go1.26.5` pinned in go.mod and
-  govulncheck reporting 0 reachable vulnerabilities): `cloud.google.com/go/pubsub` v1 is formally
-  DEPRECATED in favor of pubsub/v2 (producer code in modules/common/google_pubsub.go is small);
-  `hamba/avro` v1.8.0 -> hamba/avro/v2 (touches every avro.Marshal call site; analytics schemas
-  are explicit so wire risk is low); `oschwald/maxminddb-golang` -> /v2 (ip2location reader API).
+- **Portal quick fixes from the 2026-07-12 audit** (not yet applied): commit a `yarn.lock`
+  (portal builds are unpinned — CI runs bare `yarn install`); move the global axios auth header
+  from `SessionCounts.vue` module scope into `main.js`; route or delete the dead `MapView.vue`
+  (stub, unrouted, uses fetch() so it never authenticates) and `SellersView.vue` (complete but
+  unrouted). Larger/optional: node-sass is EOL (switch to `sass`), vue-cli is in maintenance
+  mode (Vite migration), portal JWTs never expire.
+
+### Closed 2026-07-12 (session: comments + migrations + XDP CI gate + portal audit)
+
+- **XDP verifier-load is now a permanent CI gate** (commits `114805598`..`df721afcd`, green on
+  test-252). The Build XDP job builds + insmods `relay/module` (which exports the
+  `bpf_relay_sha256` kfunc — without it `relay_xdp.o` cannot load AT ALL; libxdp misreports the
+  unresolved ksym as attach EINVAL), then `bpftool prog load`s `relay_xdp.o` through the BPF
+  verifier. The restructured advanced packet filter PASSES the verifier (50KB xlated, 6 maps).
+  Attach is deliberately not tested (driver dependent; prod attaches native mode on real NICs).
+  Side benefit: CI now proves the relay kernel module builds and insmods on a current kernel.
+- **Major-version dependency migrations all done** (`e273fb73b`, `fc6a1d55e`, validated fully
+  green on test-247 incl. functional tests): pubsub v1 -> pubsub/v2 (producer only; new
+  `TestGooglePubsubProducer` in modules/common uses pstest for end-to-end coverage — the ONLY
+  coverage the pubsub path has, functional tests run with `ENABLE_GOOGLE_PUBSUB=0`);
+  hamba/avro -> /v2 (import path only, analytics round-trip tests cover all nine schemas);
+  maxminddb-golang -> /v2 (netip.Addr Lookup().Decode() internally, net.IP signatures kept,
+  not-found semantics preserved). All direct deps now current with no deprecated majors.
+- **Invariant comments landed** (`770914b68`): optimizer scratch-buffer + trusted-cost
+  invariants in core.go, the load-bearing relay sort in generateRelayData + pointer comments at
+  the consuming sites in session_update.go, and the "randomize every serialized field" rule on
+  both GenerateRandom* functions.
 
 ### Reviewed and cleared this session (don't re-audit without reason)
 
@@ -168,8 +188,17 @@ locking, leader election race, and assorted minor items — see that commit mess
 Known non-bugs deliberately left alone: no-TTL time-bucketed redis keys (covered by allkeys-lru
 eviction everywhere), `GeneratePingToken` IPv4-only address bytes (matches the relay side;
 IPv4-only system), ping key printed via core.Debug in gateway/server_backend (debug-only,
-intentional), pre-existing build failures in `sellers/` (standalone `go run` scripts sharing a
-package dir) and `tools/load_test_portal` (stale against the portal module API).
+intentional). (`sellers/` and `tools/load_test_portal` build issues were fixed in `6e60ef580`.)
+
+Portal (Vue 3) audit pass (2026-07-12) covered all of portal/src, env files, build tooling,
+nginx config, and prod terraform wiring. Clean on XSS (no v-html/innerHTML/eval anywhere, Vue
+templates escape everything) and strictly read-only (zero mutating requests; AdminView is
+portal-scope graphs, the bundled token has no admin power). Key structural fact: the portal has
+NO user auth — the portal JWT is compiled into the public JS bundle via VUE_APP_*, so anyone
+with the portal URL has permanent read access to fleet/session/buyer data for that env (tokens
+have iat but no exp; revocation = rotating API_PRIVATE_KEY). The committed portal/.env.* JWTs
+are therefore not a secret leak per se (the bundle publishes them anyway) — the fix, if wanted,
+is auth in front of the portal, not hiding the token. Actionable defects are in Open items.
 
 ## Codebase assessment (Claude audit, 2026-07-11)
 
