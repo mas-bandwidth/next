@@ -145,21 +145,41 @@ func signPacket(packet []byte, magic []byte, fromAddress []byte, toAddress []byt
 	core.GenerateChonkle(packet[3:18], magic, fromAddress, toAddress, len(packet))
 }
 
-// Generate builds the deterministic corpus. The seed makes the random portion
-// reproducible; the structured portion is fixed. Every entry's Verdict is computed by
-// the oracle from the finished bytes, so the corpus is internally consistent by
-// construction and the differential only tests the C implementations against it.
-func Generate(seed int64) []Entry {
+// Config parameterizes the corpus for a specific target relay. A relay only accepts
+// packets signed for ITS magic and addressed to ITS address, so to check a real relay
+// the corpus must be built with that relay's configuration. From is the packet source
+// IP the driver will send from; To is the relay's own IP; Magic is the relay's current
+// magic. (The advanced filter uses only the 4 IP bytes, not ports.)
+type Config struct {
+	From  [4]byte
+	To    [4]byte
+	Magic [constants.MagicBytes]byte
+}
+
+// DefaultConfig is a self-contained config with a seed-derived random magic, for the Go
+// unit tests where there is no real relay to match.
+func DefaultConfig(seed int64) Config {
+	rng := rand.New(rand.NewSource(seed))
+	cfg := Config{From: [4]byte{10, 0, 0, 1}, To: [4]byte{127, 0, 0, 1}}
+	for i := range cfg.Magic {
+		cfg.Magic[i] = byte(rng.Intn(256))
+	}
+	return cfg
+}
+
+// Generate builds the deterministic corpus for a target config. The seed makes the
+// random portion reproducible; the structured portion is fixed. Every entry's Verdict
+// is computed by the oracle from the finished bytes, so the corpus is internally
+// consistent by construction and the differential only tests the C implementations
+// against it.
+func Generate(seed int64, cfg Config) []Entry {
 	// a local, self-contained source so the corpus is fully reproducible from the seed
 	// and does not perturb (or depend on) the package-global common random source.
 	rng := rand.New(rand.NewSource(seed))
 
-	var from = [4]byte{10, 0, 0, 1}
-	var to = [4]byte{127, 0, 0, 1}
-	var magic [constants.MagicBytes]byte
-	for i := range magic {
-		magic[i] = byte(rng.Intn(256))
-	}
+	from := cfg.From
+	to := cfg.To
+	magic := cfg.Magic
 
 	randomBytes := func(b []byte) {
 		for i := range b {

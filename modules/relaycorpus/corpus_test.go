@@ -12,21 +12,21 @@ import (
 
 func TestCorpus_Deterministic(t *testing.T) {
 	t.Parallel()
-	a := relaycorpus.Generate(42)
-	b := relaycorpus.Generate(42)
+	a := relaycorpus.Generate(42, relaycorpus.DefaultConfig(42))
+	b := relaycorpus.Generate(42, relaycorpus.DefaultConfig(42))
 	assert.Equal(t, len(a), len(b))
 	for i := range a {
 		assert.Equal(t, a[i].Packet, b[i].Packet, "entry %d packet", i)
 		assert.Equal(t, a[i].Verdict, b[i].Verdict, "entry %d verdict", i)
 	}
 	// a different seed produces a different corpus (the random portion moves)
-	c := relaycorpus.Generate(43)
+	c := relaycorpus.Generate(43, relaycorpus.DefaultConfig(43))
 	assert.False(t, bytes.Equal(relaycorpus.Marshal(a), relaycorpus.Marshal(c)))
 }
 
 func TestCorpus_ExercisesEveryVerdict(t *testing.T) {
 	t.Parallel()
-	entries := relaycorpus.Generate(1)
+	entries := relaycorpus.Generate(1, relaycorpus.DefaultConfig(1))
 	counts := map[relaycorpus.Verdict]int{}
 	for i := range entries {
 		counts[entries[i].Verdict]++
@@ -43,7 +43,7 @@ func TestCorpus_TypeSweepBoundary(t *testing.T) {
 	t.Parallel()
 	// the type-sweep entries are otherwise-valid signed packets differing only in the
 	// type byte; exactly types 1..14 must pass, all others drop at the basic filter.
-	entries := relaycorpus.Generate(7)
+	entries := relaycorpus.Generate(7, relaycorpus.DefaultConfig(7))
 	seen := map[byte]relaycorpus.Verdict{}
 	for i := range entries {
 		if entries[i].Label == "type-sweep" {
@@ -63,7 +63,7 @@ func TestCorpus_TypeSweepBoundary(t *testing.T) {
 
 func TestCorpus_MarshalFormat(t *testing.T) {
 	t.Parallel()
-	entries := relaycorpus.Generate(3)
+	entries := relaycorpus.Generate(3, relaycorpus.DefaultConfig(3))
 	data := relaycorpus.Marshal(entries)
 
 	// header: "RLYC", version=1, count
