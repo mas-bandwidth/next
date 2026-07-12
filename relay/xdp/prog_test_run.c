@@ -55,16 +55,26 @@ static int build_frame(unsigned char *out, unsigned int saddr, unsigned int dadd
     return o;
 }
 
+static int print_all(enum libbpf_print_level level, const char *fmt, va_list args) {
+    return vfprintf(stderr, fmt, args);
+}
+
 int main(int argc, char **argv) {
     const char *obj_path = argc > 1 ? argv[1] : "relay_xdp.o";
+
+    libbpf_set_print(print_all);
 
     struct bpf_object *obj = bpf_object__open_file(obj_path, NULL);
     if (!obj) { fprintf(stderr, "FAIL: open %s\n", obj_path); return 1; }
 
-    if (bpf_object__load(obj)) { fprintf(stderr, "FAIL: load (kfunc module insmodded?)\n"); return 1; }
-
+    // the program section is SEC("relay_xdp"), a nonstandard name libbpf cannot infer
+    // a program type from (bpftool works because it is told 'type xdp' explicitly)
     struct bpf_program *prog = bpf_object__find_program_by_name(obj, "relay_xdp_filter");
     if (!prog) { fprintf(stderr, "FAIL: find prog relay_xdp_filter\n"); return 1; }
+    bpf_program__set_type(prog, BPF_PROG_TYPE_XDP);
+
+    if (bpf_object__load(obj)) { fprintf(stderr, "FAIL: load (kfunc module insmodded?)\n"); return 1; }
+
     int prog_fd = bpf_program__fd(prog);
 
     struct bpf_map *config_map = bpf_object__find_map_by_name(obj, "config_map");
