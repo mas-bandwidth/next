@@ -171,6 +171,22 @@ blocks:
             # reference relay -- one relay source. no BPF needed to build or run this.
             - make userspace-test
             - ./relay_userspace_test corpus.bin
+            # windows build of the userspace relay (dev/test only, never production --
+            # see relay/CONSOLIDATION.md): cross compile with mingw-w64 against the
+            # prebuilt mingw libsodium (cached; bump the version in the cache key to
+            # force a refresh), then smoke test the exe under wine -- it must start,
+            # initialize winsock, and fail with the expected config error.
+            - sudo DEBIAN_FRONTEND=noninteractive apt-get install -y gcc-mingw-w64-x86-64 wine64
+            - cache restore libsodium-1.0.18-mingw
+            - |
+              if [ ! -d libsodium-win64 ]; then
+                wget https://download.libsodium.org/libsodium/releases/old/libsodium-1.0.18-mingw.tar.gz
+                tar -zxf libsodium-1.0.18-mingw.tar.gz
+                cache store libsodium-1.0.18-mingw libsodium-win64
+              fi
+            - make userspace-windows SODIUM_WIN=./libsodium-win64
+            - wine64 relay-userspace.exe 2>&1 | tee wine_smoke.txt || true
+            - grep -q "RELAY_NAME not set" wine_smoke.txt
 
   - name: "Portal"
     dependencies: []

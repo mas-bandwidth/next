@@ -60,3 +60,7 @@ relay/xdp/relay_userspace_test
 relay/xdp/relay_corpus_diff
 relay/xdp/prog_test_run
 relay/xdp/relay
+relay/xdp/relay-userspace.exe
+relay/xdp/libsodium-win64
+relay/xdp/libsodium-1.0.18-mingw.tar.gz
+relay/xdp/wine_smoke.txt

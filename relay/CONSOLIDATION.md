@@ -16,12 +16,12 @@ real box (the per-packet session-expiry checks landed in the shipped BPF program
 session).
 
 **Scope decision (Glenn, 2026-07-12): the userspace relay will NEVER be used in
-production.** It exists so the functional suites, local dev, and mac can run the real
-datapath -- the XDP relay is the only production relay. Consequences: the shim maps'
-unbounded growth (no LRU eviction) and the synthetic frame assuming packets arrive on
-the public address (no IP_PKTINFO) are permanent non-issues, not open items. The
-Windows-portability note in the plan below is historical; there is no Windows relay
-plan.
+production.** It exists so the functional suites, local dev, mac -- and Windows -- can
+run the real datapath; the XDP relay is the only production relay. Consequences: the
+shim maps' unbounded growth (no LRU eviction) and the synthetic frame assuming packets
+arrive on the public address (no IP_PKTINFO) are permanent non-issues, not open items.
+Windows support (Glenn, same day) IS wanted, for people who develop and test Network
+Next related code on Windows -- build and run there, dev/test only.
 
 ## Why only the relay, and only this way
 

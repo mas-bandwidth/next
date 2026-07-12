@@ -297,8 +297,8 @@ static int userspace_datapath_packet( struct ping_t * ping, uint32_t from_addres
 
     struct xdp_md ctx;
     memset( &ctx, 0, sizeof(ctx) );
-    ctx.data = (__u64) (long) frame;
-    ctx.data_end = (__u64) (long) ( frame + sizeof(struct ethhdr) + sizeof(struct iphdr) + sizeof(struct udphdr) + packet_bytes );
+    ctx.data = (__u64) (relay_uptr_t) frame;
+    ctx.data_end = (__u64) (relay_uptr_t) ( frame + sizeof(struct ethhdr) + sizeof(struct iphdr) + sizeof(struct udphdr) + packet_bytes );
 
     us_maps_lock();
     int verdict = relay_xdp_filter( &ctx );
@@ -308,8 +308,8 @@ static int userspace_datapath_packet( struct ping_t * ping, uint32_t from_addres
     {
         // the datapath rewrote the frame in place (and may have moved data / data_end).
         // send the udp payload to the rewritten destination through the same socket.
-        uint8_t * data = (uint8_t*) (long) ctx.data;
-        uint8_t * data_end = (uint8_t*) (long) ctx.data_end;
+        uint8_t * data = (uint8_t*) (relay_uptr_t) ctx.data;
+        uint8_t * data_end = (uint8_t*) (relay_uptr_t) ctx.data_end;
         struct iphdr * out_ip = (struct iphdr*) ( data + sizeof(struct ethhdr) );
         struct udphdr * out_udp = (struct udphdr*) ( data + sizeof(struct ethhdr) + sizeof(struct iphdr) );
         uint8_t * payload = data + sizeof(struct ethhdr) + sizeof(struct iphdr) + sizeof(struct udphdr);

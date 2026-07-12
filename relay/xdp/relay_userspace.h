@@ -29,6 +29,11 @@ typedef uint64_t __u64;
 typedef uint16_t __be16;
 typedef uint32_t __be32;
 
+// integer type that round-trips ctx->data / ctx->data_end to a pointer. the bpf build
+// uses long (64 bits there); userspace must use uintptr_t -- long is only 32 bits on
+// win64 and would truncate pointers.
+typedef uintptr_t relay_uptr_t;
+
 // --- ethernet / ip / udp (Linux layout, provided here because mac/windows lack linux/*.h)
 
 // guard the constants: on Linux some system headers (netinet/in.h) also define these, and

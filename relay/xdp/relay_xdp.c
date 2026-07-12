@@ -28,6 +28,11 @@
 #include <linux/string.h>
 #include <bpf/bpf_helpers.h>
 
+// integer type that round-trips ctx->data / ctx->data_end to a pointer. long is
+// 64 bits on the bpf target; the userspace shim supplies uintptr_t instead, because
+// long is only 32 bits on win64 and would truncate pointers there.
+typedef long relay_uptr_t;
+
 #endif // RELAY_USERSPACE
 
 #define RELAY_ADVANCED_PACKET_FILTER 1
@@ -775,9 +780,9 @@ static int relay_redirect_packet( struct redirect_args_t * args )
 
 SEC("relay_xdp") int relay_xdp_filter( struct xdp_md *ctx ) 
 { 
-    void * data = (void*) (long) ctx->data; 
+    void * data = (void*) (relay_uptr_t) ctx->data; 
 
-    void * data_end = (void*) (long) ctx->data_end; 
+    void * data_end = (void*) (relay_uptr_t) ctx->data_end; 
 
     struct ethhdr * eth = data;
 

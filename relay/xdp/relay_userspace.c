@@ -11,8 +11,14 @@
 #include "relay_shared.h"
 
 #include <sodium.h>
-#include <pthread.h>
 #include <stdarg.h>
+
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#else
+#include <pthread.h>
+#endif
 
 // --- backing storage for the six maps
 
@@ -132,12 +138,12 @@ long bpf_map_delete_elem(void *map, const void *key) {
 //     delta) or grows the head; move data_end / data accordingly.
 
 long bpf_xdp_adjust_tail(struct xdp_md *ctx, int delta) {
-	ctx->data_end = (__u64)((long)ctx->data_end + delta);
+	ctx->data_end = (__u64)((relay_uptr_t)ctx->data_end + delta);
 	return 0;
 }
 
 long bpf_xdp_adjust_head(struct xdp_md *ctx, int delta) {
-	ctx->data = (__u64)((long)ctx->data + delta);
+	ctx->data = (__u64)((relay_uptr_t)ctx->data + delta);
 	return 0;
 }
 
@@ -180,6 +186,20 @@ int bpf_relay_xchacha20poly1305_decrypt(void *data, int data__sz, struct chacha2
 
 // --- maps lock (see relay_userspace.h for the locking discipline)
 
+#ifdef _WIN32
+
+static SRWLOCK us_maps_mutex = SRWLOCK_INIT;
+
+void us_maps_lock(void) {
+	AcquireSRWLockExclusive(&us_maps_mutex);
+}
+
+void us_maps_unlock(void) {
+	ReleaseSRWLockExclusive(&us_maps_mutex);
+}
+
+#else // #ifdef _WIN32
+
 static pthread_mutex_t us_maps_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void us_maps_lock(void) {
@@ -189,6 +209,8 @@ void us_maps_lock(void) {
 void us_maps_unlock(void) {
 	pthread_mutex_unlock(&us_maps_mutex);
 }
+
+#endif // #ifdef _WIN32
 
 // --- hash map key iteration (bpf_map_get_next_key semantics). NULL or missing key
 //     yields the first key; iteration order is bucket order then chain order. deleting

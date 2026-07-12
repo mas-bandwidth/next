@@ -6,12 +6,44 @@
 #define RELAY_PLATFORM_H
 
 #include "relay.h"
-#include <pthread.h>
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------
 
 #define RELAY_PLATFORM_SOCKET_NON_BLOCKING       0
 #define RELAY_PLATFORM_SOCKET_BLOCKING           1
+
+typedef void* (relay_platform_thread_func_t)(void*);
+
+#ifdef _WIN32
+
+// windows (userspace relay for dev/test only -- see relay/CONSOLIDATION.md).
+// winsock2.h must come before windows.h or the old winsock 1 definitions win.
+
+#define WIN32_LEAN_AND_MEAN
+#include <winsock2.h>
+#include <windows.h>
+
+typedef SOCKET relay_platform_socket_handle_t;
+
+struct relay_platform_socket_t
+{
+    int type;
+    relay_platform_socket_handle_t handle;
+};
+
+struct relay_platform_thread_t
+{
+    HANDLE handle;
+};
+
+struct relay_platform_mutex_t
+{
+    CRITICAL_SECTION handle;
+};
+
+#else // #ifdef _WIN32
+
+#include <pthread.h>
 
 typedef int relay_platform_socket_handle_t;
 
@@ -26,12 +58,12 @@ struct relay_platform_thread_t
     pthread_t handle;
 };
 
-typedef void* (relay_platform_thread_func_t)(void*);
-
 struct relay_platform_mutex_t
 {
     pthread_mutex_t handle;
 };
+
+#endif // #ifdef _WIN32
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -59,6 +59,19 @@ relay_xdp.o: relay_xdp.c relay_shared.h relay_constants.h
 userspace-test: relay_userspace_test.c relay_userspace.c relay_userspace.h relay_xdp.c relay_shared.h relay_constants.h
 	cc -DRELAY_USERSPACE -I. -O2 -o relay_userspace_test relay_userspace_test.c relay_userspace.c -x c relay_xdp.c -lsodium
 
+# windows build of the userspace relay, for people who develop and test network next
+# code on windows (dev/test only, never production -- see CONSOLIDATION.md). cross
+# compile from linux/mac with mingw-w64 (brew install mingw-w64 / apt install
+# gcc-mingw-w64-x86-64), or build on windows itself with MSYS2 mingw gcc or clang.
+# needs the prebuilt mingw libsodium; pass SODIUM_WIN at the extracted directory:
+#   wget https://download.libsodium.org/libsodium/releases/old/libsodium-1.0.18-mingw.tar.gz
+#   tar -zxf libsodium-1.0.18-mingw.tar.gz     (produces ./libsodium-win64)
+WINDOWS_CC ?= x86_64-w64-mingw32-gcc
+SODIUM_WIN ?= ./libsodium-win64
+.PHONY: userspace-windows
+userspace-windows: *.c *.h
+	$(WINDOWS_CC) -DRELAY_USERSPACE -DRELAY_TEST=1 -DRELAY_LOGS=1 -DSODIUM_STATIC=1 -DRELAY_VERSION=\"relay-userspace-windows\" -O2 -g -I$(SODIUM_WIN)/include -o relay-userspace.exe relay.c relay_platform.c relay_platform_windows.c relay_base64.c relay_ping_history.c relay_manager.c relay_main.c relay_ping.c relay_config.c relay_userspace.c -x c relay_xdp.c -x none $(SODIUM_WIN)/lib/libsodium.a -lws2_32 -lwinhttp
+
 relay_xdp_source.h: Makefile relay_xdp.c relay_shared.h relay_constants.h
 	mkdir -p relay_xdp_source
 	cp Makefile relay_xdp_source

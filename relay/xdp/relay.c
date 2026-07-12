@@ -25,7 +25,13 @@
 #include "relay_config.h"
 
 #ifdef RELAY_USERSPACE
-#include <arpa/inet.h> // must precede relay_userspace.h (guarded stand-in macros)
+// system net headers must precede relay_userspace.h (guarded stand-in macros)
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <winsock2.h>
+#else // #ifdef _WIN32
+#include <arpa/inet.h>
+#endif // #ifdef _WIN32
 #include "relay_userspace.h"
 #include "relay_shared.h"
 #include "relay_constants.h"
@@ -101,7 +107,11 @@ int main( int argc, char *argv[] )
 
     signal( SIGINT,  interrupt_handler );
     signal( SIGTERM, clean_shutdown_handler );
+#ifdef _WIN32
+    signal( SIGBREAK, clean_shutdown_handler );    // no SIGHUP on windows; ctrl+break = clean shutdown
+#else // #ifdef _WIN32
     signal( SIGHUP,  clean_shutdown_handler );
+#endif // #ifdef _WIN32
 
     printf( "Reading config\n" );
 

@@ -174,8 +174,8 @@ int main(int argc, char **argv) {
 
 		struct xdp_md ctx;
 		memset(&ctx, 0, sizeof(ctx));
-		ctx.data = (__u64)(long)frame;
-		ctx.data_end = (__u64)(long)(frame + flen);
+		ctx.data = (__u64)(relay_uptr_t)frame;
+		ctx.data_end = (__u64)(relay_uptr_t)(frame + flen);
 
 		int retval = relay_xdp_filter(&ctx);
 

@@ -65,6 +65,7 @@ inline uint64_t bswap( uint32_t value )
     output |= ( value & 0x00FF0000 ) >> 8;
     output |= ( value & 0x0000FF00 ) << 8;
     output |= ( value & 0x000000FF ) << 24;
+    return output;
 #endif // #ifdef __GNUC__
 }
 

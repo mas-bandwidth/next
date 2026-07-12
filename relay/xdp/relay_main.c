@@ -11,8 +11,13 @@
 #ifdef RELAY_USERSPACE
 // the shim maps stand in for the BPF maps (see relay/CONSOLIDATION.md). system net
 // headers must come first: relay_userspace.h defines guarded stand-ins (IPPROTO_UDP
-// et al) that must not preempt the glibc definitions.
+// et al) that must not preempt the system definitions.
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <winsock2.h>       // htons/htonl (relay_platform.h already pulled this)
+#else
 #include <arpa/inet.h>
+#endif
 #include "relay_userspace.h"
 #else // #ifdef RELAY_USERSPACE
 #include "relay_bpf.h"
@@ -22,7 +27,14 @@
 
 #include "relay_shared.h"
 
+#ifdef _WIN32
+// windows dev/test builds talk to the relay backend over winhttp, no libcurl needed
+#include <winhttp.h>
+#pragma comment( lib, "winhttp.lib" )
+#else // #ifdef _WIN32
 #include <curl/curl.h>
+#endif // #ifdef _WIN32
+
 #include <sodium.h>
 #include <time.h>
 #include <errno.h>
@@ -31,8 +43,17 @@
 
 int main_init( struct main_t * main, struct config_t * config, struct bpf_t * bpf )
 {
-    // initialize curl so we can talk with the relay backend
+    // initialize http so we can talk with the relay backend
 
+#ifdef _WIN32
+    main->curl = (void*) WinHttpOpen( L"network next relay", WINHTTP_ACCESS_TYPE_NO_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0 );
+    if ( !main->curl )
+    {
+        printf( "\nerror: could not initialize winhttp\n\n" );
+        fflush( stdout );
+        return RELAY_ERROR;
+    }
+#else // #ifdef _WIN32
     main->curl = curl_easy_init();
     if ( !main->curl )
     {
@@ -40,6 +61,7 @@ int main_init( struct main_t * main, struct config_t * config, struct bpf_t * bp
         fflush( stdout );
         return RELAY_ERROR;
     }
+#endif // #ifdef _WIN32
 
     main->control_queue = relay_queue_create( 64 );
     if ( !main->control_queue )
@@ -230,7 +252,11 @@ void main_shutdown( struct main_t * main )
 {
     if ( main->curl )
     {
+#ifdef _WIN32
+        WinHttpCloseHandle( (HINTERNET) main->curl );
+#else // #ifdef _WIN32
         curl_easy_cleanup( main->curl );
+#endif // #ifdef _WIN32
     }
 
     if ( main->update_response_memory )
@@ -263,6 +289,8 @@ void main_shutdown( struct main_t * main )
 
 // -----------------------------------------------------------------------------------------------------------------------------
 
+#ifndef _WIN32
+
 struct curl_buffer_t
 {
     int size;
@@ -281,6 +309,127 @@ size_t curl_buffer_write_function( char * ptr, size_t size, size_t nmemb, void *
     buffer->size += size * nmemb;
     return size * nmemb;
 }
+
+#else // #ifndef _WIN32
+
+// winhttp POST for the windows dev/test relay: same behavior as the curl path below
+// (10 second timeout, response capped at max_response_bytes, http status surfaced).
+// returns RELAY_OK and the response bytes on http 200, RELAY_ERROR otherwise, printing
+// the same error lines as the curl path so the functional test contract holds.
+static int winhttp_post( void * session, const char * url, const uint8_t * body, int body_bytes,
+                         uint8_t * response, int max_response_bytes, int * response_bytes )
+{
+    wchar_t wide_url[1024];
+    if ( MultiByteToWideChar( CP_UTF8, 0, url, -1, wide_url, 1024 ) == 0 )
+    {
+        printf( "error: could not post relay update (bad url)\n" );
+        fflush( stdout );
+        return RELAY_ERROR;
+    }
+
+    wchar_t host[256];
+    wchar_t path[768];
+
+    URL_COMPONENTS components;
+    memset( &components, 0, sizeof(components) );
+    components.dwStructSize = sizeof(components);
+    components.lpszHostName = host;
+    components.dwHostNameLength = sizeof(host) / sizeof(host[0]);
+    components.lpszUrlPath = path;
+    components.dwUrlPathLength = sizeof(path) / sizeof(path[0]);
+
+    if ( !WinHttpCrackUrl( wide_url, 0, 0, &components ) )
+    {
+        printf( "error: could not post relay update (bad url)\n" );
+        fflush( stdout );
+        return RELAY_ERROR;
+    }
+
+    int result = RELAY_ERROR;
+
+    HINTERNET connect = WinHttpConnect( (HINTERNET) session, host, components.nPort, 0 );
+    HINTERNET request = NULL;
+
+    if ( connect )
+    {
+        request = WinHttpOpenRequest( connect, L"POST", path, NULL, WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES,
+                                      ( components.nScheme == INTERNET_SCHEME_HTTPS ) ? WINHTTP_FLAG_SECURE : 0 );
+    }
+
+    if ( request )
+    {
+        WinHttpSetTimeouts( request, 10000, 10000, 10000, 10000 );
+
+        if ( WinHttpSendRequest( request, L"Content-Type: application/octet-stream\r\n", (DWORD) -1,
+                                 (LPVOID) body, (DWORD) body_bytes, (DWORD) body_bytes, 0 )
+             && WinHttpReceiveResponse( request, NULL ) )
+        {
+            DWORD status_code = 0;
+            DWORD status_code_size = sizeof(status_code);
+            WinHttpQueryHeaders( request, WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER,
+                                 WINHTTP_HEADER_NAME_BY_INDEX, &status_code, &status_code_size, WINHTTP_NO_HEADER_INDEX );
+
+            if ( status_code != 200 )
+            {
+                printf( "error: relay update response is %d. the relay backend is down or the relay is misconfigured. check RELAY_BACKEND_PUBLIC_KEY\n", (int) status_code );
+                fflush( stdout );
+            }
+            else
+            {
+                int total = 0;
+                bool overflow = false;
+                while ( true )
+                {
+                    DWORD bytes_read = 0;
+                    if ( !WinHttpReadData( request, response + total, (DWORD) ( max_response_bytes - total ), &bytes_read ) )
+                        break;
+                    if ( bytes_read == 0 )
+                    {
+                        *response_bytes = total;
+                        result = RELAY_OK;
+                        break;
+                    }
+                    total += (int) bytes_read;
+                    if ( total >= max_response_bytes )
+                    {
+                        overflow = true;
+                        break;
+                    }
+                }
+                if ( overflow )
+                {
+                    printf( "error: relay update response is too large\n" );
+                    fflush( stdout );
+                    result = RELAY_ERROR;
+                }
+            }
+        }
+        else
+        {
+            printf( "error: could not post relay update (winhttp error %d)\n", (int) GetLastError() );
+            fflush( stdout );
+        }
+    }
+    else
+    {
+        printf( "error: could not post relay update (winhttp error %d)\n", (int) GetLastError() );
+        fflush( stdout );
+    }
+
+    if ( request )
+    {
+        WinHttpCloseHandle( request );
+    }
+
+    if ( connect )
+    {
+        WinHttpCloseHandle( connect );
+    }
+
+    return result;
+}
+
+#endif // #ifndef _WIN32
 
 void clamp( int * value, int min, int max )
 {
@@ -685,15 +834,29 @@ int main_update( struct main_t * main )
 
     // post relay update to the backend
 
+    char update_url[1024];
+    snprintf( update_url, sizeof(update_url), "%s/relay_update", main->relay_backend_url );
+
+#ifdef _WIN32
+
+    int response_size = 0;
+    if ( winhttp_post( main->curl, update_url, update_data, update_data_length,
+                       main->update_response_memory, RELAY_RESPONSE_MAX_BYTES, &response_size ) != RELAY_OK )
+    {
+        return RELAY_ERROR;
+    }
+    (void) response_size;
+
+    const uint8_t * q = main->update_response_memory;
+
+#else // #ifdef _WIN32
+
     struct curl_slist * slist = curl_slist_append( NULL, "Content-Type:application/octet-stream" );
 
     struct curl_buffer_t update_response_buffer;
     update_response_buffer.size = 0;
     update_response_buffer.max_size = RELAY_RESPONSE_MAX_BYTES;
     update_response_buffer.data = (uint8_t*) main->update_response_memory;
-
-    char update_url[1024];
-    snprintf( update_url, sizeof(update_url), "%s/relay_update", main->relay_backend_url );
 
     curl_easy_setopt( main->curl, CURLOPT_BUFFERSIZE, 10 * 1024 * 1024L );
     curl_easy_setopt( main->curl, CURLOPT_URL, update_url );
@@ -736,6 +899,8 @@ int main_update( struct main_t * main )
     curl_easy_getinfo( main->curl, CURLINFO_SIZE_DOWNLOAD_T, &response_size );
 
     const uint8_t * q = update_response_buffer.data;
+
+#endif // #ifdef _WIN32
 
     uint8_t version = relay_read_uint8( &q );
 

@@ -6,7 +6,12 @@
 #ifndef RELAY_ENCODING_H
 #define RELAY_ENCODING_H
 
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <winsock2.h>       // ntohl
+#else
 #include "arpa/inet.h"
+#endif
 #include <stdio.h>
 #include <memory.h>
 
