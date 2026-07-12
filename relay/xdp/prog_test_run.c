@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
     const char *obj_path = argc > 1 ? argv[1] : "relay_xdp.o";
 
     struct bpf_object *obj = bpf_object__open_file(obj_path, NULL);
-    if (!obj || libbpf_get_error(obj)) { fprintf(stderr, "FAIL: open %s\n", obj_path); return 1; }
+    if (!obj) { fprintf(stderr, "FAIL: open %s\n", obj_path); return 1; }
 
     if (bpf_object__load(obj)) { fprintf(stderr, "FAIL: load (kfunc module insmodded?)\n"); return 1; }
 
