@@ -11,6 +11,8 @@
 #include "relay_shared.h"
 
 #include <sodium.h>
+#include <pthread.h>
+#include <stdarg.h>
 
 // --- backing storage for the six maps
 
@@ -77,7 +79,6 @@ void *bpf_map_lookup_elem(void *map, const void *key) {
 }
 
 long bpf_map_update_elem(void *map, const void *key, const void *value, __u64 flags) {
-	(void)flags;
 	struct us_map *m = (struct us_map *)map;
 	if (m->kind == US_MAP_ARRAY) {
 		__u32 index = *(const __u32 *)key;
@@ -88,10 +89,12 @@ long bpf_map_update_elem(void *map, const void *key, const void *value, __u64 fl
 	size_t b = hash_key(m, key);
 	for (struct us_hash_entry *e = m->buckets[b]; e; e = e->next) {
 		if (memcmp(e->key, key, m->key_size) == 0) {
+			if (flags == BPF_NOEXIST) return -1;
 			memcpy(e->value, value, m->value_size);
 			return 0;
 		}
 	}
+	if (flags == BPF_EXIST) return -1;
 	// NOTE: no LRU eviction yet -- fine for the datapath-correctness harness (small maps).
 	// A production userspace relay needs bounded eviction like the BPF LRU_HASH maps.
 	struct us_hash_entry *e = (struct us_hash_entry *)malloc(sizeof(*e));
@@ -174,6 +177,66 @@ int bpf_relay_xchacha20poly1305_decrypt(void *data, int data__sz, struct chacha2
 	                                                  (const unsigned char *)data, (unsigned long long)data__sz,
 	                                                  NULL, 0, crypto->nonce, crypto->key) == 0;
 }
+
+// --- maps lock (see relay_userspace.h for the locking discipline)
+
+static pthread_mutex_t us_maps_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+void us_maps_lock(void) {
+	pthread_mutex_lock(&us_maps_mutex);
+}
+
+void us_maps_unlock(void) {
+	pthread_mutex_unlock(&us_maps_mutex);
+}
+
+// --- hash map key iteration (bpf_map_get_next_key semantics). NULL or missing key
+//     yields the first key; iteration order is bucket order then chain order. deleting
+//     the CURRENT key after fetching the next one is safe (the standard bpf idiom the
+//     control plane uses for timeout sweeps).
+
+static struct us_hash_entry *us_map_first(struct us_map *m, int start_bucket) {
+	for (int b = start_bucket; b < m->num_buckets; b++) {
+		if (m->buckets[b]) return m->buckets[b];
+	}
+	return NULL;
+}
+
+int us_map_get_next_key(struct us_map *m, const void *key, void *next_key) {
+	if (m->kind != US_MAP_HASH) return -1;
+	struct us_hash_entry *e = NULL;
+	if (key == NULL) {
+		e = us_map_first(m, 0);
+	} else {
+		size_t b = hash_key(m, key);
+		struct us_hash_entry *cur = m->buckets[b];
+		while (cur && memcmp(cur->key, key, m->key_size) != 0) cur = cur->next;
+		if (!cur) {
+			e = us_map_first(m, 0);
+		} else if (cur->next) {
+			e = cur->next;
+		} else {
+			e = us_map_first(m, (int)b + 1);
+		}
+	}
+	if (!e) return -1;
+	memcpy(next_key, e->key, m->key_size);
+	return 0;
+}
+
+// --- datapath debug print for RELAY_LOGS builds (same shape as the reference relay's
+//     relay_printf: one line per call, so the functional tests can poll stdout)
+
+#if RELAY_LOGS
+void us_relay_printf(const char *format, ...) {
+	va_list args;
+	va_start(args, format);
+	char buffer[1024];
+	vsnprintf(buffer, sizeof(buffer), format, args);
+	va_end(args);
+	printf("%s\n", buffer);
+}
+#endif
 
 // --- reset all maps between test runs
 void us_maps_reset(void) {

@@ -6,7 +6,9 @@
 #include "relay_platform.h"
 #include "relay_base64.h"
 
+#ifndef RELAY_USERSPACE
 #include <linux/if_ether.h>
+#endif // #ifndef RELAY_USERSPACE
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -40,6 +42,12 @@ int read_config( struct config_t * config )
     if ( relay_platform_parse_address( relay_public_address_env, &config->relay_public_address, &config->relay_port  ) != RELAY_OK )
     {
         printf( "\nerror: invalid relay public address '%s'\n\n", relay_public_address_env );
+        return RELAY_ERROR;
+    }
+
+    if ( config->relay_port == 0 )
+    {
+        printf( "\nerror: you must specify a valid port number!\n" );
         return RELAY_ERROR;
     }
 

@@ -112,6 +112,15 @@ dist/relay-debug-asan: relay/reference/*
 	@$(CXX) $(CXX_FLAGS) -fsanitize=address -fno-omit-frame-pointer -DRELAY_TEST=1 -DRELAY_LOGS=1 -o dist/relay-debug-asan relay/reference/*.cpp $(SDK_LDFLAGS) $(APP_LDFLAGS)
 	@echo $@
 
+# Build the userspace-mode XDP relay (one datapath source, non-BPF backend -- see
+# relay/CONSOLIDATION.md). functional tests run against this via RELAY_BIN.
+
+USERSPACE_RELAY_SOURCES = relay/xdp/relay.c relay/xdp/relay_platform.c relay/xdp/relay_base64.c relay/xdp/relay_ping_history.c relay/xdp/relay_manager.c relay/xdp/relay_main.c relay/xdp/relay_ping.c relay/xdp/relay_config.c relay/xdp/relay_userspace.c relay/xdp/relay_xdp.c
+
+dist/relay-userspace-debug: relay/xdp/*.c relay/xdp/*.h
+	@cc -g -DRELAY_USERSPACE -DRELAY_TEST=1 -DRELAY_LOGS=1 -DRELAY_VERSION=\"relay-userspace-debug\" -O2 -o dist/relay-userspace-debug $(USERSPACE_RELAY_SOURCES) $(SDK_LDFLAGS) $(APP_LDFLAGS)
+	@echo $@
+
 # Functional tests (sdk)
 
 dist/func_server: dist/$(SDKNAME5).so cmd/func_server/*

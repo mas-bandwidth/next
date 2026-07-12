@@ -403,6 +403,17 @@ func RelayUpdateHandler(writer http.ResponseWriter, request *http.Request) {
 
 	responsePacket.UpcomingMagic, responsePacket.CurrentMagic, responsePacket.PreviousMagic = GetMagic()
 
+	// IMPORTANT: the relay verifies client/server ping tokens against this key, and on
+	// the XDP datapath a verified ping is what admits an address to the whitelist --
+	// without it every route request is dropped. It must be the same key the client
+	// and server relay ping tokens are generated with (TestPingKey). The reference
+	// relay silently tolerated a zero key here because it has no whitelist. In
+	// ZERO_MAGIC mode the key stays zero: the packet-crafting relay tests build their
+	// ping tokens with a zero key.
+	if backend.mode != BACKEND_MODE_ZERO_MAGIC {
+		copy(responsePacket.PingKey[:], TestPingKey)
+	}
+
 	responsePacket.ExpectedPublicAddress = relayAddress
 
 	copy(responsePacket.ExpectedRelayPublicKey[:], TestRelayPublicKey)
@@ -659,6 +670,17 @@ func ProcessClientRelayRequestPacket(conn *net.UDPConn, from *net.UDPAddr, reque
 
 	relayIds, relayAddresses := backend.GetRelays()
 
+	// IMPORTANT: if no relays have registered yet (func tests start all processes at
+	// once; relays take a second to complete their first relay update), don't answer --
+	// the SDK resends the request every second for 5 seconds, and by then the relays
+	// are registered. Answering with zero relays means the client never pings any
+	// relay, is never admitted to the XDP datapath whitelist, and every route request
+	// it sends is dropped for the rest of the session.
+	if len(relayIds) == 0 {
+		fmt.Printf("no relays registered yet, not answering client relay request\n")
+		return
+	}
+
 	numRelays := min(len(relayIds), constants.MaxClientRelays)
 
 	relayIds = relayIds[:numRelays]
@@ -690,6 +712,13 @@ func ProcessServerRelayRequestPacket(conn *net.UDPConn, from *net.UDPAddr, reque
 	fmt.Printf("server relay request from %s\n", from.String())
 
 	relayIds, relayAddresses := backend.GetRelays()
+
+	// IMPORTANT: same as the client relay request above -- never answer with zero
+	// relays, the SDK retries and the relays register within a second or two.
+	if len(relayIds) == 0 {
+		fmt.Printf("no relays registered yet, not answering server relay request\n")
+		return
+	}
 
 	numRelays := min(len(relayIds), constants.MaxServerRelays)
 

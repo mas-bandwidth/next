@@ -9,10 +9,19 @@
 #include "relay_encoding.h"
 #include "relay_ping_history.h"
 #include "relay_manager.h"
+
+#ifdef RELAY_USERSPACE
+// the shim maps + synthetic-frame types stand in for BPF (see relay/CONSOLIDATION.md).
+// relay_encoding.h above pulls arpa/inet.h first, so the shim's guarded stand-ins
+// (IPPROTO_UDP et al) do not preempt the system definitions.
+#include "relay_userspace.h"
+#else // #ifdef RELAY_USERSPACE
+#include "relay_bpf.h"
+#endif // #ifdef RELAY_USERSPACE
+
 #include "relay_shared.h"
 #include "relay_config.h"
 #include "relay_main.h"
-#include "relay_bpf.h"
 #include "relay_endian.h"
 
 #include <stdlib.h>
@@ -42,6 +51,38 @@ int ping_init( struct ping_t * ping, struct config_t * config, struct main_t * m
 #ifdef COMPILE_WITH_BPF
     ping->relay_map_fd = bpf->relay_map_fd;
 #endif // #ifdef COMPILE_WITH_BPF
+
+#if defined(RELAY_USERSPACE) && RELAY_TEST
+
+    // IMPORTANT: fake packet loss lets the functional tests exercise loss handling.
+    // same env vars and prints as the reference relay.
+
+    ping->fake_packet_loss_percent = 0.0f;
+    ping->fake_packet_loss_start_time = -1.0f;
+
+    const char * fake_packet_loss_percent_env = getenv( "RELAY_FAKE_PACKET_LOSS_PERCENT" );
+    if ( fake_packet_loss_percent_env )
+    {
+        ping->fake_packet_loss_percent = atof( fake_packet_loss_percent_env );
+    }
+
+    if ( ping->fake_packet_loss_percent > 0.0f )
+    {
+        printf( "Fake packet loss is %.1f percent\n", ping->fake_packet_loss_percent );
+    }
+
+    const char * fake_packet_loss_start_time_env = getenv( "RELAY_FAKE_PACKET_LOSS_START_TIME" );
+    if ( fake_packet_loss_start_time_env )
+    {
+        ping->fake_packet_loss_start_time = atof( fake_packet_loss_start_time_env );
+    }
+
+    if ( ping->fake_packet_loss_start_time >= 0.0f )
+    {
+        printf( "Fake packet loss starts at %.1f seconds\n", ping->fake_packet_loss_start_time );
+    }
+
+#endif // #if defined(RELAY_USERSPACE) && RELAY_TEST
 
     assert( ping->control_queue );
     assert( ping->control_mutex );
@@ -198,6 +239,98 @@ void relay_address_data( uint32_t address, uint8_t * output )
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------
 
+#ifdef RELAY_USERSPACE
+
+int relay_xdp_filter( struct xdp_md * ctx );
+
+// non-XDP mode: this socket IS the datapath. each received UDP payload is wrapped in a
+// synthetic ETH/IP/UDP frame and run through relay_xdp_filter() -- the exact datapath
+// source the XDP kernel program compiles from. XDP_TX becomes a sendto to the frame's
+// rewritten destination; XDP_PASS hands the payload to the pong processing in the loop
+// below (the userspace analog of the kernel delivering a passed packet to this socket);
+// everything else drops. returns the payload size to pass through, or 0 if consumed.
+static int userspace_datapath_packet( struct ping_t * ping, uint32_t from_address, uint16_t from_port, uint8_t * packet_data, int packet_bytes )
+{
+#if RELAY_TEST
+    if ( ping->fake_packet_loss_percent > 0.0f )
+    {
+        if ( ping->fake_packet_loss_start_time < 0.0f || relay_platform_time() >= ping->fake_packet_loss_start_time )
+        {
+            if ( ( (float) rand() / (float) RAND_MAX ) * 100.0f < ping->fake_packet_loss_percent )
+                return 0;
+        }
+    }
+#endif // #if RELAY_TEST
+
+    uint8_t frame[sizeof(struct ethhdr) + sizeof(struct iphdr) + sizeof(struct udphdr) + RELAY_MAX_PACKET_BYTES];
+
+    if ( packet_bytes > RELAY_MAX_PACKET_BYTES )
+        return 0;
+
+    struct ethhdr * eth = (struct ethhdr*) frame;
+    struct iphdr * ip = (struct iphdr*) ( frame + sizeof(struct ethhdr) );
+    struct udphdr * udp = (struct udphdr*) ( frame + sizeof(struct ethhdr) + sizeof(struct iphdr) );
+
+    memset( eth->h_dest, 0x22, ETH_ALEN );
+    memset( eth->h_source, 0x11, ETH_ALEN );
+    eth->h_proto = us_htons( ETH_P_IP );
+
+    memset( ip, 0, sizeof(struct iphdr) );
+    ip->ihl = 5;
+    ip->version = 4;
+    ip->tot_len = us_htons( (uint16_t) ( sizeof(struct iphdr) + sizeof(struct udphdr) + packet_bytes ) );
+    ip->ttl = 64;
+    ip->protocol = IPPROTO_UDP;
+    ip->saddr = us_htonl( from_address );
+    // NOTE: recvfrom does not expose which local address the packet was sent to, so the
+    // frame is synthesized as if it arrived on the public address. fine wherever public
+    // and internal addresses are the same (functional tests, local dev); a userspace
+    // relay serving distinct internal traffic needs IP_PKTINFO here.
+    ip->daddr = us_htonl( ping->relay_public_address );
+
+    udp->source = us_htons( from_port );
+    udp->dest = us_htons( (uint16_t) ping->relay_port );
+    udp->len = us_htons( (uint16_t) ( sizeof(struct udphdr) + packet_bytes ) );
+    udp->check = 0;
+
+    memcpy( frame + sizeof(struct ethhdr) + sizeof(struct iphdr) + sizeof(struct udphdr), packet_data, packet_bytes );
+
+    struct xdp_md ctx;
+    memset( &ctx, 0, sizeof(ctx) );
+    ctx.data = (__u64) (long) frame;
+    ctx.data_end = (__u64) (long) ( frame + sizeof(struct ethhdr) + sizeof(struct iphdr) + sizeof(struct udphdr) + packet_bytes );
+
+    us_maps_lock();
+    int verdict = relay_xdp_filter( &ctx );
+    us_maps_unlock();
+
+    if ( verdict == XDP_TX )
+    {
+        // the datapath rewrote the frame in place (and may have moved data / data_end).
+        // send the udp payload to the rewritten destination through the same socket.
+        uint8_t * data = (uint8_t*) (long) ctx.data;
+        uint8_t * data_end = (uint8_t*) (long) ctx.data_end;
+        struct iphdr * out_ip = (struct iphdr*) ( data + sizeof(struct ethhdr) );
+        struct udphdr * out_udp = (struct udphdr*) ( data + sizeof(struct ethhdr) + sizeof(struct iphdr) );
+        uint8_t * payload = data + sizeof(struct ethhdr) + sizeof(struct iphdr) + sizeof(struct udphdr);
+        int payload_bytes = (int) ( data_end - payload );
+        if ( payload_bytes > 0 )
+        {
+            relay_platform_socket_send_packet( ping->socket, relay_ntohl( out_ip->daddr ), relay_ntohs( out_udp->dest ), payload, payload_bytes );
+        }
+        return 0;
+    }
+
+    if ( verdict == XDP_PASS )
+        return packet_bytes;
+
+    return 0; // XDP_DROP / XDP_ABORTED
+}
+
+#endif // #ifdef RELAY_USERSPACE
+
+// --------------------------------------------------------------------------------------------------------------------------------------------------
+
 extern bool quit;
 
 void * ping_thread_function( void * context )
@@ -218,6 +351,19 @@ void * ping_thread_function( void * context )
         int packet_bytes = relay_platform_socket_receive_packet( ping->socket, &from_address, &from_port, packet_data, sizeof(packet_data) );
 
         double current_time = relay_platform_time();
+
+#ifdef RELAY_USERSPACE
+
+        // run every received packet through the datapath first (XDP does this in the
+        // kernel before packets can reach this socket; here it is a function call).
+        // only packets the datapath PASSes (relay pongs) flow through to the code below.
+
+        if ( packet_bytes > 0 )
+        {
+            packet_bytes = userspace_datapath_packet( ping, from_address, from_port, packet_data, packet_bytes );
+        }
+
+#endif // #ifdef RELAY_USERSPACE
 
         // process relay pong packets immediately
 
@@ -255,11 +401,18 @@ void * ping_thread_function( void * context )
                     printf( "-------------------------------------------------------\n" );
                     for ( int i = 0; i < message->new_relays.num_relays; i++ )
                     {
-#ifdef COMPILE_WITH_BPF
+#if defined(COMPILE_WITH_BPF) || defined(RELAY_USERSPACE)
                         __u64 key = ( ( (__u64)relay_htonl(message->new_relays.address[i]) ) << 32 ) | relay_htons(message->new_relays.port[i]);
                         __u64 value = 1;
+#endif // #if defined(COMPILE_WITH_BPF) || defined(RELAY_USERSPACE)
+#if defined(RELAY_USERSPACE)
+                        us_maps_lock();
+                        long update_result = bpf_map_update_elem( &relay_map, &key, &value, BPF_NOEXIST );
+                        us_maps_unlock();
+                        if ( update_result == 0 )
+#elif defined(COMPILE_WITH_BPF)
                         if ( bpf_map_update_elem( ping->relay_map_fd, &key, &value, BPF_NOEXIST ) == 0 )
-#endif // #ifdef COMPILE_WITH_BPF
+#endif // #if defined(RELAY_USERSPACE)
                         {
                             printf( "new relay %d.%d.%d.%d:%d\n", 
                                 ((uint8_t*)&message->new_relays.address[i])[3], 
@@ -279,11 +432,17 @@ void * ping_thread_function( void * context )
                     printf( "-------------------------------------------------------\n" );
                     for ( int i = 0; i < message->delete_relays.num_relays; i++ )
                     {
-#ifdef COMPILE_WITH_BPF
+#if defined(COMPILE_WITH_BPF) || defined(RELAY_USERSPACE)
                         __u64 key = ( ( (__u64)relay_htonl(message->delete_relays.address[i]) ) << 32 ) | relay_htons(message->delete_relays.port[i]);
-                        __u64 value = 1;
+#endif // #if defined(COMPILE_WITH_BPF) || defined(RELAY_USERSPACE)
+#if defined(RELAY_USERSPACE)
+                        us_maps_lock();
+                        long delete_result = bpf_map_delete_elem( &relay_map, &key );
+                        us_maps_unlock();
+                        if ( delete_result == 0 )
+#elif defined(COMPILE_WITH_BPF)
                         if ( bpf_map_delete_elem( ping->relay_map_fd, &key ) == 0 )
-#endif // #ifdef COMPILE_WITH_BPF
+#endif // #if defined(RELAY_USERSPACE)
                         {
                             printf( "delete relay %d.%d.%d.%d:%d\n", 
                                 ((uint8_t*)&message->delete_relays.address[i])[3], 

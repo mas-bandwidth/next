@@ -7,6 +7,7 @@
 
 #include "relay.h"
 #include <stdlib.h>
+#include <string.h>
 
 struct relay_queue_t
 {

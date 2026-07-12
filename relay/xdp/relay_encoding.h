@@ -189,6 +189,8 @@ inline bool relay_read_address( const uint8_t ** p, uint32_t * address, uint16_t
     *port = relay_read_uint16( p );
 
     *address = ntohl( *address );
+
+    return true;
 }
 
 #endif // #ifndef RELAY_ENCODING_H

@@ -54,10 +54,18 @@ const TestRelayPrivateKey = "cwvK44Pr5aHI3vE3siODS7CUgdPI/l1VwjVZ2FvEyAo="
 const TestRelayBackendPublicKey = "IsjRpWEz9H7qslhWWupW4A9LIpVh+PzWoLleuXL1NUE="
 const TestRelayBackendPrivateKey = "qXeUdLPZxaMnZ/zFHLHkmgkQOmunWq1AmRv55nqTYMg="
 
-const (
-	relayBin   = "./relay-debug"
-	backendBin = "./func_backend"
-)
+const backendBin = "./func_backend"
+
+// RELAY_BIN selects the relay binary under test: the reference relay by default, or the
+// userspace-mode XDP relay ("./relay-userspace-debug") for the consolidation gate. see
+// relay/CONSOLIDATION.md.
+var relayBin = "./relay-debug"
+
+func init() {
+	if v := os.Getenv("RELAY_BIN"); v != "" {
+		relayBin = v
+	}
+}
 
 type RelayConfig struct {
 	fake_packet_loss_percent          float32
@@ -198,6 +206,64 @@ func backend(mode string) (*exec.Cmd, *common.Buffer) {
 	cmd.Start()
 
 	return cmd, &output
+}
+
+// whitelistAddress sends valid client ping packets from conn to the relay until the
+// relay responds with a client pong. On the XDP-datapath relay a valid ping is what
+// admits a source address to the whitelist -- production traffic always pings before
+// routing, and every non-ping packet type from a non-whitelisted address is dropped
+// (see relay/CONSOLIDATION.md). The reference relay has no whitelist; for it this is
+// just a harmless ping/pong warmup, so tests call it unconditionally. Must be called
+// BEFORE any goroutine starts reading from conn. Assumes the ZERO_MAGIC backend mode
+// (zero ping key, zero magic) that all packet-crafting tests use.
+func whitelistAddress(conn *net.UDPConn, relayAddress net.UDPAddr) {
+
+	clientPort := conn.LocalAddr().(*net.UDPAddr).Port
+
+	clientAddress := core.ParseAddress(fmt.Sprintf("127.0.0.1:%d", clientPort))
+
+	pingKey := make([]byte, 32)
+
+	sequence := uint64(0)
+
+	deadline := time.Now().Add(30 * time.Second)
+
+	for time.Now().Before(deadline) {
+
+		expireTimestamp := uint64(time.Now().Unix()) + 10
+
+		pingToken := make([]byte, 32)
+
+		clientAddressWithoutPort := clientAddress
+		clientAddressWithoutPort.Port = 0
+
+		core.GeneratePingToken(expireTimestamp, &clientAddressWithoutPort, &relayAddress, pingKey, pingToken)
+
+		packet := make([]byte, 18+8+8+8+32)
+		packet[0] = CLIENT_PING_PACKET
+		binary.LittleEndian.PutUint64(packet[18:], sequence)
+		binary.LittleEndian.PutUint64(packet[18+8:], uint64(0x12345))
+		binary.LittleEndian.PutUint64(packet[18+8+8:], expireTimestamp)
+		copy(packet[18+8+8+8:18+8+8+8+32], pingToken)
+		var magic [constants.MagicBytes]byte
+		fromAddress := core.GetAddressData(&clientAddress)
+		toAddress := core.GetAddressData(&relayAddress)
+		packetLength := len(packet)
+		core.GeneratePittle(packet[1:3], fromAddress[:], toAddress[:], packetLength)
+		core.GenerateChonkle(packet[3:18], magic[:], fromAddress[:], toAddress[:], packetLength)
+		conn.WriteToUDP(packet, &relayAddress)
+		sequence++
+
+		conn.SetReadDeadline(time.Now().Add(250 * time.Millisecond))
+		receiveBuffer := make([]byte, constants.MaxPacketBytes)
+		receivePacketBytes, from, err := conn.ReadFromUDP(receiveBuffer[:])
+		if err == nil && receivePacketBytes == 18+8+8 && receiveBuffer[0] == CLIENT_PONG_PACKET && from.String() == relayAddress.String() {
+			conn.SetReadDeadline(time.Time{})
+			return
+		}
+	}
+
+	panic("could not whitelist address with relay")
 }
 
 // =======================================================================================================================
@@ -1409,6 +1475,8 @@ func test_relay_pong_packet_wrong_size() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
+	whitelistAddress(conn, serverAddress)
+
 	for range 10 {
 		for range 1000 {
 			packet := make([]byte, common.RandomInt(18, constants.MaxPacketBytes))
@@ -1667,6 +1735,8 @@ func test_route_request_packet_wrong_size() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
+	whitelistAddress(conn, serverAddress)
+
 	for range 10 {
 		for range 1000 {
 			packet := make([]byte, common.RandomInt(18, constants.MaxPacketBytes))
@@ -1731,6 +1801,8 @@ func test_route_request_packet_could_not_decrypt_route_token() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
+	whitelistAddress(conn, serverAddress)
+
 	for range 10 {
 		for range 1000 {
 			packet := make([]byte, 18+111*2)
@@ -1794,6 +1866,8 @@ func test_route_request_packet_token_expired() {
 	clientAddress := core.ParseAddress(fmt.Sprintf("127.0.0.1:%d", clientPort))
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
+
+	whitelistAddress(conn, serverAddress)
 
 	testRelayPublicKey := Base64String(TestRelayPublicKey)
 	testRelayPrivateKey := Base64String(TestRelayPrivateKey)
@@ -1868,6 +1942,8 @@ func test_route_request_packet_forward_to_next_hop() {
 	clientAddress := core.ParseAddress(fmt.Sprintf("127.0.0.1:%d", clientPort))
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
+
+	whitelistAddress(conn, serverAddress)
 
 	receivedRouteRequestPacket := false
 
@@ -1967,6 +2043,8 @@ func test_route_response_packet_wrong_size() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
+	whitelistAddress(conn, serverAddress)
+
 	for range 10 {
 		for range 1000 {
 			packet := make([]byte, common.RandomInt(18, constants.MaxPacketBytes))
@@ -2031,6 +2109,8 @@ func test_route_response_packet_could_not_find_session() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
+	whitelistAddress(conn, serverAddress)
+
 	for range 10 {
 		for range 1000 {
 			packet := make([]byte, 18+25)
@@ -2093,6 +2173,8 @@ func test_route_response_packet_already_received() {
 	clientAddress := core.ParseAddress(fmt.Sprintf("127.0.0.1:%d", clientPort))
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
+
+	whitelistAddress(conn, serverAddress)
 
 	// send a route request packet to create a session on the relay
 
@@ -2185,6 +2267,8 @@ func test_route_response_packet_header_did_not_verify() {
 	clientAddress := core.ParseAddress(fmt.Sprintf("127.0.0.1:%d", clientPort))
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
+
+	whitelistAddress(conn, serverAddress)
 
 	// send a route request packet to create a session on the relay
 
@@ -2288,6 +2372,8 @@ func test_route_response_packet_forward_to_previous_hop() {
 	clientAddress := core.ParseAddress(fmt.Sprintf("127.0.0.1:%d", clientPort))
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
+
+	whitelistAddress(conn, serverAddress)
 
 	sessionId := uint64(0x12345)
 	sessionVersion := uint8(0x1)
@@ -2402,6 +2488,8 @@ func test_continue_request_packet_wrong_size() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
+	whitelistAddress(conn, serverAddress)
+
 	for range 10 {
 		for range 1000 {
 			packet := make([]byte, common.RandomInt(18, constants.MaxPacketBytes))
@@ -2466,6 +2554,8 @@ func test_continue_request_packet_could_not_decrypt_continue_token() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
+	whitelistAddress(conn, serverAddress)
+
 	for range 10 {
 		for range 1000 {
 			packet := make([]byte, 18+57*2)
@@ -2529,6 +2619,8 @@ func test_continue_request_packet_token_expired() {
 	clientAddress := core.ParseAddress(fmt.Sprintf("127.0.0.1:%d", clientPort))
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
+
+	whitelistAddress(conn, serverAddress)
 
 	testRelayPublicKey := Base64String(TestRelayPublicKey)
 	testRelayPrivateKey := Base64String(TestRelayPrivateKey)
@@ -2602,6 +2694,8 @@ func test_continue_request_packet_could_not_find_session() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
+	whitelistAddress(conn, serverAddress)
+
 	testRelayPublicKey := Base64String(TestRelayPublicKey)
 	testRelayPrivateKey := Base64String(TestRelayPrivateKey)
 	testRelayBackendPublicKey := Base64String(TestRelayBackendPublicKey)
@@ -2674,6 +2768,8 @@ func test_continue_request_packet_forward_to_next_hop() {
 	clientAddress := core.ParseAddress(fmt.Sprintf("127.0.0.1:%d", clientPort))
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
+
+	whitelistAddress(conn, serverAddress)
 
 	testRelayPublicKey := Base64String(TestRelayPublicKey)
 	testRelayPrivateKey := Base64String(TestRelayPrivateKey)
@@ -2793,6 +2889,8 @@ func test_continue_response_packet_wrong_size() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
+	whitelistAddress(conn, serverAddress)
+
 	for range 10 {
 		for range 1000 {
 			packet := make([]byte, common.RandomInt(18, constants.MaxPacketBytes))
@@ -2857,6 +2955,8 @@ func test_continue_response_packet_could_not_find_session() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
+	whitelistAddress(conn, serverAddress)
+
 	for range 10 {
 		for range 1000 {
 			packet := make([]byte, 18+25)
@@ -2919,6 +3019,8 @@ func test_continue_response_packet_already_received() {
 	clientAddress := core.ParseAddress(fmt.Sprintf("127.0.0.1:%d", clientPort))
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
+
+	whitelistAddress(conn, serverAddress)
 
 	// send a route request packet to create a session on the relay
 
@@ -3012,6 +3114,8 @@ func test_continue_response_packet_header_did_not_verify() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
+	whitelistAddress(conn, serverAddress)
+
 	// send a route request packet to create a session on the relay
 
 	testRelayPublicKey := Base64String(TestRelayPublicKey)
@@ -3098,6 +3202,8 @@ func test_continue_response_packet_forward_to_previous_hop() {
 	clientAddress := core.ParseAddress(fmt.Sprintf("127.0.0.1:%d", clientPort))
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
+
+	whitelistAddress(conn, serverAddress)
 
 	sessionId := uint64(0x12345)
 	sessionVersion := uint8(1)
@@ -3212,6 +3318,8 @@ func test_client_to_server_packet_too_small() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
+	whitelistAddress(conn, serverAddress)
+
 	for range 30 {
 		for range 1000 {
 			packet := make([]byte, common.RandomInt(18, 18+25-1))
@@ -3275,6 +3383,8 @@ func test_client_to_server_packet_too_big() {
 	clientAddress := core.ParseAddress(fmt.Sprintf("127.0.0.1:%d", clientPort))
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
+
+	whitelistAddress(conn, serverAddress)
 
 	for range 30 {
 		for range 1000 {
@@ -3340,6 +3450,8 @@ func test_client_to_server_packet_could_not_find_session() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
+	whitelistAddress(conn, serverAddress)
+
 	for range 10 {
 		for range 1000 {
 			packet := make([]byte, 18+25+256)
@@ -3402,6 +3514,8 @@ func test_client_to_server_packet_already_received() {
 	clientAddress := core.ParseAddress(fmt.Sprintf("127.0.0.1:%d", clientPort))
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
+
+	whitelistAddress(conn, serverAddress)
 
 	// send a route request packet to create a session on the relay
 
@@ -3495,6 +3609,8 @@ func test_client_to_server_packet_header_did_not_verify() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
+	whitelistAddress(conn, serverAddress)
+
 	// send a route request packet to create a session on the relay
 
 	testRelayPublicKey := Base64String(TestRelayPublicKey)
@@ -3581,6 +3697,8 @@ func test_client_to_server_packet_forward_to_next_hop() {
 	clientAddress := core.ParseAddress(fmt.Sprintf("127.0.0.1:%d", clientPort))
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
+
+	whitelistAddress(conn, serverAddress)
 
 	sessionId := uint64(0x12345)
 	sessionVersion := uint8(1)
@@ -3721,6 +3839,8 @@ func test_server_to_client_packet_too_small() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
+	whitelistAddress(conn, serverAddress)
+
 	for range 30 {
 		for range 1000 {
 			packet := make([]byte, common.RandomInt(18, 18+25-1))
@@ -3784,6 +3904,8 @@ func test_server_to_client_packet_too_big() {
 	clientAddress := core.ParseAddress(fmt.Sprintf("127.0.0.1:%d", clientPort))
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
+
+	whitelistAddress(conn, serverAddress)
 
 	for range 30 {
 		for range 1000 {
@@ -3849,6 +3971,8 @@ func test_server_to_client_packet_could_not_find_session() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
+	whitelistAddress(conn, serverAddress)
+
 	for range 10 {
 		for range 1000 {
 			packet := make([]byte, 18+25+256)
@@ -3911,6 +4035,8 @@ func test_server_to_client_packet_already_received() {
 	clientAddress := core.ParseAddress(fmt.Sprintf("127.0.0.1:%d", clientPort))
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
+
+	whitelistAddress(conn, serverAddress)
 
 	// send a route request packet to create a session on the relay
 
@@ -4004,6 +4130,8 @@ func test_server_to_client_packet_header_did_not_verify() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
+	whitelistAddress(conn, serverAddress)
+
 	// send a route request packet to create a session on the relay
 
 	testRelayPublicKey := Base64String(TestRelayPublicKey)
@@ -4090,6 +4218,8 @@ func test_server_to_client_packet_forward_to_previous_hop() {
 	clientAddress := core.ParseAddress(fmt.Sprintf("127.0.0.1:%d", clientPort))
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
+
+	whitelistAddress(conn, serverAddress)
 
 	sessionId := uint64(0x12345)
 	sessionVersion := uint8(1)
@@ -4230,6 +4360,8 @@ func test_session_ping_packet_wrong_size() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
+	whitelistAddress(conn, serverAddress)
+
 	for range 10 {
 		for range 1000 {
 			packet := make([]byte, common.RandomInt(18, constants.MaxPacketBytes))
@@ -4294,6 +4426,8 @@ func test_session_ping_packet_could_not_find_session() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
+	whitelistAddress(conn, serverAddress)
+
 	for range 10 {
 		for range 1000 {
 			packet := make([]byte, 18+25+8)
@@ -4356,6 +4490,8 @@ func test_session_ping_packet_already_received() {
 	clientAddress := core.ParseAddress(fmt.Sprintf("127.0.0.1:%d", clientPort))
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
+
+	whitelistAddress(conn, serverAddress)
 
 	// send a route request packet to create a session on the relay
 
@@ -4449,6 +4585,8 @@ func test_session_ping_packet_header_did_not_verify() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
+	whitelistAddress(conn, serverAddress)
+
 	// send a route request packet to create a session on the relay
 
 	testRelayPublicKey := Base64String(TestRelayPublicKey)
@@ -4535,6 +4673,8 @@ func test_session_ping_packet_forward_to_next_hop() {
 	clientAddress := core.ParseAddress(fmt.Sprintf("127.0.0.1:%d", clientPort))
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
+
+	whitelistAddress(conn, serverAddress)
 
 	sessionId := uint64(0x12345)
 	sessionVersion := uint8(1)
@@ -4675,6 +4815,8 @@ func test_session_pong_packet_wrong_size() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
+	whitelistAddress(conn, serverAddress)
+
 	for range 10 {
 		for range 1000 {
 			packet := make([]byte, common.RandomInt(18, constants.MaxPacketBytes))
@@ -4739,6 +4881,8 @@ func test_session_pong_packet_could_not_find_session() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
+	whitelistAddress(conn, serverAddress)
+
 	for range 10 {
 		for range 1000 {
 			packet := make([]byte, 18+25+8)
@@ -4801,6 +4945,8 @@ func test_session_pong_packet_already_received() {
 	clientAddress := core.ParseAddress(fmt.Sprintf("127.0.0.1:%d", clientPort))
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
+
+	whitelistAddress(conn, serverAddress)
 
 	// send a route request packet to create a session on the relay
 
@@ -4894,6 +5040,8 @@ func test_session_pong_packet_header_did_not_verify() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
+	whitelistAddress(conn, serverAddress)
+
 	testRelayPublicKey := Base64String(TestRelayPublicKey)
 	testRelayPrivateKey := Base64String(TestRelayPrivateKey)
 	testRelayBackendPublicKey := Base64String(TestRelayBackendPublicKey)
@@ -4980,6 +5128,8 @@ func test_session_pong_packet_forward_to_previous_hop() {
 	clientAddress := core.ParseAddress(fmt.Sprintf("127.0.0.1:%d", clientPort))
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
+
+	whitelistAddress(conn, serverAddress)
 
 	sessionId := uint64(0x12345)
 	sessionVersion := uint8(1)
@@ -5123,6 +5273,8 @@ func test_session_expired_route_response_packet() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
+	whitelistAddress(conn, serverAddress)
+
 	sessionId := uint64(0x12345)
 	sessionVersion := uint8(1)
 
@@ -5244,6 +5396,8 @@ func test_session_expired_continue_request_packet() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
+	whitelistAddress(conn, serverAddress)
+
 	sessionId := uint64(0x12345)
 	sessionVersion := uint8(1)
 
@@ -5352,6 +5506,8 @@ func test_session_expired_continue_response_packet() {
 	clientAddress := core.ParseAddress(fmt.Sprintf("127.0.0.1:%d", clientPort))
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
+
+	whitelistAddress(conn, serverAddress)
 
 	sessionId := uint64(0x12345)
 	sessionVersion := uint8(1)
@@ -5474,6 +5630,8 @@ func test_session_expired_client_to_server_packet() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
+	whitelistAddress(conn, serverAddress)
+
 	sessionId := uint64(0x12345)
 	sessionVersion := uint8(1)
 
@@ -5595,6 +5753,8 @@ func test_session_expired_server_to_client_packet() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
+	whitelistAddress(conn, serverAddress)
+
 	sessionId := uint64(0x12345)
 	sessionVersion := uint8(1)
 
@@ -5715,6 +5875,8 @@ func test_session_expired_session_ping_packet() {
 	clientAddress := core.ParseAddress(fmt.Sprintf("127.0.0.1:%d", clientPort))
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
+
+	whitelistAddress(conn, serverAddress)
 
 	sessionId := uint64(0x12345)
 	sessionVersion := uint8(1)
@@ -5839,6 +6001,8 @@ func test_session_expired_session_pong_packet() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
+	whitelistAddress(conn, serverAddress)
+
 	sessionId := uint64(0x12345)
 	sessionVersion := uint8(1)
 
@@ -5962,6 +6126,8 @@ func test_relay_backend_stats() {
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
 
+	whitelistAddress(conn, serverAddress)
+
 	testRelayPublicKey := Base64String(TestRelayPublicKey)
 	testRelayPrivateKey := Base64String(TestRelayPrivateKey)
 	testRelayBackendPublicKey := Base64String(TestRelayBackendPublicKey)
@@ -6048,6 +6214,8 @@ func test_relay_backend_counters() {
 	clientAddress := core.ParseAddress(fmt.Sprintf("127.0.0.1:%d", clientPort))
 
 	serverAddress := core.ParseAddress("127.0.0.1:2000")
+
+	whitelistAddress(conn, serverAddress)
 
 	testRelayPublicKey := Base64String(TestRelayPublicKey)
 	testRelayPrivateKey := Base64String(TestRelayPrivateKey)

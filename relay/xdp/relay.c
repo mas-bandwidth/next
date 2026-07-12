@@ -22,9 +22,19 @@
 #include "relay_platform.h"
 #include "relay_main.h"
 #include "relay_ping.h"
-#include "relay_bpf.h"
 #include "relay_config.h"
+
+#ifdef RELAY_USERSPACE
+#include <arpa/inet.h> // must precede relay_userspace.h (guarded stand-in macros)
+#include "relay_userspace.h"
+#include "relay_shared.h"
+#include "relay_constants.h"
+#include <inttypes.h>
+#include <stdlib.h>
+#else // #ifdef RELAY_USERSPACE
+#include "relay_bpf.h"
 #include "relay_debug.h"
+#endif // #ifdef RELAY_USERSPACE
 
 #include <memory.h>
 #include <stdio.h>
@@ -32,7 +42,9 @@
 #include <signal.h>
 
 static struct config_t config;
+#ifndef RELAY_USERSPACE
 static struct bpf_t bpf;
+#endif // #ifndef RELAY_USERSPACE
 #if RELAY_DEBUG
 static struct debug_t debug;
 #else // #if RELAY_DEBUG
@@ -62,7 +74,9 @@ static void cleanup()
 #else // #if RELAY_DEBUG
     ping_shutdown( &ping );
     main_shutdown( &main_data );
+#ifndef RELAY_USERSPACE
     bpf_shutdown( &bpf );
+#endif // #ifndef RELAY_USERSPACE
 #endif // #if RELAY_DEBUG
     fflush( stdout );
 }
@@ -73,6 +87,12 @@ static void cleanup()
 
 int main( int argc, char *argv[] )
 {
+#if RELAY_LOGS
+    // IMPORTANT: stdout must be line buffered so the functional tests can poll relay
+    // debug output through a pipe while the relay is running
+    setvbuf( stdout, NULL, _IOLBF, 0 );
+#endif // #if RELAY_LOGS
+
     relay_platform_init();
 
     printf( "Network Next Relay (%s)\n", RELAY_VERSION );
@@ -95,6 +115,8 @@ int main( int argc, char *argv[] )
 
     fflush( stdout );
 
+#ifndef RELAY_USERSPACE
+
     printf( "Initializing BPF\n" );
 
     fflush( stdout );
@@ -106,6 +128,8 @@ int main( int argc, char *argv[] )
     }
 
     fflush( stdout );
+
+#endif // #ifndef RELAY_USERSPACE
 
 #if RELAY_DEBUG
 
@@ -131,13 +155,19 @@ int main( int argc, char *argv[] )
 
     fflush( stdout );
 
-    if ( main_init( &main_data, &config, &bpf ) != RELAY_OK )
+#ifdef RELAY_USERSPACE
+    struct bpf_t * bpf_ptr = NULL; // userspace mode: the shim maps replace BPF
+#else // #ifdef RELAY_USERSPACE
+    struct bpf_t * bpf_ptr = &bpf;
+#endif // #ifdef RELAY_USERSPACE
+
+    if ( main_init( &main_data, &config, bpf_ptr ) != RELAY_OK )
     {
         cleanup();
         return 1;
     }
 
-    if ( ping_init( &ping, &config, &main_data, &bpf ) != RELAY_OK )
+    if ( ping_init( &ping, &config, &main_data, bpf_ptr ) != RELAY_OK )
     {
         cleanup();
         return 1;
@@ -153,9 +183,46 @@ int main( int argc, char *argv[] )
 
     ping_join_thread( &ping );
 
+#if defined(RELAY_USERSPACE) && RELAY_TEST
+
+    // print counters for the functional tests. safe to read without the maps lock:
+    // the datapath thread has joined, so nothing else touches the maps now.
+
+    if ( getenv( "RELAY_PRINT_COUNTERS" ) )
+    {
+        printf( "\n===========================================================================\n" );
+
+        __u32 zero = 0;
+        struct relay_stats * stats = (struct relay_stats*) bpf_map_lookup_elem( &stats_map, &zero );
+        if ( stats )
+        {
+            // fold in the ping thread's totals, the same way main_update does for the
+            // backend (they are counted outside the datapath's stats map)
+            stats->counters[RELAY_COUNTER_RELAY_PING_PACKET_SENT] += ping.pings_sent;
+            stats->counters[RELAY_COUNTER_PACKETS_SENT] += ping.pings_sent;
+            stats->counters[RELAY_COUNTER_BYTES_SENT] += ping.bytes_sent;
+
+            for ( int i = 0; i < RELAY_NUM_COUNTERS; i++ )
+            {
+                if ( stats->counters[i] != 0 )
+                {
+                    printf( "counter %d: %" PRId64 "\n", i, (int64_t) stats->counters[i] );
+                }
+            }
+        }
+
+        printf( "===========================================================================\n\n" );
+    }
+
+#endif // #if defined(RELAY_USERSPACE) && RELAY_TEST
+
 #endif // #if RELAY_DEBUG
 
     cleanup();
+
+    printf( "Done.\n" );
+
+    fflush( stdout );
 
     return result;
 }

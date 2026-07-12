@@ -157,6 +157,21 @@ long  bpf_map_delete_elem(void *map, const void *key);
 #define BPF_NOEXIST 1
 #define BPF_EXIST 2
 
+// key iteration over a hash map, mirroring bpf_map_get_next_key: NULL or missing key
+// returns the first key, otherwise the key after it; -1 when there are no more.
+// caller must hold the maps lock.
+int us_map_get_next_key(struct us_map *m, const void *key, void *next_key);
+
+// One lock serializes the datapath against the control plane. BPF maps are safe for
+// concurrent kernel/userspace access; the shim maps are not, and the datapath also
+// mutates map values through pointers AFTER lookup (BPF relies on RCU for that).
+// So: the datapath thread holds the lock across each whole relay_xdp_filter() call,
+// and control-plane code holds it around every map operation or iteration. The
+// bpf_map_* functions themselves do NOT lock. Single-threaded harnesses (the corpus
+// test) can ignore the lock entirely.
+void us_maps_lock(void);
+void us_maps_unlock(void);
+
 // the six maps (backing storage defined in relay_userspace.c)
 extern struct us_map config_map;
 extern struct us_map state_map;
@@ -177,9 +192,18 @@ struct chacha20poly1305_crypto;
 int bpf_relay_sha256(void *data, int data__sz, void *output, int output__sz);
 int bpf_relay_xchacha20poly1305_decrypt(void *data, int data__sz, struct chacha20poly1305_crypto *crypto);
 
-// --- debug print -> no-op in userspace (relay_xdp.c's relay_printf is gated on RELAY_LOGS)
+// --- datapath debug print. In BPF builds relay_printf is bpf_printk gated on
+//     RELAY_DEBUG; in userspace builds it is gated on RELAY_LOGS and prints one line
+//     per call to stdout, exactly like the reference relay's relay_printf -- the
+//     functional tests poll these lines. relay_xdp.c skips its own definition under
+//     RELAY_USERSPACE.
 #ifndef relay_printf
+#if RELAY_LOGS
+void us_relay_printf(const char *format, ...);
+#define relay_printf us_relay_printf
+#else
 #define relay_printf(...) do { } while (0)
+#endif
 #endif
 
 #endif // RELAY_USERSPACE_H

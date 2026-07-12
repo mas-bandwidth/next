@@ -129,11 +129,13 @@ struct relay_platform_socket_t * relay_platform_socket_create( uint32_t address,
         return NULL;
     }
 
-    // set don't fragment bit
+    // set don't fragment bit (linux only -- mac has no IP_MTU_DISCOVER)
 
+#ifdef IP_MTU_DISCOVER
     int val = IP_PMTUDISC_DO;
 
     setsockopt( s->handle, IPPROTO_IP, IP_MTU_DISCOVER, &val, sizeof(val) );
+#endif // #ifdef IP_MTU_DISCOVER
 
     // set non-blocking io and receive timeout
 

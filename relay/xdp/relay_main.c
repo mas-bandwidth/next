@@ -7,15 +7,25 @@
 #include "relay_encoding.h"
 #include "relay_platform.h"
 #include "relay_config.h"
-#include "relay_shared.h"
+
+#ifdef RELAY_USERSPACE
+// the shim maps stand in for the BPF maps (see relay/CONSOLIDATION.md). system net
+// headers must come first: relay_userspace.h defines guarded stand-ins (IPPROTO_UDP
+// et al) that must not preempt the glibc definitions.
+#include <arpa/inet.h>
+#include "relay_userspace.h"
+#else // #ifdef RELAY_USERSPACE
 #include "relay_bpf.h"
+#include <bpf/bpf.h>
+#include <bpf/libbpf.h>
+#endif // #ifdef RELAY_USERSPACE
+
+#include "relay_shared.h"
 
 #include <curl/curl.h>
 #include <sodium.h>
 #include <time.h>
 #include <errno.h>
-#include <bpf/bpf.h>
-#include <bpf/libbpf.h>
 #include <inttypes.h>
 #include <math.h>
 
@@ -86,8 +96,8 @@ int main_init( struct main_t * main, struct config_t * config, struct bpf_t * bp
     main->whitelist_map_fd = bpf->whitelist_map_fd;
 #endif // #idef COMPILE_WITH_BPF
 
-#ifdef COMPILE_WITH_BPF
-    
+#if defined(COMPILE_WITH_BPF) || defined(RELAY_USERSPACE)
+
     // set relay config
 
     struct relay_config relay_config;
@@ -103,14 +113,20 @@ int main_init( struct main_t * main, struct config_t * config, struct bpf_t * bp
     relay_config.use_gateway_ethernet_address = config->use_gateway_ethernet_address;
 
     __u32 key = 0;
+#ifdef RELAY_USERSPACE
+    us_maps_lock();
+    int err = (int) bpf_map_update_elem( &config_map, &key, &relay_config, BPF_ANY );
+    us_maps_unlock();
+#else // #ifdef RELAY_USERSPACE
     int err = bpf_map_update_elem( bpf->config_fd, &key, &relay_config, BPF_ANY );
+#endif // #ifdef RELAY_USERSPACE
     if ( err != 0 )
     {
         printf( "\nerror: failed to set relay config: %s\n\n", strerror(errno) );
         return RELAY_ERROR;
     }
 
-#endif // #ifdef COMPILE_WITH_BPF
+#endif // #if defined(COMPILE_WITH_BPF) || defined(RELAY_USERSPACE)
 
     return RELAY_OK;
 }
@@ -159,25 +175,46 @@ int main_run( struct main_t * main )
 
         main->shutting_down = true;
 
-        uint seconds = 0;
-        while ( seconds <= 60 && main_update( main ) == RELAY_OK )
+        int shutdown_time = 60;
+        int shutdown_extra_time = 30;
+
+#if RELAY_TEST
+
+        // IMPORTANT: let the functional tests shrink the shutdown times so test_clean_shutdown runs quickly
+
+        const char * shutdown_time_env = getenv( "RELAY_SHUTDOWN_TIME" );
+        if ( shutdown_time_env )
         {
-            printf( "Shutting down in %d seconds\n", 60 - seconds );
+            shutdown_time = atoi( shutdown_time_env );
+        }
+
+        const char * shutdown_extra_time_env = getenv( "RELAY_SHUTDOWN_EXTRA_TIME" );
+        if ( shutdown_extra_time_env )
+        {
+            shutdown_extra_time = atoi( shutdown_extra_time_env );
+        }
+
+#endif // #if RELAY_TEST
+
+        int seconds = 0;
+        while ( seconds <= shutdown_time && main_update( main ) == RELAY_OK )
+        {
+            printf( "Shutting down in %d seconds\n", shutdown_time - seconds );
             fflush( stdout );
             relay_platform_sleep( 1.0 );
             seconds++;
         }
 
-        if ( seconds < 60 )
+        if ( seconds < shutdown_time )
         {
-            printf( "Sleeping for extra 30 seconds for safety...\n" );
+            printf( "Sleeping for extra %d seconds for safety...\n", shutdown_extra_time );
             fflush( stdout );
-            relay_platform_sleep( 30.0 );
+            relay_platform_sleep( shutdown_extra_time );
         }
 
         printf( "Clean shutdown completed\n" );
 
-        fflush( stdout );        
+        fflush( stdout );
     }
     else
     {
@@ -264,6 +301,92 @@ struct session_stats
     uint64_t envelope_kbps_down;
 };
 
+#ifdef RELAY_USERSPACE
+
+// same sweep as the BPF version below, over the shim maps. RELAY_DISABLE_DESTROY (test
+// builds) skips the deletes but still counts sessions, matching the reference relay.
+struct session_stats main_update_timeouts( struct main_t * main )
+{
+    struct session_stats stats;
+    memset( &stats, 0, sizeof(struct session_stats) );
+
+    bool disable_destroy = false;
+#if RELAY_TEST
+    disable_destroy = getenv( "RELAY_DISABLE_DESTROY" ) != NULL;
+#endif // #if RELAY_TEST
+
+    uint64_t current_timestamp = main->current_timestamp;
+
+    // timeout old sessions in session map
+    {
+        struct session_key current_key;
+        struct session_key next_key;
+
+        us_maps_lock();
+
+        int next_key_result = us_map_get_next_key( &session_map, NULL, &next_key );
+
+        while ( next_key_result == 0 )
+        {
+            memcpy( &current_key, &next_key, sizeof(struct session_key) );
+
+            bool timed_out = false;
+            struct session_data * current_value = (struct session_data*) bpf_map_lookup_elem( &session_map, &current_key );
+            if ( current_value )
+            {
+                stats.session_count++;
+                stats.envelope_kbps_up += current_value->envelope_kbps_up;
+                stats.envelope_kbps_down += current_value->envelope_kbps_down;
+                timed_out = current_value->expire_timestamp < current_timestamp;
+            }
+
+            next_key_result = us_map_get_next_key( &session_map, &current_key, &next_key );
+
+            if ( timed_out && !disable_destroy )
+            {
+                bpf_map_delete_elem( &session_map, &current_key );
+            }
+        }
+
+        us_maps_unlock();
+    }
+
+    // timeout old entries in whitelist map
+    {
+        struct whitelist_key current_key;
+        struct whitelist_key next_key;
+
+        us_maps_lock();
+
+        int next_key_result = us_map_get_next_key( &whitelist_map, NULL, &next_key );
+
+        while ( next_key_result == 0 )
+        {
+            memcpy( &current_key, &next_key, sizeof(struct whitelist_key) );
+
+            bool timed_out = false;
+            struct whitelist_value * current_value = (struct whitelist_value*) bpf_map_lookup_elem( &whitelist_map, &current_key );
+            if ( current_value )
+            {
+                timed_out = current_value->expire_timestamp < current_timestamp;
+            }
+
+            next_key_result = us_map_get_next_key( &whitelist_map, &current_key, &next_key );
+
+            if ( timed_out )
+            {
+                bpf_map_delete_elem( &whitelist_map, &current_key );
+            }
+        }
+
+        us_maps_unlock();
+    }
+
+    return stats;
+}
+
+#else // #ifdef RELAY_USERSPACE
+
 struct session_stats main_update_timeouts( struct main_t * main )
 {
     struct session_stats stats;
@@ -335,6 +458,8 @@ struct session_stats main_update_timeouts( struct main_t * main )
     return stats;
 }
 
+#endif // #ifdef RELAY_USERSPACE
+
 int main_update( struct main_t * main )
 {
     // update timeouts
@@ -346,14 +471,34 @@ int main_update( struct main_t * main )
     uint64_t counters[RELAY_NUM_COUNTERS];
     memset( &counters, 0, sizeof(counters) );
 
-#ifdef COMPILE_WITH_BPF
+#if defined(RELAY_USERSPACE)
+
+    {
+        __u32 key = 0;
+        us_maps_lock();
+        struct relay_stats * values = (struct relay_stats*) bpf_map_lookup_elem( &stats_map, &key );
+        if ( values )
+        {
+            for ( int j = 0; j < RELAY_NUM_COUNTERS; j++ )
+            {
+                counters[j] = values->counters[j];
+            }
+        }
+        us_maps_unlock();
+    }
+
+    counters[RELAY_COUNTER_SESSIONS] = stats.session_count;
+    counters[RELAY_COUNTER_ENVELOPE_KBPS_UP] = stats.envelope_kbps_up;
+    counters[RELAY_COUNTER_ENVELOPE_KBPS_DOWN] = stats.envelope_kbps_down;
+
+#elif defined(COMPILE_WITH_BPF)
 
     unsigned int num_cpus = libbpf_num_possible_cpus();
 
     struct relay_stats values[num_cpus];
 
     int key = 0;
-    if ( bpf_map_lookup_elem( main->stats_fd, &key, values ) != 0 ) 
+    if ( bpf_map_lookup_elem( main->stats_fd, &key, values ) != 0 )
     {
         printf( "error: could not look up relay stats: %s\n", strerror( errno ) );
         fflush( stdout );
@@ -372,7 +517,7 @@ int main_update( struct main_t * main )
     counters[RELAY_COUNTER_ENVELOPE_KBPS_UP] = stats.envelope_kbps_up;
     counters[RELAY_COUNTER_ENVELOPE_KBPS_DOWN] = stats.envelope_kbps_down;
 
-#endif // #ifdef COMPILE_WIH_BPF
+#endif // #if defined(RELAY_USERSPACE)
 
     // pump stats messages from ping thread
 
@@ -700,9 +845,9 @@ int main_update( struct main_t * main )
     uint8_t ping_key[RELAY_PING_KEY_BYTES];
     relay_read_bytes( &q, ping_key, RELAY_PING_KEY_BYTES );
 
-#ifdef COMPILE_WITH_BPF
+#if defined(COMPILE_WITH_BPF) || defined(RELAY_USERSPACE)
 
-    // update bpf relay state
+    // update relay state for the datapath
 
     struct relay_state state;
 
@@ -712,8 +857,16 @@ int main_update( struct main_t * main )
     memcpy( state.next_magic, next_magic, 8 );
     memcpy( state.ping_key, ping_key, RELAY_PING_KEY_BYTES );
     {
+#ifdef RELAY_USERSPACE
+        __u32 key = 0;
+        us_maps_lock();
+        long err = bpf_map_update_elem( &state_map, &key, &state, BPF_ANY );
+        us_maps_unlock();
+        if ( err != 0 )
+#else // #ifdef RELAY_USERSPACE
         int key = 0;
         if ( bpf_map_update_elem( main->state_fd, &key, &state, BPF_ANY ) != 0 )
+#endif // #ifdef RELAY_USERSPACE
         {
             printf( "error: failed to update relay state\n" );
             fflush( stdout );
@@ -721,7 +874,7 @@ int main_update( struct main_t * main )
         }
     }
 
-#endif // #ifdef COMPILE_WITH_BPF
+#endif // #if defined(COMPILE_WITH_BPF) || defined(RELAY_USERSPACE)
     
     // stop if the relay queue is full, we can delta relays later and miss nothing
 

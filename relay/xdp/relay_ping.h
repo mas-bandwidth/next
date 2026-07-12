@@ -26,6 +26,8 @@ struct ping_t
     struct relay_platform_mutex_t * stats_mutex;
     int relay_map_fd;
     struct relay_platform_thread_t * thread;
+    float fake_packet_loss_percent;                 // RELAY_USERSPACE test builds only
+    float fake_packet_loss_start_time;              // RELAY_USERSPACE test builds only
 };
 
 struct config_t;

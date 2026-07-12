@@ -110,11 +110,42 @@ answer instead of a release-day surprise.
   kernel == libsodium on this construction is proven by interop; relay_userspace_test.c
   self-tests pin the shim wiring (sha256 known answer = the kernel module's insmod vector,
   encrypt->decrypt round trip, tamper reject) before every corpus run.
-- **Remaining before the reference relay can go:** (b) a userspace socket loop + control
-  plane: recvfrom -> wrap payload in a synthetic frame -> relay_xdp_filter -> sendto, with
-  relay_main.c's backend comms / ping thread driving the userspace maps instead of BPF map
-  fds; (c) a RELAY_USERSPACE build of the relay binary; (d) THE GATE: the full functional
-  suite passing against the userspace relay. Only then delete relay/reference.
+- **Userspace relay binary: WORKING.** `make dist/relay-userspace-debug` builds the full
+  relay (mac + linux): relay.c + relay_config.c + relay_main.c + relay_ping.c + the shim
+  + relay_xdp.c as the datapath. The ping thread's socket IS the datapath: every received
+  packet is wrapped in a synthetic frame and run through relay_xdp_filter() under the
+  maps lock; XDP_TX -> sendto the rewritten destination, XDP_PASS -> the existing pong
+  processing. main_update drives the shim maps (config/state writes, session/whitelist
+  timeout sweeps via us_map_get_next_key, counters from the stats map). RELAY_TEST builds
+  honor RELAY_SHUTDOWN_TIME/EXTRA_TIME, RELAY_PRINT_COUNTERS (counter dump after thread
+  join, ping-thread totals folded in), RELAY_FAKE_PACKET_LOSS_*, RELAY_DISABLE_DESTROY.
+  Verified locally on mac: the relay functional tests pass one-by-one against it
+  (initialize, filters, pings, route/continue/forwarding, session expiry, clean shutdown,
+  cost matrix, backend stats/counters spot checks) AND the SDK tests genuinely accelerate
+  through it (test_accelerated: PACKET_SENT_NEXT >= 2000, zero fallbacks, repeated runs).
+- **The whitelist is the big behavioral difference vs the reference relay** (production
+  XDP behavior the reference never had): a valid client/server/relay ping is what admits
+  a source address, and forwarding requires the DESTINATION whitelisted too. Three things
+  follow, all landed:
+  (1) packet-crafting relay tests prime the whitelist first (whitelistAddress helper in
+  func_test_relay.go -- a valid zero-key client ping; harmless warmup on the reference);
+  (2) func_backend now sends TestPingKey in relay updates (it sent a ZERO ping key
+  forever -- client/server ping tokens NEVER verified; the reference relay didn't care,
+  the whitelist does; ZERO_MAGIC mode keeps the zero key for the crafted-packet tests);
+  (3) func_backend never answers client/server relay requests with zero relays (harness
+  starts everything at once; a zero-relay answer meant the client never pinged, was never
+  whitelisted, and every route request dropped -- the SDK retries for 5s, relays register
+  within ~2s). RELAY_BIN env selects the relay binary in both func_test_relay and
+  func_test_sdk (default ./relay-debug).
+- **Datapath behavior aligned with the reference where the XDP relay had gaps** (see
+  commit 'XDP datapath: per-packet session expiry checks'): per-packet session expiry
+  drops in all seven session handlers + SESSION_CREATED/SESSION_CONTINUED counters --
+  the counters existed and were reported but never incremented.
+- **Remaining for THE GATE:** wire CI to run the full functional suites against the
+  userspace relay (parallel jobs with RELAY_BIN=./relay-userspace-debug next to the
+  existing reference-relay jobs), get it fully green, then delete relay/reference.
+  Also remaining: benchmark + soak the XDP build on a real box before any relay-*
+  release tag (the session-expiry check touches the shipped BPF program).
 - **Optional: reference-relay differential** (fire the corpus at the reference relay over
   UDP) -- nice extra confidence, but the userspace relay passing the functional suite is
   the real gate for deletion.
