@@ -150,6 +150,39 @@ that fact is stale — reverify.
   pins node 24 via sem-version. Verified old-vs-new builds render char-for-char identical
   against an auth-checking mock API (948 requests, all authenticated).
 
+### Closed 2026-07-12, third batch (optimizer merge + unit test flake hunt)
+
+- **Optimize and Optimize2 are MERGED into one function, ~2x faster at production scale**
+  (`83350d8bf`, fully green on test-257). One `Optimize(..., destinationRelay []bool)`;
+  nil = all pairs. Correctness pinned bit-for-bit by `TestOptimizeDifferential` against
+  verbatim pre-merge reference copies in `optimize_reference_test.go` (kept in tree — any
+  future optimizer change must stay identical, tie ordering included). Perf: square cost
+  matrix replaces TriMatrixIndex in phase 1, stable top-8 selection replaces
+  sort.SliceStable, AddRoute loop check replaces its per-call map, atomic row counter
+  replaces fixed row ranges (uneven per-row work). 1000 relays 10% dest: 21.4ms -> 10.8ms.
+  `BenchmarkOptimize*` in tree; benchstat before touching this function. One deliberate
+  unification: old Optimize2 could emit routes with cost >= direct in the i->(x)->k->j
+  case (partial-cost filter bug); merged code filters all cases on full path cost.
+- **Two flaky handler unit tests fixed** (`191a5914c`, green on test-258; suite flake rate
+  ~10% -> ~0.5% on a 32-thread machine). (1) RealOutOfOrder: random session data version 8
+  left PrevPacketsOutOfOrder* random and unpinned -> uint64 delta wrap. Lesson: any test
+  building on GenerateRandomSessionData must pin EVERY field its assertions depend on,
+  including version-gated ones. (2) CreateState never set StaleDuration -> stale check was
+  `CreatedAt + 0 < now`, tripping on wall-clock second ticks (the second-boundary class
+  again). Unit tests now print `random seed = N` (TestMain in modules/handlers) and
+  GenerateRandomSessionData draws only from the seedable common.Random* source —
+  reproduce with `TEST_SEED=N go test -run <TestName> ./modules/handlers/`.
+- **Known residual flake, ~1 in 200 full-suite runs, NOT understood yet**: a route token
+  (always token 0, the client token) fails to decrypt in one of the MakeRouteDecision
+  tests. Exonerated by targeted stress (zero failures): the AEAD/token path (640k
+  concurrent round-trips), the full MakeRouteDecision+decrypt flow (64k concurrent
+  iterations), 3000 isolated runs of the affected test, and `-race`. It only occurs in
+  the full parallel suite (which spawns real UDP servers in SDK tests). Captured keys
+  look valid (32 bytes, non-nil) and replay confirms genuine key mismatch at write vs
+  read. Every token read loop now dumps index+key+token on failure — if you see it,
+  grab that output; do not chase it blind (several hours already spent). No evidence of
+  a production bug: relays decrypt these tokens constantly in the functional suite.
+
 ### Closed 2026-07-12, second batch (guard + CI cache + Makefile + middleware dedupe)
 
 All validated fully green on test-256 (Build, SDK Tests, Functional Tests, Happy Path):
@@ -274,10 +307,10 @@ undocumented invariants are where the bugs live in this codebase.
   are hand-implemented in Go (`modules/core`, `modules/packets`), the C++ SDK, the reference
   relay, and the XDP relay, kept in sync by convention and functional tests only. This is the
   single biggest ongoing tax and the most likely source of subtle future bugs.
-- **Copy-paste divergence.** `Optimize` vs `Optimize2` are ~230 nearly-identical lines (the bug
-  above exists in both); the reference relay is a 6.6k-line single file. The one-author
+- **Copy-paste divergence.** The reference relay is a 6.6k-line single file. The one-author
   style makes this workable, but every duplicated block is a place where a fix lands once.
-  (The `cmd/api` auth middleware clones were deduped in `ff09fe321`.)
+  (The two big ones are gone: `Optimize`/`Optimize2` merged in `83350d8bf`, the `cmd/api`
+  auth middleware clones deduped in `ff09fe321`.)
 - **Sparse comments exactly where they'd pay off.** The route optimizer's invariants (what
   `working` holds, why stored cost is trusted in phase 2) are undocumented — which is precisely
   where the confirmed bug lived for 2.5 years. Mechanical code doesn't need comments; the
