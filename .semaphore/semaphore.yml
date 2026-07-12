@@ -159,16 +159,18 @@ blocks:
             # install location varies and is outside the ldconfig paths
             - cd ../xdp && gcc -O2 -o prog_test_run prog_test_run.c ../../xdp-tools-1.4.2/lib/libbpf/src/libbpf.a -lelf -lz
             - sudo ./prog_test_run relay_xdp.o
-            # relay conformance differential: fire the relaycorpus packet corpus at the
-            # real relay_xdp.o and check every verdict against the Go oracle. see
-            # modules/relaycorpus and relay/CONSOLIDATION.md.
+            # relay conformance differential: fire the relaycorpus corpus (world + packets)
+            # at the real relay_xdp.o via BPF_PROG_RUN and check every entry's XDP action
+            # and counter against the Go oracle. covers the stateful handlers -- tokens,
+            # sessions, whitelist -- not just the filters. see modules/relaycorpus and
+            # relay/CONSOLIDATION.md.
             - gcc -O2 -o relay_corpus_diff relay_corpus_diff.c ../../xdp-tools-1.4.2/lib/libbpf/src/libbpf.a -lelf -lz
             - ( cd ../.. && go run ./cmd/relaycorpus_gen relay/xdp/corpus.bin )
             - sudo ./relay_corpus_diff relay_xdp.o corpus.bin
             # relay consolidation: prove the SAME datapath source (relay_xdp.c) compiled as
             # userspace C (non-BPF, -DRELAY_USERSPACE + relay_userspace.h) produces identical
-            # verdicts on the corpus. this is the userspace relay mode that replaced the
-            # reference relay -- one relay source. no BPF needed to build or run this.
+            # action+counter outcomes on the same corpus. this is the userspace relay mode
+            # that replaced the reference relay -- one relay source. no BPF needed to run it.
             - make userspace-test
             - ./relay_userspace_test corpus.bin
             # windows build of the userspace relay (dev/test only, never production --

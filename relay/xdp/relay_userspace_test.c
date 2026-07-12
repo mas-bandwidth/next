@@ -1,17 +1,23 @@
 /*
-    Local conformance test for the userspace build of relay_xdp.c.
+    Conformance test for the userspace build of relay_xdp.c.
 
-    Fires the relaycorpus packet corpus at the userspace-compiled relay_xdp_filter() and
-    checks every verdict against the oracle in the corpus file -- exactly what
-    relay_corpus_diff.c does against the real relay_xdp.o via BPF_PROG_RUN in CI, but here
-    the datapath runs as a plain function call, so it builds and runs on mac with no BPF.
-    Zero mismatches proves the single datapath source behaves identically compiled as
-    userspace. Usage: relay_userspace_test <corpus.bin>
+    Loads the relaycorpus WORLD (relay config, state, and the relay/whitelist/session
+    maps) into the shim maps, then fires every corpus entry at the userspace-compiled
+    relay_xdp_filter() and checks the XDP return value and the expected counter against
+    the corpus. The mutable maps are reset to the world before each entry, so entries
+    are order-independent. This is the userspace half of the three-way differential --
+    relay_corpus_diff.c does the same against the real relay_xdp.o via BPF_PROG_RUN, and
+    both must agree with the Go oracle in modules/relaycorpus. Zero mismatches proves the
+    single datapath source behaves identically compiled as userspace, through the
+    stateful handlers (tokens, sessions, whitelist), not just the filters.
+
+    Usage: relay_userspace_test <corpus.bin>
 */
 
 #include "relay_userspace.h"
 #include "relay_constants.h"
 #include "relay_shared.h"
+#include "relay_corpus.h"
 
 #include <sodium.h>
 
@@ -75,26 +81,11 @@ static int crypto_self_test(void) {
 	return 0;
 }
 
-#define COUNTER_BASIC      4
-#define COUNTER_ADVANCED   5
-#define COUNTER_TOO_SMALL  121
-
-#define V_DROP_BASIC 0
-#define V_DROP_ADVANCED 1
-#define V_PASS 2
-#define V_DROP_SIZE 3
-
-static const char *vname(int v) {
-	switch (v) { case V_DROP_BASIC: return "drop-basic"; case V_DROP_ADVANCED: return "drop-advanced";
-		case V_PASS: return "pass"; case V_DROP_SIZE: return "drop-size"; }
-	return "?";
-}
-
-static int put_u32be(unsigned char *p, unsigned int v) { p[0]=v>>24; p[1]=v>>16; p[2]=v>>8; p[3]=v; return 4; }
 static int put_u16be(unsigned char *p, unsigned int v) { p[0]=v>>8; p[1]=v; return 2; }
 
-static int build_frame(unsigned char *out, const unsigned char from[4], const unsigned char to[4],
-                       unsigned short dport, const unsigned char *payload, int payload_len) {
+static int build_frame(unsigned char *out, const unsigned char from[4], unsigned short sport,
+                       const unsigned char to[4], unsigned short dport,
+                       const unsigned char *payload, int payload_len) {
 	int o = 0;
 	memset(out + o, 0x11, 6); o += 6;
 	memset(out + o, 0x22, 6); o += 6;
@@ -106,12 +97,93 @@ static int build_frame(unsigned char *out, const unsigned char from[4], const un
 	o += put_u16be(out + o, 0);
 	out[o++] = from[0]; out[o++] = from[1]; out[o++] = from[2]; out[o++] = from[3];
 	out[o++] = to[0];   out[o++] = to[1];   out[o++] = to[2];   out[o++] = to[3];
-	o += put_u16be(out + o, 12345);
+	o += put_u16be(out + o, sport);
 	o += put_u16be(out + o, dport);
 	o += put_u16be(out + o, 8 + payload_len);
 	o += put_u16be(out + o, 0);
 	if (payload_len > 0) { memcpy(out + o, payload, payload_len); o += payload_len; }
 	return o;
+}
+
+// address helpers: the relay stores addresses/ports in maps in network order (see the
+// datapath -- ip->saddr is htonl(quad), udp->source is htons(port)). match that so the
+// preloaded maps key exactly the way the datapath looks them up.
+static __u32 addr_quad(const __u8 a[4]) { return ((__u32)a[0] << 24) | ((__u32)a[1] << 16) | ((__u32)a[2] << 8) | a[3]; }
+static __u32 net_addr(const __u8 a[4]) { return us_htonl(addr_quad(a)); }
+
+static struct corpus g_corpus;
+
+// load the immutable relay config + state from the world (done once).
+static void load_config_and_state(void) {
+	int zero = 0;
+
+	struct relay_config config;
+	memset(&config, 0, sizeof(config));
+	config.relay_public_address = net_addr(g_corpus.relay_public_address);
+	config.relay_internal_address = net_addr(g_corpus.relay_internal_address);
+	config.relay_port = us_htons(g_corpus.relay_port);
+	memcpy(config.relay_secret_key, g_corpus.secret_key, RELAY_SECRET_KEY_BYTES);
+	bpf_map_update_elem(&config_map, &zero, &config, BPF_ANY);
+
+	struct relay_state state;
+	memset(&state, 0, sizeof(state));
+	state.current_timestamp = g_corpus.timestamp;
+	memcpy(state.current_magic, g_corpus.current_magic, 8);
+	memcpy(state.previous_magic, g_corpus.previous_magic, 8);
+	memcpy(state.next_magic, g_corpus.next_magic, 8);
+	memcpy(state.ping_key, g_corpus.ping_key, RELAY_PING_KEY_BYTES);
+	bpf_map_update_elem(&state_map, &zero, &state, BPF_ANY);
+}
+
+// reset the mutable maps (relay / whitelist / session) to the world. handlers create
+// and delete entries, so this runs before every corpus entry to isolate them.
+static void reset_world_maps(void) {
+	us_maps_reset();
+	load_config_and_state();
+
+	for (int i = 0; i < g_corpus.num_relays; i++) {
+		__u64 key = (((__u64)net_addr(g_corpus.relays[i].address)) << 32) | us_htons(g_corpus.relays[i].port);
+		__u64 value = 1;
+		bpf_map_update_elem(&relay_map, &key, &value, BPF_ANY);
+	}
+
+	for (int i = 0; i < g_corpus.num_whitelist; i++) {
+		struct whitelist_key key;
+		memset(&key, 0, sizeof(key));
+		key.address = net_addr(g_corpus.whitelist[i].address);
+		key.port = us_htons(g_corpus.whitelist[i].port);
+		struct whitelist_value value;
+		memset(&value, 0, sizeof(value));
+		value.expire_timestamp = g_corpus.whitelist[i].expire_timestamp;
+		bpf_map_update_elem(&whitelist_map, &key, &value, BPF_ANY);
+	}
+
+	for (int i = 0; i < g_corpus.num_sessions; i++) {
+		struct corpus_session *cs = &g_corpus.sessions[i];
+		struct session_key key;
+		memset(&key, 0, sizeof(key));
+		key.session_id = cs->id;
+		key.session_version = cs->version;
+
+		struct session_data value;
+		memset(&value, 0, sizeof(value));
+		memcpy(value.session_private_key, cs->private_key, RELAY_SESSION_PRIVATE_KEY_BYTES);
+		value.expire_timestamp = cs->expire_timestamp;
+		value.session_id = cs->id;
+		value.payload_client_to_server_sequence = cs->payload_client_to_server_sequence;
+		value.payload_server_to_client_sequence = cs->payload_server_to_client_sequence;
+		value.special_client_to_server_sequence = cs->special_client_to_server_sequence;
+		value.special_server_to_client_sequence = cs->special_server_to_client_sequence;
+		value.next_address = net_addr(cs->next_address);
+		value.prev_address = net_addr(cs->prev_address);
+		value.next_port = us_htons(cs->next_port);
+		value.prev_port = us_htons(cs->prev_port);
+		value.session_version = cs->version;
+		value.next_internal = cs->next_internal;
+		value.prev_internal = cs->prev_internal;
+		value.first_hop = cs->first_hop;
+		bpf_map_update_elem(&session_map, &key, &value, BPF_ANY);
+	}
 }
 
 static __u64 read_counter(int index) {
@@ -120,57 +192,30 @@ static __u64 read_counter(int index) {
 	return stats ? stats->counters[index] : 0;
 }
 
+static const char *action_name(int a) {
+	switch (a) { case CORPUS_ACTION_DROP: return "DROP"; case CORPUS_ACTION_PASS: return "PASS";
+		case CORPUS_ACTION_TX: return "TX"; case CORPUS_ACTION_ANY: return "ANY"; }
+	return "?";
+}
+
 int main(int argc, char **argv) {
 	if (argc < 2) { fprintf(stderr, "usage: %s <corpus.bin>\n", argv[0]); return 2; }
 
 	if (sodium_init() == -1) { fprintf(stderr, "FAIL: sodium_init\n"); return 2; }
 	if (crypto_self_test() != 0) return 1;
 
-	FILE *f = fopen(argv[1], "rb");
-	if (!f) { fprintf(stderr, "FAIL: open corpus\n"); return 2; }
-	fseek(f, 0, SEEK_END); long fsz = ftell(f); fseek(f, 0, SEEK_SET);
-	unsigned char *corpus = malloc(fsz);
-	if (fread(corpus, 1, fsz, f) != (size_t)fsz) { fprintf(stderr, "FAIL: read\n"); return 2; }
-	fclose(f);
-	if (memcmp(corpus, "RLYC", 4) != 0) { fprintf(stderr, "FAIL: bad magic\n"); return 2; }
-	unsigned int count = corpus[8] | (corpus[9]<<8) | (corpus[10]<<16) | (corpus[11]<<24);
-
-	// config: relay at 127.0.0.1:40000, distinct internal address. corpus magic from entry 0.
-	int zero = 0;
-	struct relay_config config;
-	memset(&config, 0, sizeof(config));
-	config.relay_public_address = us_htonl(0x7f000001);
-	config.relay_internal_address = us_htonl(0x0a010101);
-	config.relay_port = us_htons(40000);
-	bpf_map_update_elem(&config_map, &zero, &config, BPF_ANY);
-
-	unsigned char *corpus_magic = corpus + 12 + 1 + 4 + 4;
-	struct relay_state state;
-	memset(&state, 0, sizeof(state));
-	memcpy(state.current_magic, corpus_magic, 8);
-	for (int i = 0; i < 8; i++) { state.previous_magic[i] = corpus_magic[i] ^ 0xAA; state.next_magic[i] = corpus_magic[i] ^ 0x55; }
-	bpf_map_update_elem(&state_map, &zero, &state, BPF_ANY);
+	if (corpus_parse(argv[1], &g_corpus) != 0) return 2;
 
 	unsigned char frame[2048];
 	unsigned int mismatches = 0, checked = 0;
-	unsigned int by_verdict[4] = {0,0,0,0};
+	unsigned int drops = 0, txs = 0, passes = 0;
 
-	unsigned char *p = corpus + 12;
-	for (unsigned int i = 0; i < count; i++) {
-		int verdict = p[0];
-		unsigned char from[4], to[4];
-		memcpy(from, p + 1, 4);
-		memcpy(to, p + 5, 4);
-		int plen = p[17] | (p[18] << 8);
-		unsigned char *packet = p + 19;
-		p = packet + plen;
+	for (unsigned int i = 0; i < g_corpus.count; i++) {
+		struct corpus_entry *e = &g_corpus.entries[i];
 
-		int flen = build_frame(frame, from, to, 40000, packet, plen);
+		reset_world_maps();
 
-		// reset only the per-run counters (config/state persist); maps stay empty
-		int z = 0;
-		struct relay_stats *stats = (struct relay_stats *)bpf_map_lookup_elem(&stats_map, &z);
-		memset(stats, 0, sizeof(*stats));
+		int flen = build_frame(frame, e->from, e->from_port, e->to, e->to_port, e->packet, e->packet_len);
 
 		struct xdp_md ctx;
 		memset(&ctx, 0, sizeof(ctx));
@@ -179,30 +224,35 @@ int main(int argc, char **argv) {
 
 		int retval = relay_xdp_filter(&ctx);
 
-		__u64 size_d = read_counter(COUNTER_TOO_SMALL);
-		__u64 basic_d = read_counter(COUNTER_BASIC);
-		__u64 adv_d = read_counter(COUNTER_ADVANCED);
+		// counter check
+		int counter_ok = 1;
+		if (e->expected_counter == CORPUS_COUNTER_NOT_DROPPED_GUARDS) {
+			counter_ok = read_counter(CORPUS_COUNTER_TOO_SMALL) == 0 &&
+			             read_counter(CORPUS_COUNTER_BASIC) == 0 &&
+			             read_counter(CORPUS_COUNTER_ADVANCED) == 0;
+		} else if (e->expected_counter != CORPUS_COUNTER_ANY) {
+			counter_ok = read_counter(e->expected_counter) > 0;
+		}
 
-		int got;
-		if (size_d > 0) got = V_DROP_SIZE;
-		else if (basic_d > 0) got = V_DROP_BASIC;
-		else if (adv_d > 0) got = V_DROP_ADVANCED;
-		else got = V_PASS;
-		(void)retval;
+		int action_ok = corpus_action_ok(e->expected_action, retval);
 
 		checked++;
-		if (verdict >= 0 && verdict < 4) by_verdict[verdict]++;
+		if (retval == CORPUS_ACTION_DROP) drops++;
+		else if (retval == CORPUS_ACTION_TX) txs++;
+		else if (retval == CORPUS_ACTION_PASS) passes++;
 
-		if (got != verdict) {
-			if (mismatches < 20)
-				fprintf(stderr, "MISMATCH entry %u: corpus=%s userspace=%s (len=%d type=0x%02x)\n",
-						i, vname(verdict), vname(got), plen, packet[0]);
+		if (!action_ok || !counter_ok) {
+			if (mismatches < 30)
+				fprintf(stderr, "MISMATCH entry %u [%s]: want action=%s counter=%u; got retval=%d action_ok=%d counter_ok=%d (len=%d type=0x%02x)\n",
+						i, e->label, action_name(e->expected_action), e->expected_counter,
+						retval, action_ok, counter_ok, e->packet_len, e->packet[0]);
 			mismatches++;
 		}
 	}
 
-	printf("userspace corpus: %u checked (%u drop-size, %u drop-basic, %u drop-advanced, %u pass), %u mismatches\n",
-	       checked, by_verdict[V_DROP_SIZE], by_verdict[V_DROP_BASIC], by_verdict[V_DROP_ADVANCED], by_verdict[V_PASS], mismatches);
+	printf("userspace corpus: %u checked (%u drop, %u tx, %u pass), %u mismatches\n",
+	       checked, drops, txs, passes, mismatches);
 	printf(mismatches == 0 ? "USERSPACE CORPUS: PASS\n" : "USERSPACE CORPUS: FAIL\n");
+	corpus_free(&g_corpus);
 	return mismatches == 0 ? 0 : 1;
 }

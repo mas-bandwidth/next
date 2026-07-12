@@ -183,7 +183,19 @@ answer instead of a release-day surprise.
 - **Optional: reference-relay differential** (fire the corpus at the reference relay over
   UDP) -- nice extra confidence, but the userspace relay passing the functional suite is
   the real gate for deletion.
-- **Later: stateful corpus surface** -- tokens, sessions; strengthens the differential.
+- **Stateful corpus surface: DONE.** modules/relaycorpus is now v2: the corpus carries a
+  WORLD (relay config, keys, magic, and the relay/whitelist/session map contents) plus
+  ~2442 entries whose expectation is (XDP action, counter), constructed so the outcome
+  follows from the wire protocol. Both drivers load the world into their maps, reset the
+  mutable maps before each entry, and check action+counter: relay_userspace_test.c
+  (mac + CI, 0 mismatches, 16 tx / 2 pass) and relay_corpus_diff.c against the real
+  relay_xdp.o via BPF_PROG_RUN (CI). Shared decode in relay_corpus.h. Coverage: whitelist
+  gate + expired-entry-still-admits, relay/client/server ping token verify (sha256, both
+  dest addresses), relay pong, route/continue token decrypt (xchacha) with create /
+  extend / expire / bad-token / unknown-session / next-hop-not-whitelisted, and all six
+  header handlers (session lookup, per-packet expiry, replay, header verify, forward).
+  This is the three-way Go-oracle == userspace == BPF-object equivalence over the WHOLE
+  datapath, now that relay/reference is gone as the differential oracle.
 
 ## Invariants to preserve (do not regress)
 

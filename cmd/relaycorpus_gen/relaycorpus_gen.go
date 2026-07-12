@@ -2,9 +2,10 @@ package main
 
 // Writes the relay conformance corpus to a file for the C differential drivers.
 // Usage: relaycorpus_gen <output-path> [seed]
-// The target config is fixed here so the C driver knows how to build frames:
-// packet source 10.0.0.1, relay address 127.0.0.1. The magic is seed-derived and
-// embedded per-entry in the file, so the driver reads it rather than hardcoding it.
+// The world (relay config, keys, magic, and the relay/whitelist/session map contents
+// every entry runs against) is serialized into the file ahead of the entries, so the
+// C driver loads it into the relay's maps rather than hardcoding anything. All of it
+// is seed-derived and reproducible. See modules/relaycorpus.
 
 import (
 	"fmt"
@@ -29,14 +30,9 @@ func main() {
 		seed = s
 	}
 
-	cfg := relaycorpus.Config{
-		From:  [4]byte{10, 0, 0, 1},
-		To:    [4]byte{127, 0, 0, 1},
-		Magic: relaycorpus.DefaultConfig(seed).Magic,
-	}
-
-	entries := relaycorpus.Generate(seed, cfg)
-	if err := os.WriteFile(os.Args[1], relaycorpus.Marshal(entries), 0644); err != nil {
+	world := relaycorpus.DefaultWorld(seed)
+	entries := relaycorpus.Generate(seed, world)
+	if err := os.WriteFile(os.Args[1], relaycorpus.Marshal(world, entries), 0644); err != nil {
 		fmt.Fprintf(os.Stderr, "write failed: %v\n", err)
 		os.Exit(1)
 	}
