@@ -136,10 +136,6 @@ that fact is stale — reverify.
   Known structural item — a deliberate hardening project if wanted, not a bug. The portal audit
   below sharpens this: the portal-scope JWT is baked into the public JS bundle, so it protects
   nothing — front the portal with real auth (IAP / LB auth) and add `exp` to tokens if wanted.
-- **CI flake — Build "Sodium" job** wgets libsodium from download.libsodium.org; external-host
-  DNS/network hiccups fail it (seen test-239). Just re-run `./dist/deploy test`. If it recurs,
-  cache the sodium download/build in a Semaphore artifact rather than re-fetching. Do NOT solve it
-  by touching the vendored sdk/sodium/ (see invariant above).
 - **Portal, remaining optional item from the 2026-07-12 audit**: portal JWTs never expire
   (fix is auth in front of the portal + `exp` on tokens — part of the API auth project).
   Everything else landed: quick fixes in `e219d32d3` (`yarn.lock` is COMMITTED — removed from
@@ -153,6 +149,27 @@ that fact is stale — reverify.
   prod builds). Local builds now work on Apple Silicon with plain node >= 22.18; the CI job
   pins node 24 via sem-version. Verified old-vs-new builds render char-for-char identical
   against an auth-checking mock API (948 requests, all authenticated).
+
+### Closed 2026-07-12, second batch (guard + CI cache + Makefile + middleware dedupe)
+
+All validated fully green on test-256 (Build, SDK Tests, Functional Tests, Happy Path):
+
+- **Default-key startup guard** (`2f8739ec1`): services REFUSE to start with `ENV=prod` on any
+  of the nine key values committed to this repo (envs/*.env, docker-compose.yml, staging
+  tfvars) — checked via env vars in CreateService AND buyer public keys in LoadDatabase (a
+  forker's prod database contains the test buyer; that's where the trap bites). dev/staging
+  warn; local is exempt (functional tests + local dev use committed keys by design). The key
+  list lives in `modules/common/default_keys.go` — if a key is ever committed by mistake,
+  rotate it AND add it there. Same commit fixed `next keygen`/`next config` writing stale
+  `VUE_APP_*` vars to `portal/.env.local` (now `VITE_*` to `portal/.env.localhost`).
+- **Sodium CI flake fixed properly** (`41bf3967c`): the built libsodium.so is in the Semaphore
+  cache keyed `libsodium-1.0.18-so`; download.libsodium.org outages no longer fail builds.
+  Bump the version in the cache key to force a rebuild.
+- **relay/module Makefile no longer swallows insmod failures** (`a9aaf8c29`) — the
+  `>/dev/null 2>&1; echo` exit-code laundering is gone; rmmod stays tolerant.
+- **cmd/api auth middlewares deduped** (`ff09fe321`): isAdminAuthorized/isPortalAuthorized are
+  one-line wrappers over a single isAuthorized(check, endpoint). Verified all six
+  accept/reject paths against a live api (token x endpoint matrix) — identical behavior.
 
 ### Closed 2026-07-12 (session: comments + migrations + XDP CI gate + portal audit)
 
@@ -258,22 +275,22 @@ undocumented invariants are where the bugs live in this codebase.
   relay, and the XDP relay, kept in sync by convention and functional tests only. This is the
   single biggest ongoing tax and the most likely source of subtle future bugs.
 - **Copy-paste divergence.** `Optimize` vs `Optimize2` are ~230 nearly-identical lines (the bug
-  above exists in both); the three `isAdminAuthorized`/`isPortalAuthorized`-style middlewares in
-  `cmd/api` are near-clones; the reference relay is a 6.6k-line single file. The one-author
+  above exists in both); the reference relay is a 6.6k-line single file. The one-author
   style makes this workable, but every duplicated block is a place where a fix lands once.
+  (The `cmd/api` auth middleware clones were deduped in `ff09fe321`.)
 - **Sparse comments exactly where they'd pay off.** The route optimizer's invariants (what
   `working` holds, why stored cost is trusted in phase 2) are undocumented — which is precisely
   where the confirmed bug lived for 2.5 years. Mechanical code doesn't need comments; the
-  clever 5% does.
+  clever 5% does. (Addressed for the known hot spots in `770914b68`.)
 - **Print-and-continue error handling.** `core.Error` is a printf. No structured logging, no
   error wrapping, and failures in hot paths increment counters at best. Fine while one person
   who knows everything operates it; hostile to anyone else on call. 45 `panic()`s in non-test
   code are mostly legitimate fail-fast, but a few sit in library-ish code paths.
 - **Committed keys are a forker trap.** The same `NEXT_BUYER_PRIVATE_KEY` sits in
   `envs/dev.env`, `staging.env`, and `prod.env`, and portal JWTs are committed (including
-  `portal/.env.prod`). The docs say to regenerate with `next keygen`, but nothing enforces it —
-  a forker who skips that step ships with public keys. A startup check that refuses prod with
-  the well-known default keys would close this.
+  `portal/.env.prod`). The docs say to regenerate with `next keygen`, but nothing enforced it —
+  a forker who skips that step ships with public keys. (CLOSED in `2f8739ec1`: services now
+  refuse to start in prod on any committed key — see modules/common/default_keys.go.)
 - **API auth is thin.** Single shared HS256 secret, `admin`/`portal` booleans in claims, no
   token expiry (`iat` only), no per-buyer scoping visible. Adequate for an internal tool with
   trusted operators; not multi-tenant-grade.
