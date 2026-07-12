@@ -108,6 +108,27 @@ that fact is stale — reverify.
   leak relay fleet topology.
 - **`core.Optimize`/`Optimize2` invariant**: sort only `working[:numRoutes]`, never the whole
   scratch buffer (regression test in core_test.go guards it).
+- **Route matrix version 5 serializes per-route `RoutePrice`** (added 2026-07-11, commit
+  `4cf49e88e`). Versions < 5 dropped it, so server_backend saw price 0 on every route and
+  lowest-price route selection silently no-oped. `GenerateRandomRouteMatrix` randomizes it so
+  the round-trip test guards the field — keep that. Route price is the sum of relay prices
+  over the route's relays (`constants.MaxRoutePrice` bounds it).
+- **Session data version 8 serializes `PrevPacketsOutOfOrder*`** (same commit). Versions < 8
+  dropped them, so `RealOutOfOrder` reported cumulative counts. `GenerateRandomSessionData`
+  randomizes them for version >= 8 — any new session-data field must be randomized there too,
+  or the round-trip test cannot catch a serialization omission (that's how both these bugs hid).
+- **Relay ordering is load-bearing and subtle**: `generateRelayData` (service.go) sorts
+  `database.Relays` IN PLACE by name, and `DatabaseBinFile = database.GetBinary()` re-serializes
+  the sorted database. That is the only reason server_backend's `Database.Relays[relayIndex]`
+  (indexed with route-matrix indices in session_update.go BuildNextTokens/BuildContinueTokens)
+  lines up with the route matrix relay order. The database.bin on disk is NOT sorted (postgres
+  row order, no ORDER BY). Do not reorder these steps or index `Relays` with route-matrix
+  indices on a database that didn't come through this path.
+- **`RedisCountersWatcher` getters require `Lock()`/`Unlock()`** around them (the watcher
+  thread swaps the underlying maps every second). cmd/api and session_cruncher both do this now.
+- **Session data `RouteNumRelays` serializes with bound `SDK_MaxRelaysPerRoute` (5), not
+  `SDK_MaxTokens` (7)** — same bit width so not a wire change, but the larger bound indexes
+  out of range of `RouteRelayIds`.
 
 ### Open items (not yet done)
 
@@ -128,6 +149,21 @@ Route-token wire interop (Go<->SDK byte layout), the bitpacked `encoding` ReadSt
 trackers, SDK client/route/relay-manager receive paths, admin SQL (fully parameterized, no
 injection), portal handlers (safe path-var parsing, `DoPagination_Simple` clamps), autodetect,
 raspberry_backend, magic_backend. The confirmed bugs found in these areas are all fixed (see git log).
+
+Second audit pass (2026-07-11, commit `4cf49e88e`, validated green on CI test-242) covered and
+cleared: session_update.go + sdk_handlers.go handler path, sdk_packets serialization,
+core.go route decision / filter / reframe / best-route functions, relay_backend, relay_gateway,
+server_backend, session_cruncher, server_cruncher (batch handlers properly bounds-checked),
+modules/common (service.go, relay_manager, redis time series/counters/leader election,
+route_matrix, client_relays, udp_server), relay update packets, database module load/save paths.
+All confirmed bugs from that pass are fixed in `4cf49e88e` (route price serialization, session
+data out-of-order serialization, nil-debug panic, LongSessionUpdate defer ordering, watcher
+locking, leader election race, and assorted minor items — see that commit message for the list).
+Known non-bugs deliberately left alone: no-TTL time-bucketed redis keys (covered by allkeys-lru
+eviction everywhere), `GeneratePingToken` IPv4-only address bytes (matches the relay side;
+IPv4-only system), ping key printed via core.Debug in gateway/server_backend (debug-only,
+intentional), pre-existing build failures in `sellers/` (standalone `go run` scripts sharing a
+package dir) and `tools/load_test_portal` (stale against the portal module API).
 
 ## Codebase assessment (Claude audit, 2026-07-11)
 
