@@ -242,10 +242,12 @@ int main_run( struct main_t * main )
     {
         printf( "\nHard shutdown!\n" );
 
-        fflush( stdout );        
+        fflush( stdout );
     }
 
-    return 0;
+    // exit non-zero when the relay gave up after repeated update failures, so
+    // supervisors and scripts can tell an abort from a normal shutdown
+    return aborted ? 1 : 0;
 }
 
 void main_shutdown( struct main_t * main )

@@ -109,11 +109,13 @@ answer instead of a release-day surprise.
 
 ## Status
 
-- **BPF_PROG_RUN mechanism: PROVEN** (test-265). The real compiled relay_xdp.o runs under
-  BPF_PROG_RUN in CI with maps populated from userspace. Environment lessons baked into the
-  job + prog_test_run.c: link libbpf.a from the xdp-tools source tree; set
-  BPF_PROG_TYPE_XDP explicitly (the SEC("relay_xdp") section name defeats libbpf type
-  inference); libbpf_get_error is gone from current libbpf.
+- **BPF_PROG_RUN mechanism: PROVEN** (test-265, spike prog_test_run.c -- since retired:
+  the corpus differential relay_corpus_diff.c superseded its two crypto-free cases).
+  The real compiled relay_xdp.o runs under BPF_PROG_RUN in CI with maps populated from
+  userspace. Environment lessons baked into the job + relay_corpus_diff.c: link libbpf.a
+  from the xdp-tools source tree; set BPF_PROG_TYPE_XDP explicitly (the SEC("relay_xdp")
+  section name defeats libbpf type inference); libbpf_get_error is gone from current
+  libbpf.
 - **Step 1, XDP differential: COMPLETE AND GREEN** (test-269). The stateless surface (size
   guard + basic + advanced filters + type dispatch) is pinned. modules/relaycorpus
   generates 2343 packets with oracle verdicts; cmd/relaycorpus_gen emits the binary corpus;

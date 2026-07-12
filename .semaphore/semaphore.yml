@@ -152,19 +152,13 @@ blocks:
             - mountpoint -q /sys/fs/bpf || sudo mount -t bpf bpf /sys/fs/bpf
             - sudo bpftool prog load ../xdp/relay_xdp.o /sys/fs/bpf/relay_xdp_test type xdp
             - sudo bpftool prog show pinned /sys/fs/bpf/relay_xdp_test
-            # SPIKE (relay consolidation step 1): prove BPF_PROG_RUN can drive the real
-            # relay_xdp.o with populated maps and read back verdicts. two crypto-free cases.
-            # if green, a wire-conformance corpus can be fired at the actual bpf object in CI.
-            # static-link the libbpf.a built inside the xdp-tools source tree above -- its
-            # install location varies and is outside the ldconfig paths
-            - cd ../xdp && gcc -O2 -o prog_test_run prog_test_run.c ../../xdp-tools-1.4.2/lib/libbpf/src/libbpf.a -lelf -lz
-            - sudo ./prog_test_run relay_xdp.o
             # relay conformance differential: fire the relaycorpus corpus (world + packets)
             # at the real relay_xdp.o via BPF_PROG_RUN and check every entry's XDP action
             # and counter against the Go oracle. covers the stateful handlers -- tokens,
             # sessions, whitelist -- not just the filters. see modules/relaycorpus and
-            # relay/CONSOLIDATION.md.
-            - gcc -O2 -o relay_corpus_diff relay_corpus_diff.c ../../xdp-tools-1.4.2/lib/libbpf/src/libbpf.a -lelf -lz
+            # relay/CONSOLIDATION.md. static-link the libbpf.a built inside the xdp-tools
+            # source tree above -- its install location varies, outside the ldconfig paths.
+            - cd ../xdp && gcc -O2 -o relay_corpus_diff relay_corpus_diff.c ../../xdp-tools-1.4.2/lib/libbpf/src/libbpf.a -lelf -lz
             - ( cd ../.. && go run ./cmd/relaycorpus_gen relay/xdp/corpus.bin )
             - sudo ./relay_corpus_diff relay_xdp.o corpus.bin
             # relay consolidation: prove the SAME datapath source (relay_xdp.c) compiled as

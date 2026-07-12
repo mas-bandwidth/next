@@ -74,6 +74,7 @@ const (
 
 // relay counters (relay/xdp/relay_constants.h -- mirrored by hand like the functional
 // test counter table; a mismatch here shows up as a corpus differential failure).
+// Only the counters the corpus actually asserts are mirrored.
 const (
 	CounterBasicFilterDropped    = 4
 	CounterAdvancedFilterDropped = 5
@@ -90,19 +91,16 @@ const (
 	CounterRelayPongWrongSize    = 18
 	CounterRelayPongUnknownRelay = 19
 
-	CounterClientPingReceived     = 20
 	CounterClientPingWrongSize    = 21
 	CounterClientPingPonged       = 22
 	CounterClientPingDidNotVerify = 23
 	CounterClientPingExpired      = 24
 
-	CounterRouteRequestReceived        = 30
 	CounterRouteRequestWrongSize       = 31
 	CounterRouteRequestCouldNotDecrypt = 32
 	CounterRouteRequestTokenExpired    = 33
 	CounterRouteRequestForward         = 34
 
-	CounterRouteResponseReceived           = 40
 	CounterRouteResponseWrongSize          = 41
 	CounterRouteResponseCouldNotFind       = 42
 	CounterRouteResponseSessionExpired     = 43
@@ -110,7 +108,6 @@ const (
 	CounterRouteResponseHeaderDidNotVerify = 45
 	CounterRouteResponseForward            = 46
 
-	CounterContinueRequestReceived        = 50
 	CounterContinueRequestWrongSize       = 51
 	CounterContinueRequestCouldNotDecrypt = 52
 	CounterContinueRequestTokenExpired    = 53
@@ -118,7 +115,6 @@ const (
 	CounterContinueRequestSessionExpired  = 55
 	CounterContinueRequestForward         = 56
 
-	CounterContinueResponseReceived           = 60
 	CounterContinueResponseWrongSize          = 61
 	CounterContinueResponseAlreadyReceived    = 62
 	CounterContinueResponseCouldNotFind       = 63
@@ -126,7 +122,6 @@ const (
 	CounterContinueResponseHeaderDidNotVerify = 65
 	CounterContinueResponseForward            = 66
 
-	CounterClientToServerReceived           = 70
 	CounterClientToServerTooSmall           = 71
 	CounterClientToServerTooBig             = 72
 	CounterClientToServerCouldNotFind       = 73
@@ -135,7 +130,6 @@ const (
 	CounterClientToServerHeaderDidNotVerify = 76
 	CounterClientToServerForward            = 77
 
-	CounterServerToClientReceived           = 80
 	CounterServerToClientTooSmall           = 81
 	CounterServerToClientTooBig             = 82
 	CounterServerToClientCouldNotFind       = 83
@@ -144,7 +138,6 @@ const (
 	CounterServerToClientHeaderDidNotVerify = 86
 	CounterServerToClientForward            = 87
 
-	CounterSessionPingReceived           = 90
 	CounterSessionPingWrongSize          = 91
 	CounterSessionPingCouldNotFind       = 92
 	CounterSessionPingSessionExpired     = 93
@@ -152,7 +145,6 @@ const (
 	CounterSessionPingHeaderDidNotVerify = 95
 	CounterSessionPingForward            = 96
 
-	CounterSessionPongReceived           = 100
 	CounterSessionPongWrongSize          = 101
 	CounterSessionPongCouldNotFind       = 102
 	CounterSessionPongSessionExpired     = 103
@@ -160,7 +152,6 @@ const (
 	CounterSessionPongHeaderDidNotVerify = 105
 	CounterSessionPongForward            = 106
 
-	CounterServerPingReceived     = 110
 	CounterServerPingWrongSize    = 111
 	CounterServerPingPonged       = 112
 	CounterServerPingDidNotVerify = 113
@@ -252,7 +243,6 @@ type headerFamily struct {
 	extra      int  // bytes after the 25-byte header (ping sequence, or c2s/s2c payload)
 	exact      bool // true: total size must equal header+extra; false (c2s/s2c): variable
 	towardNext bool // forwards to the session's next hop (else previous hop)
-	received   uint16
 	wrongSize  uint16
 	notFound   uint16
 	expired    uint16
@@ -829,27 +819,27 @@ func Generate(seed int64, w World) []Entry {
 	// s2c, session pong).
 	families := []headerFamily{
 		{"route-response", PacketRouteResponse, 0, true, false,
-			CounterRouteResponseReceived, CounterRouteResponseWrongSize, CounterRouteResponseCouldNotFind,
+			CounterRouteResponseWrongSize, CounterRouteResponseCouldNotFind,
 			CounterRouteResponseSessionExpired, CounterRouteResponseAlreadyReceived,
 			CounterRouteResponseHeaderDidNotVerify, CounterRouteResponseForward},
 		{"continue-response", PacketContinueResponse, 0, true, false,
-			CounterContinueResponseReceived, CounterContinueResponseWrongSize, CounterContinueResponseCouldNotFind,
+			CounterContinueResponseWrongSize, CounterContinueResponseCouldNotFind,
 			CounterContinueResponseSessionExpired, CounterContinueResponseAlreadyReceived,
 			CounterContinueResponseHeaderDidNotVerify, CounterContinueResponseForward},
 		{"client-to-server", PacketClientToServer, 100, false, true,
-			CounterClientToServerReceived, CounterClientToServerTooSmall, CounterClientToServerCouldNotFind,
+			CounterClientToServerTooSmall, CounterClientToServerCouldNotFind,
 			CounterClientToServerSessionExpired, CounterClientToServerAlreadyReceived,
 			CounterClientToServerHeaderDidNotVerify, CounterClientToServerForward},
 		{"server-to-client", PacketServerToClient, 100, false, false,
-			CounterServerToClientReceived, CounterServerToClientTooSmall, CounterServerToClientCouldNotFind,
+			CounterServerToClientTooSmall, CounterServerToClientCouldNotFind,
 			CounterServerToClientSessionExpired, CounterServerToClientAlreadyReceived,
 			CounterServerToClientHeaderDidNotVerify, CounterServerToClientForward},
 		{"session-ping", PacketSessionPing, 8, true, true,
-			CounterSessionPingReceived, CounterSessionPingWrongSize, CounterSessionPingCouldNotFind,
+			CounterSessionPingWrongSize, CounterSessionPingCouldNotFind,
 			CounterSessionPingSessionExpired, CounterSessionPingAlreadyReceived,
 			CounterSessionPingHeaderDidNotVerify, CounterSessionPingForward},
 		{"session-pong", PacketSessionPong, 8, true, false,
-			CounterSessionPongReceived, CounterSessionPongWrongSize, CounterSessionPongCouldNotFind,
+			CounterSessionPongWrongSize, CounterSessionPongCouldNotFind,
 			CounterSessionPongSessionExpired, CounterSessionPongAlreadyReceived,
 			CounterSessionPongHeaderDidNotVerify, CounterSessionPongForward},
 	}

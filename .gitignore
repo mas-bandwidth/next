@@ -58,7 +58,6 @@ unreal/NetworkNext/Source/Private/sodium
 relay/xdp/corpus.bin
 relay/xdp/relay_userspace_test
 relay/xdp/relay_corpus_diff
-relay/xdp/prog_test_run
 relay/xdp/relay
 relay/xdp/relay-userspace.exe
 relay/xdp/libsodium-win64
