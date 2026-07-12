@@ -1,7 +1,7 @@
 package messages
 
 import (
-	"github.com/hamba/avro"
+	"github.com/hamba/avro/v2"
 	"os"
 	"testing"
 )

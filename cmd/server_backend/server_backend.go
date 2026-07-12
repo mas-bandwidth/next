@@ -17,7 +17,7 @@ import (
 	"github.com/networknext/next/modules/messages"
 	"github.com/networknext/next/modules/portal"
 
-	"github.com/hamba/avro"
+	"github.com/hamba/avro/v2"
 	"github.com/redis/go-redis/v9"
 )
 

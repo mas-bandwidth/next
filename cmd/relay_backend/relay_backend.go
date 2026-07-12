@@ -25,7 +25,7 @@ import (
 	"github.com/networknext/next/modules/portal"
 
 	"cloud.google.com/go/compute/metadata"
-	"github.com/hamba/avro"
+	"github.com/hamba/avro/v2"
 	"github.com/redis/go-redis/v9"
 )
 

@@ -3,6 +3,7 @@ package ip2location
 import (
 	"fmt"
 	"net"
+	"net/netip"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -10,7 +11,7 @@ import (
 
 	"github.com/networknext/next/modules/core"
 
-	"github.com/oschwald/maxminddb-golang"
+	"github.com/oschwald/maxminddb-golang/v2"
 )
 
 type City struct {
@@ -168,7 +169,8 @@ func RemoveOldDatabaseFiles() {
 
 func GetLocation(city_db *maxminddb.Reader, ip net.IP) (float32, float32) {
 	var city City
-	if city_db != nil && city_db.Lookup(ip, &city) == nil {
+	addr, ok := netip.AddrFromSlice(ip)
+	if city_db != nil && ok && city_db.Lookup(addr).Decode(&city) == nil {
 		return float32(city.Location.Latitude), float32(city.Location.Longitude)
 	} else {
 		return 0, 0
@@ -178,7 +180,8 @@ func GetLocation(city_db *maxminddb.Reader, ip net.IP) (float32, float32) {
 func GetISPAndCountry(isp_db *maxminddb.Reader, city_db *maxminddb.Reader, ip net.IP) (string, string) {
 	var isp ISP
 	var city City
-	if isp_db != nil && city_db != nil && isp_db.Lookup(ip, &isp) == nil && city_db.Lookup(ip, &city) == nil {
+	addr, ok := netip.AddrFromSlice(ip)
+	if isp_db != nil && city_db != nil && ok && isp_db.Lookup(addr).Decode(&isp) == nil && city_db.Lookup(addr).Decode(&city) == nil {
 		return isp.ISP, city.Country.ISOCode
 	} else {
 		return "Unknown", "Unknown"
