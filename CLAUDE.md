@@ -150,7 +150,12 @@ that fact is stale — reverify.
   pins node 24 via sem-version. Verified old-vs-new builds render char-for-char identical
   against an auth-checking mock API (948 requests, all authenticated).
 
-### Closed 2026-07-12, third batch (optimizer merge + unit test flake hunt)
+### Closed 2026-07-12, third batch (optimizer merge + unit test flake hunt + govulncheck)
+
+- **govulncheck runs in CI** (`0bb98be73`, green on test-259): a Build pipeline job (next
+  to Backend unit tests, every tag) and a weekly job in scheduled-functional-tests.yml.
+  Fails only on vulnerabilities REACHABLE from our code. If it fails with no code change,
+  a new vuln was published — upgrade the dependency, don't revert.
 
 - **Optimize and Optimize2 are MERGED into one function, ~2x faster at production scale**
   (`83350d8bf`, fully green on test-257). One `Optimize(..., destinationRelay []bool)`;
