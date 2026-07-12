@@ -9,6 +9,14 @@
         sudo ip link set dev enp4s0 xdp off
 */
 
+#ifdef RELAY_USERSPACE
+
+// non-XDP (userspace socket) build: the same datapath, over a synthetic frame. See
+// relay_userspace.h and relay/CONSOLIDATION.md.
+#include "relay_userspace.h"
+
+#else
+
 #include <linux/in.h>
 #include <linux/if_ether.h>
 #include <linux/if_packet.h>
@@ -19,6 +27,8 @@
 #include <linux/bpf.h>
 #include <linux/string.h>
 #include <bpf/bpf_helpers.h>
+
+#endif // RELAY_USERSPACE
 
 #define RELAY_ADVANCED_PACKET_FILTER 1
 
@@ -39,6 +49,8 @@
 #else
 # error "Endianness detection needs to be set up for your compiler?!"
 #endif
+
+#ifndef RELAY_USERSPACE // the six maps are userspace objects in relay_userspace.c
 
 struct {
     __uint( type, BPF_MAP_TYPE_ARRAY );
@@ -88,6 +100,8 @@ struct {
     __uint( pinning, LIBBPF_PIN_BY_NAME );
 } whitelist_map SEC(".maps");
 
+#endif // RELAY_USERSPACE
+
 #define INCREMENT_COUNTER(counter_index)  __sync_fetch_and_add( &stats->counters[counter_index], 1 )
 
 #define DECREMENT_COUNTER(counter_index)  __sync_fetch_and_sub( &stats->counters[counter_index], 1 )
@@ -104,9 +118,13 @@ struct chacha20poly1305_crypto
     __u8 key[CHACHA20POLY1305_KEY_SIZE];
 };
 
+#ifndef RELAY_USERSPACE // the crypto kfuncs are userspace functions in relay_userspace.c
+
 int bpf_relay_sha256( void * data, int data__sz, void * output, int output__sz ) __ksym;
 
 int bpf_relay_xchacha20poly1305_decrypt( void * data, int data__sz, struct chacha20poly1305_crypto * crypto ) __ksym;
+
+#endif // RELAY_USERSPACE
 
 #ifndef RELAY_DEBUG
 #define RELAY_DEBUG 0

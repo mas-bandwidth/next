@@ -6,7 +6,9 @@
 
 #include "relay_constants.h"
 
+#ifndef RELAY_USERSPACE // userspace builds get the __uN types from relay_userspace.h
 #include <linux/types.h>
+#endif
 
 struct relay_config
 {

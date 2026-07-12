@@ -91,15 +91,26 @@ answer instead of a release-day surprise.
   in the Build XDP job every tag -- 0 mismatches (2221 drop-basic, 39 drop-advanced, 27
   drop-size, 56 pass). The Go filter and the production XDP relay are proven equivalent
   here. The corpus already caught one real divergence (see Findings).
-- **Step 1 remaining: reference-relay differential.** Fire the same corpus at the reference
-  relay over UDP (the func_test_relay pattern), accounting for the too-small
-  counter-attribution difference. Closes the three-way differential (oracle vs XDP vs
-  reference).
-- **Later corpus work: the stateful surface** -- tokens (route/continue decrypt) and
-  session table transitions. Needs map/session preloading and real crypto keys in the
-  driver. Bigger; the stateless surface was the highest-value, most-duplicated slice.
-- Steps 2-5 (extract datapath core, userspace mode, mac/windows platform, retire
-  reference): not started.
+- **Datapath is ONE source, compiles both ways: PROVEN** (branch relay-userspace-mode).
+  relay_xdp.c now compiles as the BPF kernel program (unchanged, byte-identical) AND as
+  plain userspace C via `-DRELAY_USERSPACE` + `relay_userspace.h` -- the shim providing
+  userspace stand-ins for the __uN types, eth/ip/udp structs, xdp_md over a buffer, the six
+  BPF maps (as array/hash maps), the bpf_map_* helpers, the resize helpers, and the crypto
+  kfuncs (STUBBED for now -- the stateless corpus never reaches them). The relay_xdp.c edits
+  are only #ifdef guards around kernel-only includes/map-decls/kfunc-decls. relay_userspace_test.c
+  fires the corpus at the userspace-compiled relay_xdp_filter() -> 0 mismatches, IDENTICAL
+  breakdown to BPF (27 drop-size, 2221 drop-basic, 39 drop-advanced, 56 pass). Runs locally
+  on mac (no BPF) AND in the CI XDP job (`make userspace-test`). THE HARD PART is done.
+- **Remaining before the reference relay can go:** (a) byte-exact crypto in the shim
+  (sha256, xchacha20poly1305 -- stubbed now); (b) a userspace socket loop + control plane:
+  recvfrom -> wrap payload in a synthetic frame -> relay_xdp_filter -> sendto, with
+  relay_main.c's backend comms / ping thread driving the userspace maps instead of BPF map
+  fds; (c) a RELAY_USERSPACE build of the relay binary; (d) THE GATE: the full functional
+  suite passing against the userspace relay. Only then delete relay/reference.
+- **Optional: reference-relay differential** (fire the corpus at the reference relay over
+  UDP) -- nice extra confidence, but the userspace relay passing the functional suite is
+  the real gate for deletion.
+- **Later: stateful corpus surface** -- tokens, sessions; strengthens the differential.
 
 ## Invariants to preserve (do not regress)
 

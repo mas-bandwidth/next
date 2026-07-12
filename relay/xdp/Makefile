@@ -52,6 +52,12 @@ debug: build-debug
 relay_xdp.o: relay_xdp.c relay_shared.h relay_constants.h
 	clang -O2 -g -Ilibbpf/src -target bpf -c relay_xdp.c -o relay_xdp.o
 
+# userspace conformance test: relay_xdp.c compiled as plain C (no BPF) + the shim,
+# fired at the relay corpus. builds and runs anywhere (mac/linux/windows), no BPF.
+.PHONY: userspace-test
+userspace-test: relay_userspace_test.c relay_userspace.c relay_userspace.h relay_xdp.c relay_shared.h relay_constants.h
+	cc -DRELAY_USERSPACE -I. -O2 -o relay_userspace_test relay_userspace_test.c relay_userspace.c -x c relay_xdp.c
+
 relay_xdp_source.h: Makefile relay_xdp.c relay_shared.h relay_constants.h
 	mkdir -p relay_xdp_source
 	cp Makefile relay_xdp_source
