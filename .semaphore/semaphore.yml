@@ -41,14 +41,24 @@ blocks:
       jobs:
         - name: "Build libsodium.so"
           commands:
-            - wget https://download.libsodium.org/libsodium/releases/old/libsodium-1.0.18.tar.gz
-            - tar -zxf libsodium*
-            - cd libsodium-1.0.18
-            - ./configure
-            - make -j
-            - sudo make install
-            - ls -al /usr/local/lib
-            - artifact push workflow /usr/local/lib/libsodium.so --force
+            # the built library is cached -- download.libsodium.org DNS/network hiccups
+            # have failed builds (test-239). the cache key pins the libsodium version, so
+            # bumping the version below automatically rebuilds.
+            - cache restore libsodium-1.0.18-so
+            - |
+              if [ ! -f libsodium.so ]; then
+                wget https://download.libsodium.org/libsodium/releases/old/libsodium-1.0.18.tar.gz
+                tar -zxf libsodium*
+                cd libsodium-1.0.18
+                ./configure
+                make -j
+                sudo make install
+                cd ..
+                cp /usr/local/lib/libsodium.so libsodium.so
+                cache store libsodium-1.0.18-so libsodium.so
+              fi
+            - ls -al libsodium.so
+            - artifact push workflow libsodium.so --force
             
   - name: "Backend"
     dependencies: []
