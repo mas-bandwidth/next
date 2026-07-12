@@ -95,8 +95,8 @@ long bpf_map_update_elem(void *map, const void *key, const void *value, __u64 fl
 		}
 	}
 	if (flags == BPF_EXIST) return -1;
-	// NOTE: no LRU eviction yet -- fine for the datapath-correctness harness (small maps).
-	// A production userspace relay needs bounded eviction like the BPF LRU_HASH maps.
+	// NOTE: no LRU eviction, unlike the BPF LRU_HASH maps -- fine by design: the
+	// userspace relay is a test/dev harness only, never production (relay/CONSOLIDATION.md).
 	struct us_hash_entry *e = (struct us_hash_entry *)malloc(sizeof(*e));
 	e->key = malloc(m->key_size);
 	e->value = malloc(m->value_size);

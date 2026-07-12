@@ -283,9 +283,9 @@ static int userspace_datapath_packet( struct ping_t * ping, uint32_t from_addres
     ip->protocol = IPPROTO_UDP;
     ip->saddr = us_htonl( from_address );
     // NOTE: recvfrom does not expose which local address the packet was sent to, so the
-    // frame is synthesized as if it arrived on the public address. fine wherever public
-    // and internal addresses are the same (functional tests, local dev); a userspace
-    // relay serving distinct internal traffic needs IP_PKTINFO here.
+    // frame is synthesized as if it arrived on the public address. fine by design:
+    // public and internal addresses are the same everywhere this relay runs (functional
+    // tests, local dev), and it is never used in production (relay/CONSOLIDATION.md).
     ip->daddr = us_htonl( ping->relay_public_address );
 
     udp->source = us_htons( from_port );
