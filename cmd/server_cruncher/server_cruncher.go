@@ -437,10 +437,6 @@ func NewSortedSet() *SortedSet {
 	return &sortedSet
 }
 
-func (this *SortedSet) GetCount() int {
-	return int(this.length)
-}
-
 func (this *SortedSet) Insert(key uint64, score uint32) bool {
 	var newNode *SortedSetNode = nil
 	found := this.dict[key]
@@ -456,15 +452,6 @@ func (this *SortedSet) Insert(key uint64, score uint32) bool {
 		this.dict[key] = newNode
 	}
 	return found == nil
-}
-
-func (this *SortedSet) Delete(key uint64) *SortedSetNode {
-	found := this.dict[key]
-	if found != nil {
-		this.delete(found.Score, found.Key)
-		return found
-	}
-	return nil
 }
 
 func (this *SortedSet) sanitizeIndexes(start int, end int) (int, int) {

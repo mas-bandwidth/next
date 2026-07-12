@@ -54,7 +54,6 @@ func api() (*exec.Cmd, *bytes.Buffer) {
 	cmd := exec.Command("./api")
 	if cmd == nil {
 		panic("could not create api!\n")
-		return nil, nil
 	}
 
 	cmd.Env = os.Environ()

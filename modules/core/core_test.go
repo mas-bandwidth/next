@@ -489,45 +489,6 @@ func TestRouteManagerWithPrice(t *testing.T) {
 	assert.Equal(t, core.RouteHash(4, 5, 6), routeManager.RouteHash[8])
 }
 
-func Analyze(numRelays int, routes []core.RouteEntry) []int {
-
-	buckets := make([]int, 8)
-
-	for i := range numRelays {
-		for j := range numRelays {
-			if j < i {
-				abFlatIndex := core.TriMatrixIndex(i, j)
-				if routes[abFlatIndex].DirectCost != 255 {
-					improvement := routes[abFlatIndex].DirectCost - routes[abFlatIndex].RouteCost[0]
-					if improvement == 0 {
-						buckets[1]++
-					} else if improvement <= 10 {
-						buckets[2]++
-					} else if improvement <= 20 {
-						buckets[3]++
-					} else if improvement <= 30 {
-						buckets[4]++
-					} else if improvement <= 40 {
-						buckets[5]++
-					} else if improvement <= 50 {
-						buckets[6]++
-					} else {
-						buckets[7]++
-					}
-				} else {
-					if routes[abFlatIndex].NumRoutes > 0 {
-						buckets[0]++
-					} else {
-						buckets[1]++
-					}
-				}
-			}
-		}
-	}
-
-	return buckets
-}
-
 type TestRelayData struct {
 	name       string
 	address    net.UDPAddr
@@ -589,29 +550,12 @@ func (env *TestEnvironment) GetRelayDatacenters() []uint64 {
 	return relayDatacenters
 }
 
-func (env *TestEnvironment) GetRelayIds() []uint64 {
-	relayIds := make([]uint64, len(env.relayArray))
-	for i := range env.relayArray {
-		relayIds[i] = RelayHash64(env.relayArray[i].name)
-	}
-	return relayIds
-}
-
 func (env *TestEnvironment) GetRelayNames() []string {
 	relayNames := make([]string, len(env.relayArray))
 	for i := range env.relayArray {
 		relayNames[i] = env.relayArray[i].name
 	}
 	return relayNames
-}
-
-func (env *TestEnvironment) GetRelayIdToIndex() map[uint64]int32 {
-	relayIdToIndex := make(map[uint64]int32)
-	for i := range env.relayArray {
-		relayHash := RelayHash64(env.relayArray[i].name)
-		relayIdToIndex[relayHash] = int32(i)
-	}
-	return relayIdToIndex
 }
 
 func (env *TestEnvironment) SetCost(sourceRelayName string, destRelayName string, cost uint8) {

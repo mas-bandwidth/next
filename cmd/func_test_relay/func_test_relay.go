@@ -92,7 +92,6 @@ func relay(name string, port int, configArray ...RelayConfig) (*exec.Cmd, *commo
 	cmd := exec.Command(relayBin)
 	if cmd == nil {
 		panic("could not create relay!\n")
-		return nil, nil
 	}
 
 	if !config.omit_relay_name {
@@ -186,7 +185,6 @@ func backend(mode string) (*exec.Cmd, *common.Buffer) {
 	cmd := exec.Command(backendBin)
 	if cmd == nil {
 		panic("could not create backend!\n")
-		return nil, nil
 	}
 
 	cmd.Env = os.Environ()

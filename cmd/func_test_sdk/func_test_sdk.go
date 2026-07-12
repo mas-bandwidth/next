@@ -37,7 +37,6 @@ func backend(mode string) (*exec.Cmd, *common.Buffer) {
 	cmd := exec.Command(backendBin)
 	if cmd == nil {
 		panic("could not create backend!\n")
-		return nil, nil
 	}
 
 	cmd.Env = os.Environ()
@@ -68,7 +67,6 @@ func relay(name string, port int, configArray ...RelayConfig) (*exec.Cmd, *commo
 	cmd := exec.Command(relayBin)
 	if cmd == nil {
 		panic("could not create relay!\n")
-		return nil, nil
 	}
 
 	cmd.Env = os.Environ()
@@ -112,7 +110,6 @@ func client(config *ClientConfig) (*exec.Cmd, *common.Buffer, *common.Buffer) {
 	cmd := exec.Command(clientBin)
 	if cmd == nil {
 		panic("could not create client!\n")
-		return nil, nil, nil
 	}
 
 	cmd.Env = os.Environ()
@@ -198,7 +195,6 @@ type ServerConfig struct {
 	server_address                 string
 	server_port                    int
 	restart_time                   float64
-	tags_multi                     bool
 	datacenter                     string
 	disable_autodetect             bool
 	force_resolve_hostname_timeout bool
@@ -212,7 +208,6 @@ func server(config *ServerConfig) (*exec.Cmd, *common.Buffer) {
 	cmd := exec.Command(serverBin)
 	if cmd == nil {
 		panic("could not create server!\n")
-		return nil, nil
 	}
 
 	cmd.Env = os.Environ()

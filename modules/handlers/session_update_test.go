@@ -18,14 +18,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func DummyLocateIP(ip net.IP) (float32, float32) {
-	return 43.0, -75.0
-}
-
-func FailLocateIP(ip net.IP) (float32, float32) {
-	return 0.0, 0.0
-}
-
 func CreateState() *handlers.SessionUpdateState {
 	state := handlers.SessionUpdateState{}
 	state.Request = &packets.SDK_SessionUpdateRequestPacket{}

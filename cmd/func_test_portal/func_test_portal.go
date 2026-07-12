@@ -113,7 +113,6 @@ func api() *exec.Cmd {
 	cmd := exec.Command("./api")
 	if cmd == nil {
 		panic("could not create api!\n")
-		return nil
 	}
 
 	cmd.Env = os.Environ()
@@ -135,7 +134,6 @@ func session_cruncher() *exec.Cmd {
 	cmd := exec.Command("./session_cruncher")
 	if cmd == nil {
 		panic("could not create session cruncher!\n")
-		return nil
 	}
 
 	cmd.Env = os.Environ()
@@ -154,7 +152,6 @@ func server_cruncher() *exec.Cmd {
 	cmd := exec.Command("./server_cruncher")
 	if cmd == nil {
 		panic("could not create server cruncher!\n")
-		return nil
 	}
 
 	cmd.Env = os.Environ()

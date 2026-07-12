@@ -62,7 +62,6 @@ func relay(name string, port int) *exec.Cmd {
 	cmd := exec.Command(relayBin)
 	if cmd == nil {
 		panic("could not create relay!\n")
-		return nil
 	}
 
 	cmd.Env = append(cmd.Env, fmt.Sprintf("RELAY_NAME=%s", name))
@@ -85,7 +84,6 @@ func backend(mode string) (*exec.Cmd, *bytes.Buffer) {
 	cmd := exec.Command(backendBin)
 	if cmd == nil {
 		panic("could not create backend!\n")
-		return nil, nil
 	}
 
 	cmd.Env = os.Environ()

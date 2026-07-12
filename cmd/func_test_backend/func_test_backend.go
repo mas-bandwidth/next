@@ -596,7 +596,6 @@ func test_optimize() {
 				routeMatrixData, err := routeMatrix.Write()
 				if err != nil {
 					panic(fmt.Sprintf("could not write route matrix: %v", err))
-					continue
 				}
 				_ = routeMatrixData
 
@@ -1062,11 +1061,7 @@ func test_relay_backend() {
 	}
 }
 
-var googleProjectID string
-
 func main() {
-
-	googleProjectID = "local"
 
 	allTests := []func(){
 		test_magic_backend,
