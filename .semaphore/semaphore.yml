@@ -23,6 +23,9 @@ blocks:
               if [ -z "$SEMAPHORE_GIT_TAG_NAME" ]; then
                 export SEMAPHORE_GIT_TAG_NAME relay-debug
               fi
+            # apt update first: installing libcurl4-openssl-dev upgrades curl/libcurl and
+            # a stale package index 404s on the mirrors (failed test-276)
+            - sudo DEBIAN_FRONTEND=noninteractive apt-get update -y
             - sudo DEBIAN_FRONTEND=noninteractive apt-get install -y libsodium-dev libcurl4-openssl-dev
             - checkout
             - mkdir dist

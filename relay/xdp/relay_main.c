@@ -724,7 +724,7 @@ int main_update( struct main_t * main )
     curl_easy_getinfo( main->curl, CURLINFO_RESPONSE_CODE, &code );
     if ( code != 200 )
     {
-        printf( "error: relay update response is %d\n", (int)code );
+        printf( "error: relay update response is %d. the relay backend is down or the relay is misconfigured. check RELAY_BACKEND_PUBLIC_KEY\n", (int)code );
         fflush( stdout );
         return RELAY_ERROR;
     }

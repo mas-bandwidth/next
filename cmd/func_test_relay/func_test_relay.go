@@ -67,6 +67,14 @@ func init() {
 	}
 }
 
+// userspaceRelay reports whether the relay under test is the userspace-mode XDP
+// datapath. A few tests assert on behavior that legitimately differs between the two
+// relays (the XDP datapath drops relay pings from unregistered sources before spending
+// sha256 on them; the reference relay verifies first). Those tests branch on this.
+func userspaceRelay() bool {
+	return strings.Contains(relayBin, "userspace")
+}
+
 type RelayConfig struct {
 	fake_packet_loss_percent          float32
 	fake_packet_loss_start_time       float32
@@ -1685,7 +1693,14 @@ func test_relay_ping_packet_did_not_verify() {
 		time.Sleep(time.Second)
 	}
 
-	common.WaitForOutput(relay_stdout, "ping token did not verify", 10*time.Second)
+	// the XDP datapath drops relay pings from sources that are not registered relays
+	// BEFORE verifying the token (no sha256 spent on unknown sources); the reference
+	// relay verifies the token first. either way the ping is rejected.
+	if userspaceRelay() {
+		common.WaitForOutput(relay_stdout, "ping from unknown relay", 10*time.Second)
+	} else {
+		common.WaitForOutput(relay_stdout, "ping token did not verify", 10*time.Second)
+	}
 
 	conn.Close()
 
@@ -1700,7 +1715,11 @@ func test_relay_ping_packet_did_not_verify() {
 	}
 
 	checkCounter("RELAY_COUNTER_RELAY_PING_PACKET_RECEIVED", relay_stdout.String())
-	checkCounter("RELAY_COUNTER_RELAY_PING_PACKET_DID_NOT_VERIFY", relay_stdout.String())
+	if userspaceRelay() {
+		checkCounter("RELAY_COUNTER_RELAY_PING_PACKET_UNKNOWN_RELAY", relay_stdout.String())
+	} else {
+		checkCounter("RELAY_COUNTER_RELAY_PING_PACKET_DID_NOT_VERIFY", relay_stdout.String())
+	}
 }
 
 // =======================================================================================================================
