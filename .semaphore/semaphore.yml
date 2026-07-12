@@ -107,11 +107,17 @@ blocks:
             - artifact push workflow relay-release --force
             - make relay_xdp.o
             # load the program through the BPF verifier. compiling relay_xdp.o proves nothing --
-            # the verifier only runs at attach time, and it is what rejects a restructured filter.
-            # xdp-loader is libxdp, the same attach path the relay binary uses (relay_bpf.c).
-            - sudo xdp-loader load -m skb -v lo relay_xdp.o
+            # the verifier only runs at load/attach time, and it is what rejects a restructured
+            # filter. xdp-loader is libxdp, the same attach path the relay binary uses
+            # (relay_bpf.c). attach to a veth, not lo: XDP attach requires MTU <= ~3500 and
+            # lo has MTU 65536 (same reason relay_bpf.c needs MTU 1500 on AWS).
+            - sudo ip link add xdptest0 type veth peer name xdptest1
+            - sudo ip link set xdptest0 up
+            - sudo ip link set xdptest1 up
+            - sudo xdp-loader load -m skb -v xdptest0 relay_xdp.o
             - sudo xdp-loader status
-            - sudo xdp-loader unload lo --all
+            - sudo xdp-loader unload xdptest0 --all
+            - sudo ip link del xdptest0
             - popd
             - cd relay/module && tar -zcvf relay_module.tar.gz *
             - artifact push workflow ./relay_module.tar.gz --force
