@@ -101,9 +101,17 @@ answer instead of a release-day surprise.
   fires the corpus at the userspace-compiled relay_xdp_filter() -> 0 mismatches, IDENTICAL
   breakdown to BPF (27 drop-size, 2221 drop-basic, 39 drop-advanced, 56 pass). Runs locally
   on mac (no BPF) AND in the CI XDP job (`make userspace-test`). THE HARD PART is done.
-- **Remaining before the reference relay can go:** (a) byte-exact crypto in the shim
-  (sha256, xchacha20poly1305 -- stubbed now); (b) a userspace socket loop + control plane:
-  recvfrom -> wrap payload in a synthetic frame -> relay_xdp_filter -> sendto, with
+- **Crypto in the shim: DONE.** The two kfunc stand-ins in relay_userspace.c are real
+  (libsodium): sha256 via crypto_hash_sha256, xchacha20poly1305 via
+  crypto_aead_xchacha20poly1305_ietf_decrypt (in-place, NULL AD -- the exact construction
+  the kernel module open-codes). Byte-exactness argument: the Go backend encrypts tokens
+  with golang.org/x/crypto chacha20poly1305.NewX and both the XDP relay (kernel crypto)
+  and reference relay (libsodium) already decrypt them in production/tests, so
+  kernel == libsodium on this construction is proven by interop; relay_userspace_test.c
+  self-tests pin the shim wiring (sha256 known answer = the kernel module's insmod vector,
+  encrypt->decrypt round trip, tamper reject) before every corpus run.
+- **Remaining before the reference relay can go:** (b) a userspace socket loop + control
+  plane: recvfrom -> wrap payload in a synthetic frame -> relay_xdp_filter -> sendto, with
   relay_main.c's backend comms / ping thread driving the userspace maps instead of BPF map
   fds; (c) a RELAY_USERSPACE build of the relay binary; (d) THE GATE: the full functional
   suite passing against the userspace relay. Only then delete relay/reference.

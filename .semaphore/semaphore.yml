@@ -163,7 +163,7 @@ blocks:
             # userspace C (non-BPF, -DRELAY_USERSPACE + relay_userspace.h) produces identical
             # verdicts on the corpus. this is the userspace relay mode that replaces the
             # reference relay -- one relay source. no BPF needed to build or run this.
-            - gcc -DRELAY_USERSPACE -I. -O2 -o relay_userspace_test relay_userspace_test.c relay_userspace.c -x c relay_xdp.c
+            - make userspace-test
             - ./relay_userspace_test corpus.bin
 
   - name: "Portal"

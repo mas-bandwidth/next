@@ -13,8 +13,67 @@
 #include "relay_constants.h"
 #include "relay_shared.h"
 
+#include <sodium.h>
+
 int relay_xdp_filter(struct xdp_md *ctx);
 void us_maps_reset(void);
+
+// the shim's crypto must be byte-exact with the kernel module's kfuncs. sha256 is
+// checked against the same known-answer vector relay_module.c checks at insmod;
+// the xchacha decrypt is checked round-trip against libsodium's encrypt (proving
+// the shim's wiring: nonce/key offsets, in-place decrypt, appended-tag length) and
+// that a tampered ciphertext is rejected.
+static int crypto_self_test(void) {
+	// SHA-256("test") -- the same vector relay/module/relay_module.c verifies at init
+	static const unsigned char sha256_test_digest[32] = {
+		0x9f, 0x86, 0xd0, 0x81, 0x88, 0x4c, 0x7d, 0x65, 0x9a, 0x2f, 0xea, 0xa0, 0xc5, 0x5a, 0xd0, 0x15,
+		0xa3, 0xbf, 0x4f, 0x1b, 0x2b, 0x0b, 0x82, 0x2c, 0xd1, 0x5d, 0x6c, 0x15, 0xb0, 0xf0, 0x0a, 0x08,
+	};
+	unsigned char digest[32];
+	bpf_relay_sha256((void *)"test", 4, digest, 32);
+	if (memcmp(digest, sha256_test_digest, 32) != 0) {
+		fprintf(stderr, "FAIL: sha256 known answer\n");
+		return 1;
+	}
+
+	// xchacha20poly1305: libsodium encrypt -> shim decrypt (in place), then tamper -> reject.
+	// layout matches relay_xdp.c's chacha20poly1305_crypto: nonce[24] then key[32].
+	unsigned char nonce_and_key[24 + 32];
+	for (int i = 0; i < 24; i++) nonce_and_key[i] = (unsigned char)(100 + i);
+	for (int i = 0; i < 32; i++) nonce_and_key[24 + i] = (unsigned char)i;
+
+	static const unsigned char plaintext[47] = "the relay datapath is one source, two backends";
+	unsigned char buffer[sizeof(plaintext) + 16];
+	unsigned long long ciphertext_len = 0;
+	crypto_aead_xchacha20poly1305_ietf_encrypt(buffer, &ciphertext_len, plaintext, sizeof(plaintext),
+	                                           NULL, 0, NULL, nonce_and_key, nonce_and_key + 24);
+	if (ciphertext_len != sizeof(buffer)) {
+		fprintf(stderr, "FAIL: xchacha encrypt length\n");
+		return 1;
+	}
+
+	if (bpf_relay_xchacha20poly1305_decrypt(buffer, (int)ciphertext_len,
+	                                        (struct chacha20poly1305_crypto *)nonce_and_key) != 1) {
+		fprintf(stderr, "FAIL: xchacha decrypt rejected valid ciphertext\n");
+		return 1;
+	}
+	if (memcmp(buffer, plaintext, sizeof(plaintext)) != 0) {
+		fprintf(stderr, "FAIL: xchacha decrypt wrong plaintext\n");
+		return 1;
+	}
+
+	crypto_aead_xchacha20poly1305_ietf_encrypt(buffer, &ciphertext_len, plaintext, sizeof(plaintext),
+	                                           NULL, 0, NULL, nonce_and_key, nonce_and_key + 24);
+	buffer[3] ^= 0x01;
+	if (bpf_relay_xchacha20poly1305_decrypt(buffer, (int)ciphertext_len,
+	                                        (struct chacha20poly1305_crypto *)nonce_and_key) != 0) {
+		fprintf(stderr, "FAIL: xchacha decrypt accepted tampered ciphertext\n");
+		return 1;
+	}
+
+	printf("crypto self test: PASS\n");
+	return 0;
+}
 
 #define COUNTER_BASIC      4
 #define COUNTER_ADVANCED   5
@@ -63,6 +122,9 @@ static __u64 read_counter(int index) {
 
 int main(int argc, char **argv) {
 	if (argc < 2) { fprintf(stderr, "usage: %s <corpus.bin>\n", argv[0]); return 2; }
+
+	if (sodium_init() == -1) { fprintf(stderr, "FAIL: sodium_init\n"); return 2; }
+	if (crypto_self_test() != 0) return 1;
 
 	FILE *f = fopen(argv[1], "rb");
 	if (!f) { fprintf(stderr, "FAIL: open corpus\n"); return 2; }

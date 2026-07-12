@@ -2,13 +2,15 @@
     Userspace shim implementation for relay_xdp.c (see relay_userspace.h).
 
     Backing storage for the six maps, a small chained hash table, the bpf_map_* helpers,
-    the packet resize helpers, and the crypto kfunc stubs. Compiled only in userspace
-    (non-BPF) builds of the relay.
+    the packet resize helpers, and the crypto kfuncs (libsodium). Compiled only in
+    userspace (non-BPF) builds of the relay.
 */
 
 #include "relay_userspace.h"
 #include "relay_constants.h"
 #include "relay_shared.h"
+
+#include <sodium.h>
 
 // --- backing storage for the six maps
 
@@ -136,16 +138,41 @@ long bpf_xdp_adjust_head(struct xdp_md *ctx, int delta) {
 	return 0;
 }
 
-// --- crypto kfunc stubs (not reached by the stateless conformance corpus)
+// --- crypto kfuncs (libsodium).
+//
+// These are the userspace stand-ins for the two kfuncs the relay kernel module
+// (relay/module/relay_module.c) exports to the BPF program, and they must be
+// byte-exact with it:
+//
+//  - bpf_relay_sha256 is plain SHA-256 (kernel crypto API "sha256" there,
+//    crypto_hash_sha256 here -- the same standard function).
+//  - bpf_relay_xchacha20poly1305_decrypt is the standard XChaCha20-Poly1305 IETF
+//    construction (HChaCha20 subkey, 4 zero bytes || nonce[16:24], AD = NULL/0,
+//    16-byte tag appended, decrypt in place). The kernel module open-codes the same
+//    construction the kernel's chacha20poly1305 library uses; libsodium's
+//    crypto_aead_xchacha20poly1305_ietf_decrypt is byte-identical. Already proven
+//    end-to-end in production: the Go backend encrypts route tokens with
+//    golang.org/x/crypto chacha20poly1305.NewX and BOTH the XDP relay (kernel
+//    crypto) and the reference relay (libsodium) decrypt them.
+
+// mirrors the definition in relay_xdp.c (nonce, then key). that definition lives in a
+// separate translation unit, so the struct is completed here with the same layout.
+struct chacha20poly1305_crypto {
+	__u8 nonce[24];
+	__u8 key[32];
+};
 
 int bpf_relay_sha256(void *data, int data__sz, void *output, int output__sz) {
-	(void)data; (void)data__sz; (void)output; (void)output__sz;
-	return -1;
+	(void)output__sz;
+	crypto_hash_sha256((unsigned char *)output, (const unsigned char *)data, (unsigned long long)data__sz);
+	return 0;
 }
 
 int bpf_relay_xchacha20poly1305_decrypt(void *data, int data__sz, struct chacha20poly1305_crypto *crypto) {
-	(void)data; (void)data__sz; (void)crypto;
-	return -1;
+	unsigned long long decrypted_len = 0;
+	return crypto_aead_xchacha20poly1305_ietf_decrypt((unsigned char *)data, &decrypted_len, NULL,
+	                                                  (const unsigned char *)data, (unsigned long long)data__sz,
+	                                                  NULL, 0, crypto->nonce, crypto->key) == 0;
 }
 
 // --- reset all maps between test runs

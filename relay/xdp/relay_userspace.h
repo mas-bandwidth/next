@@ -169,11 +169,10 @@ extern struct us_map whitelist_map;
 long bpf_xdp_adjust_tail(struct xdp_md *ctx, int delta);
 long bpf_xdp_adjust_head(struct xdp_md *ctx, int delta);
 
-// --- crypto kfuncs. STUBBED for the stateless milestone: the conformance corpus never
-//     reaches them (packets drop at the empty relay/session maps before any decrypt).
-//     Real byte-exact impls (sha256, xchacha20poly1305) come with the stateful corpus.
-//     chacha20poly1305_crypto is defined by relay_xdp.c; forward-declare it here so the
-//     stub can take it as an opaque pointer without redefining it.
+// --- crypto kfuncs, implemented with libsodium in relay_userspace.c (byte-exact with
+//     the kernel module's kfuncs -- see the comment there). chacha20poly1305_crypto is
+//     defined by relay_xdp.c; forward-declare it here (relay_userspace.c completes it
+//     with the identical layout in its own translation unit).
 struct chacha20poly1305_crypto;
 int bpf_relay_sha256(void *data, int data__sz, void *output, int output__sz);
 int bpf_relay_xchacha20poly1305_decrypt(void *data, int data__sz, struct chacha20poly1305_crypto *crypto);

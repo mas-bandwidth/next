@@ -53,3 +53,10 @@ example
 unreal/NetworkNext/Source/Private/include
 unreal/NetworkNext/Source/Private/source
 unreal/NetworkNext/Source/Private/sodium
+
+# relay/xdp local build products (also built by the CI XDP job)
+relay/xdp/corpus.bin
+relay/xdp/relay_userspace_test
+relay/xdp/relay_corpus_diff
+relay/xdp/prog_test_run
+relay/xdp/relay
