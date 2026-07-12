@@ -140,14 +140,19 @@ that fact is stale — reverify.
   DNS/network hiccups fail it (seen test-239). Just re-run `./dist/deploy test`. If it recurs,
   cache the sodium download/build in a Semaphore artifact rather than re-fetching. Do NOT solve it
   by touching the vendored sdk/sodium/ (see invariant above).
-- **Portal, larger/optional items from the 2026-07-12 audit**: node-sass is EOL (switch to
-  `sass`; it also cannot build on Apple Silicon without a distutils shim — see below), vue-cli
-  is in maintenance mode (Vite migration), portal JWTs never expire. The quick fixes landed in
-  `e219d32d3` (Build Portal green on test-253): `yarn.lock` is now COMMITTED (removed from both
-  .gitignores — CI portal builds were fully unpinned before) — regenerate it with any dep
-  change; the global axios auth header lives in `main.js` now; dead MapView/SellersView are
-  deleted. Local portal builds on the Mac need a scratch node 20 + `PYTHON` pointing at a venv
-  with setuptools (node-sass has no darwin-arm64 binary and its gyp needs distutils).
+- **Portal, remaining optional item from the 2026-07-12 audit**: portal JWTs never expire
+  (fix is auth in front of the portal + `exp` on tokens — part of the API auth project).
+  Everything else landed: quick fixes in `e219d32d3` (`yarn.lock` is COMMITTED — removed from
+  both .gitignores, CI builds were fully unpinned before; regenerate it with any dep change;
+  axios auth header lives in `main.js`; dead MapView/SellersView deleted), and the full stack
+  modernization in `20602e6c7` (Build Portal green on test-254): vue-cli/webpack/babel/
+  node-sass/core-js are GONE — the portal is Vite 8 + dart-sass + eslint 10 flat config, vue
+  3.5 / vue-router 5 / axios 1.18 / bignumber 11. Env vars are `VITE_*` via `import.meta.env`,
+  and the localhost env file is `.env.localhost` NOT `.env.local` (Vite loads a file named
+  exactly `.env.local` into EVERY mode as an override — it would leak localhost URLs into
+  prod builds). Local builds now work on Apple Silicon with plain node >= 22.18; the CI job
+  pins node 24 via sem-version. Verified old-vs-new builds render char-for-char identical
+  against an auth-checking mock API (948 requests, all authenticated).
 
 ### Closed 2026-07-12 (session: comments + migrations + XDP CI gate + portal audit)
 
