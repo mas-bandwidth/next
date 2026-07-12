@@ -31,17 +31,34 @@ typedef uint32_t __be32;
 
 // --- ethernet / ip / udp (Linux layout, provided here because mac/windows lack linux/*.h)
 
+// guard the constants: on Linux some system headers (netinet/in.h) also define these, and
+// we must not fight them. we deliberately do NOT include any system net header.
+#ifndef ETH_ALEN
 #define ETH_ALEN   6
+#endif
+#ifndef ETH_P_IP
 #define ETH_P_IP   0x0800
+#endif
+#ifndef ETH_P_IPV6
 #define ETH_P_IPV6 0x86DD
+#endif
+#ifndef IPPROTO_UDP
 #define IPPROTO_UDP 17
+#endif
 
-// compile-time byte swap (Linux's __constant_htons), little-endian hosts only
+// byte order helpers, little-endian hosts only (the relay is LE-only). provided here so
+// the shim needs no system header (arpa/inet.h drags in conflicting net definitions).
 #if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 #define __constant_htons(x) ((__be16)__builtin_bswap16(x))
+static inline __u16 us_htons(__u16 x) { return __builtin_bswap16(x); }
+static inline __u32 us_htonl(__u32 x) { return __builtin_bswap32(x); }
 #else
 #define __constant_htons(x) ((__be16)(x))
+static inline __u16 us_htons(__u16 x) { return x; }
+static inline __u32 us_htonl(__u32 x) { return x; }
 #endif
+#define us_ntohs us_htons
+#define us_ntohl us_htonl
 
 struct ethhdr {
 	__u8  h_dest[ETH_ALEN];
@@ -97,7 +114,9 @@ enum xdp_action {
 
 // attributes / section markers that are BPF-only -- no-ops in userspace
 #define SEC(x)
+#ifndef __always_inline
 #define __always_inline inline
+#endif
 #define __bpf_kfunc
 #define __ksym
 

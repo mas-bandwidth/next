@@ -12,7 +12,6 @@
 #include "relay_userspace.h"
 #include "relay_constants.h"
 #include "relay_shared.h"
-#include <arpa/inet.h>
 
 int relay_xdp_filter(struct xdp_md *ctx);
 void us_maps_reset(void);
@@ -78,9 +77,9 @@ int main(int argc, char **argv) {
 	int zero = 0;
 	struct relay_config config;
 	memset(&config, 0, sizeof(config));
-	config.relay_public_address = htonl(0x7f000001);
-	config.relay_internal_address = htonl(0x0a010101);
-	config.relay_port = htons(40000);
+	config.relay_public_address = us_htonl(0x7f000001);
+	config.relay_internal_address = us_htonl(0x0a010101);
+	config.relay_port = us_htons(40000);
 	bpf_map_update_elem(&config_map, &zero, &config, BPF_ANY);
 
 	unsigned char *corpus_magic = corpus + 12 + 1 + 4 + 4;
