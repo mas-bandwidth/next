@@ -140,12 +140,14 @@ that fact is stale — reverify.
   DNS/network hiccups fail it (seen test-239). Just re-run `./dist/deploy test`. If it recurs,
   cache the sodium download/build in a Semaphore artifact rather than re-fetching. Do NOT solve it
   by touching the vendored sdk/sodium/ (see invariant above).
-- **Portal quick fixes from the 2026-07-12 audit** (not yet applied): commit a `yarn.lock`
-  (portal builds are unpinned — CI runs bare `yarn install`); move the global axios auth header
-  from `SessionCounts.vue` module scope into `main.js`; route or delete the dead `MapView.vue`
-  (stub, unrouted, uses fetch() so it never authenticates) and `SellersView.vue` (complete but
-  unrouted). Larger/optional: node-sass is EOL (switch to `sass`), vue-cli is in maintenance
-  mode (Vite migration), portal JWTs never expire.
+- **Portal, larger/optional items from the 2026-07-12 audit**: node-sass is EOL (switch to
+  `sass`; it also cannot build on Apple Silicon without a distutils shim — see below), vue-cli
+  is in maintenance mode (Vite migration), portal JWTs never expire. The quick fixes landed in
+  `e219d32d3` (Build Portal green on test-253): `yarn.lock` is now COMMITTED (removed from both
+  .gitignores — CI portal builds were fully unpinned before) — regenerate it with any dep
+  change; the global axios auth header lives in `main.js` now; dead MapView/SellersView are
+  deleted. Local portal builds on the Mac need a scratch node 20 + `PYTHON` pointing at a venv
+  with setuptools (node-sass has no darwin-arm64 binary and its gyp needs distutils).
 
 ### Closed 2026-07-12 (session: comments + migrations + XDP CI gate + portal audit)
 
