@@ -2910,7 +2910,7 @@ func optimizeCostMatrix(costMatrixFilename, routeMatrixFilename string, costThre
 		RelayLongitudes:    costMatrix.RelayLongitudes,
 		RelayDatacenterIds: costMatrix.RelayDatacenterIds,
 		DestRelays:         costMatrix.DestRelays,
-		RouteEntries:       core.Optimize2(numRelays, numSegments, costMatrix.Costs, costMatrix.RelayPrice, costMatrix.RelayDatacenterIds, costMatrix.DestRelays),
+		RouteEntries:       core.Optimize(numRelays, numSegments, costMatrix.Costs, costMatrix.RelayPrice, costMatrix.RelayDatacenterIds, costMatrix.DestRelays),
 		Costs:              costMatrix.Costs,
 		RelayPrice:         costMatrix.RelayPrice,
 	}

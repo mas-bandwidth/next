@@ -9,9 +9,9 @@ import (
 	"math"
 	"net"
 	"os"
-	"sort"
 	"strconv"
 	"sync"
+	"sync/atomic"
 
 	crypto_rand "crypto/rand"
 	math_rand "math/rand"
@@ -199,12 +199,14 @@ func (manager *RouteManager) AddRoute(cost int32, price int32, relays ...int32) 
 	}
 
 	// filter out any loops (yes, they can happen...)
-	loopCheck := make(map[int32]int, len(relays))
-	for i := range relays {
-		if _, exists := loopCheck[relays[i]]; exists {
-			return
+	// routes have at most MaxRouteRelays+2 nodes, so a nested scan beats a map
+	// (this is the optimizer inner loop -- a map allocation per call is measurable)
+	for i := 1; i < len(relays); i++ {
+		for j := 0; j < i; j++ {
+			if relays[i] == relays[j] {
+				return
+			}
 		}
-		loopCheck[relays[i]] = 1
 	}
 
 	if manager.NumRoutes == 0 {
@@ -348,10 +350,34 @@ type RouteEntry struct {
 	RouteRelays    [constants.MaxRoutesPerEntry][constants.MaxRouteRelays]int32
 }
 
-// IMPORTANT: Optimize2 below is a near-copy of this function with a destination relay filter.
-// Any fix made here almost certainly needs to be made there too.
+// Optimize turns a cost matrix into route entries: for each relay pair it finds up to
+// MaxRoutesPerEntry routes cheaper than the direct route, built from up to two levels of
+// subdivision through the best indirect relays. destinationRelay filters the work down to
+// pairs that can ever be the tail of a session route; pass nil to optimize every pair.
+//
+// This is the time critical inner loop of the relay backend (it runs on every route
+// matrix update), and it is heavily optimized -- see TestOptimizeDifferential, which
+// pins its output bit-for-bit against a straightforward reference implementation, and
+// BenchmarkOptimize* before touching it.
 
-func Optimize(numRelays int, numSegments int, cost []uint8, relayPrice []uint8, relayDatacenter []uint64) []RouteEntry {
+func Optimize(numRelays int, numSegments int, cost []uint8, relayPrice []uint8, relayDatacenter []uint64, destinationRelay []bool) []RouteEntry {
+
+	allPairs := destinationRelay == nil
+
+	// expand the triangular cost matrix into a square matrix up front. the phase 1 inner
+	// loop reads cost[i][x] and cost[x][j] for every x, and two flat reads beat two
+	// TriMatrixIndex calls by a wide margin (that address math was ~half the profile).
+	// numRelays^2 bytes is 1MB at MaxRelays -- noise next to the route entry array.
+
+	square := make([]uint8, numRelays*numRelays)
+	for i := 1; i < numRelays; i++ {
+		base := TriMatrixIndex(i, 0)
+		for j := 0; j < i; j++ {
+			c := cost[base+j]
+			square[i*numRelays+j] = c
+			square[j*numRelays+i] = c
+		}
+	}
 
 	// build a matrix of indirect routes from relays i -> j that have lower cost than direct, eg. i -> (x) -> j, where x is every other relay
 
@@ -362,19 +388,21 @@ func Optimize(numRelays int, numSegments int, cost []uint8, relayPrice []uint8, 
 
 	indirect := make([][][]Indirect, numRelays)
 
+	// numSegments workers pull rows from an atomic counter instead of owning fixed row
+	// ranges. per-row work is very uneven -- rows with a destination relay do numRelays
+	// pairs while others do only the destination fraction, and phase 2 below is
+	// triangular on top -- so fixed ranges leave workers idle at the barrier (~35% of
+	// the profile before this). one atomic add per row is noise.
+
 	var wg sync.WaitGroup
 
 	wg.Add(numSegments)
 
-	for segment := range numSegments {
+	var nextRow1 atomic.Int64
 
-		startIndex := segment * numRelays / numSegments
-		endIndex := (segment+1)*numRelays/numSegments - 1
-		if segment == numSegments-1 {
-			endIndex = numRelays - 1
-		}
+	for range numSegments {
 
-		go func(startIndex int, endIndex int) {
+		go func() {
 
 			defer wg.Done()
 
@@ -386,9 +414,20 @@ func Optimize(numRelays int, numSegments int, cost []uint8, relayPrice []uint8, 
 
 			working := make([]Indirect, numRelays)
 
-			for i := startIndex; i <= endIndex; i++ {
+			// top-8 selection scratch, see below
+
+			var best [constants.MaxIndirects]Indirect
+
+			for {
+
+				i := int(nextRow1.Add(1)) - 1
+				if i >= numRelays {
+					break
+				}
 
 				indirect[i] = make([][]Indirect, numRelays)
+
+				rowI := square[i*numRelays : (i+1)*numRelays]
 
 				for j := range numRelays {
 
@@ -397,20 +436,24 @@ func Optimize(numRelays int, numSegments int, cost []uint8, relayPrice []uint8, 
 						continue
 					}
 
-					ijIndex := TriMatrixIndex(i, j)
+					// only pairs that include a destination relay can ever carry a session,
+					// and this filter is why optimizing with destination relays is much
+					// faster than optimizing all pairs: phase 1 is the hot loop, and most
+					// pairs skip it entirely
+					if !allPairs && !destinationRelay[i] && !destinationRelay[j] {
+						continue
+					}
+
+					rowJ := square[j*numRelays : (j+1)*numRelays]
 
 					numRoutes := 0
-					costDirect := uint32(cost[ijIndex])
+					costDirect := uint32(rowI[j])
 
 					for x := range numRelays {
 						if x == i || x == j {
 							continue
 						}
-						ixIndex := TriMatrixIndex(i, x)
-						ixCost := uint32(cost[ixIndex])
-						xjIndex := TriMatrixIndex(x, j)
-						xjCost := uint32(cost[xjIndex])
-						indirectCost := uint32(ixCost) + uint32(xjCost)
+						indirectCost := uint32(rowI[x]) + uint32(rowJ[x])
 						if indirectCost >= costDirect {
 							continue
 						}
@@ -420,233 +463,47 @@ func Optimize(numRelays int, numSegments int, cost []uint8, relayPrice []uint8, 
 					}
 
 					if numRoutes > constants.MaxIndirects {
-						sort.SliceStable(working[:numRoutes], func(i, j int) bool { return working[i].cost < working[j].cost })
-						indirect[i][j] = make([]Indirect, constants.MaxIndirects)
-						copy(indirect[i][j], working[:constants.MaxIndirects])
-					} else if numRoutes > 0 {
-						indirect[i][j] = make([]Indirect, numRoutes)
-						copy(indirect[i][j], working)
-					}
-				}
-			}
 
-		}(startIndex, endIndex)
-	}
+						// keep only the 8 lowest cost indirects. this replaces a stable
+						// sort + truncate: scan candidates in x order, keep a sorted top 8,
+						// insert AFTER equal costs and reject candidates that tie the worst
+						// -- that reproduces the stable sort's tie handling exactly, and
+						// the differential test depends on it
 
-	wg.Wait()
-
-	// use the indirect matrix to subdivide routes
-	//
-	// IMPORTANT: costs stored in the indirect matrix are trusted from here on. AddRoute
-	// stores the claimed cost without re-deriving it from the cost matrix, and everything
-	// downstream (route matrix serialization, server backend route selection) believes it.
-	// every indirect entry must be an exact sum of link costs from the cost matrix.
-
-	entryCount := TriMatrixLength(numRelays)
-
-	routes := make([]RouteEntry, entryCount)
-
-	wg.Add(numSegments)
-
-	for segment := range numSegments {
-
-		startIndex := segment * numRelays / numSegments
-		endIndex := (segment+1)*numRelays/numSegments - 1
-		if segment == numSegments-1 {
-			endIndex = numRelays - 1
-		}
-
-		go func(startIndex int, endIndex int) {
-
-			defer wg.Done()
-
-			for i := startIndex; i <= endIndex; i++ {
-
-				for j := 0; j < i; j++ {
-
-					var routeManager RouteManager
-
-					routeManager.RelayDatacenter = relayDatacenter
-
-					// add the direct route
-
-					index := TriMatrixIndex(i, j)
-
-					directCost := int32(cost[index])
-
-					if directCost < 255 {
-						routeManager.AddRoute(directCost, int32(relayPrice[i])+int32(relayPrice[j]), int32(i), int32(j))
-					}
-
-					// add subdivided routes
-
-					for k_index := range indirect[i][j] {
-
-						k := int(indirect[i][j][k_index].relay)
-
-						ik_cost := cost[TriMatrixIndex(i, k)]
-						kj_cost := cost[TriMatrixIndex(k, j)]
-
-						// i -> (k) -> j
-						{
-							ikj_cost := indirect[i][j][k_index].cost
-							cost := int32(ikj_cost)
-							if cost < directCost {
-								routeManager.AddRoute(cost, int32(relayPrice[i])+int32(relayPrice[k])+int32(relayPrice[j]), int32(i), int32(k), int32(j))
-							}
-						}
-
-						// i -> (x) -> k    ->     j
-
-						for x_index := range indirect[i][k] {
-
-							x := indirect[i][k][x_index].relay
-							ixk_cost := indirect[i][k][x_index].cost
-							cost := int32(ixk_cost) + int32(kj_cost)
-							if cost < directCost {
-								routeManager.AddRoute(cost, int32(relayPrice[i])+int32(relayPrice[x])+int32(relayPrice[k])+int32(relayPrice[j]), int32(i), int32(x), int32(k), int32(j))
-							}
-						}
-
-						// i        -> k -> (y) -> j
-
-						for y_index := range indirect[k][j] {
-							kyj_cost := indirect[k][j][y_index].cost
-							y := indirect[k][j][y_index].relay
-							cost := int32(ik_cost) + int32(kyj_cost)
-							if cost < directCost {
-								routeManager.AddRoute(cost, int32(relayPrice[i])+int32(relayPrice[k])+int32(relayPrice[y])+int32(relayPrice[j]), int32(i), int32(k), int32(y), int32(j))
-							}
-						}
-
-						// i -> (x) -> k -> (y) -> j
-
-						for x_index := range indirect[i][k] {
-							ixk_cost := indirect[i][k][x_index].cost
-							x := int(indirect[i][k][x_index].relay)
-							for y_index := range indirect[k][j] {
-								kyj_cost := indirect[k][j][y_index].cost
-								y := int(indirect[k][j][y_index].relay)
-								cost := int32(ixk_cost) + int32(kyj_cost)
-								if cost < directCost {
-									routeManager.AddRoute(cost, int32(relayPrice[i])+int32(relayPrice[x])+int32(relayPrice[k])+int32(relayPrice[y])+int32(relayPrice[j]), int32(i), int32(x), int32(k), int32(y), int32(j))
+						count := 0
+						for c := 0; c < numRoutes; c++ {
+							candidate := working[c]
+							if count == constants.MaxIndirects {
+								if candidate.cost >= best[count-1].cost {
+									continue
 								}
+								count--
 							}
+							pos := count
+							for pos > 0 && best[pos-1].cost > candidate.cost {
+								best[pos] = best[pos-1]
+								pos--
+							}
+							best[pos] = candidate
+							count++
 						}
-					}
 
-					// store the best routes in order of lowest to highest cost
-
-					numRoutes := int(routeManager.NumRoutes)
-
-					routes[index].DirectCost = int32(cost[index])
-					routes[index].NumRoutes = int32(numRoutes)
-
-					for u := range numRoutes {
-						routes[index].RouteCost[u] = routeManager.RouteCost[u]
-						routes[index].RoutePrice[u] = routeManager.RoutePrice[u]
-						routes[index].RouteNumRelays[u] = routeManager.RouteNumRelays[u]
-						numRelays := int(routes[index].RouteNumRelays[u])
-						for v := range numRelays {
-							routes[index].RouteRelays[u][v] = routeManager.RouteRelays[u][v]
-						}
-						routes[index].RouteHash[u] = routeManager.RouteHash[u]
-					}
-				}
-			}
-
-		}(startIndex, endIndex)
-	}
-
-	wg.Wait()
-
-	return routes
-}
-
-func Optimize2(numRelays int, numSegments int, cost []uint8, relayPrice []uint8, relayDatacenter []uint64, destinationRelay []bool) []RouteEntry {
-
-	// Same as "Optimize", but it only optimizes to relays marked as destination relays.
-
-	// build a matrix of indirect routes from relays i -> j that have lower cost than direct, eg. i -> (x) -> j, where x is every other relay
-
-	type Indirect struct {
-		relay int32
-		cost  uint32
-	}
-
-	indirect := make([][][]Indirect, numRelays)
-
-	var wg sync.WaitGroup
-
-	wg.Add(numSegments)
-
-	for segment := range numSegments {
-
-		startIndex := segment * numRelays / numSegments
-		endIndex := (segment+1)*numRelays/numSegments - 1
-		if segment == numSegments-1 {
-			endIndex = numRelays - 1
-		}
-
-		go func(startIndex int, endIndex int) {
-
-			defer wg.Done()
-
-			// scratch buffer -- same invariant as in Optimize: only working[:numRoutes]
-			// is valid for the current pair, all sorts and copies must be bounded by it
-			// (see TestOptimize2RouteCosts)
-
-			working := make([]Indirect, numRelays)
-
-			for i := startIndex; i <= endIndex; i++ {
-
-				indirect[i] = make([][]Indirect, numRelays)
-
-				for j := range numRelays {
-
-					// can't route to self
-					if i == j {
-						continue
-					}
-
-					if !destinationRelay[i] && !destinationRelay[j] {
-						continue
-					}
-
-					ijIndex := TriMatrixIndex(i, j)
-
-					numRoutes := 0
-					costDirect := uint32(cost[ijIndex])
-
-					for x := range numRelays {
-						if x == i || x == j {
-							continue
-						}
-						ixIndex := TriMatrixIndex(i, x)
-						ixCost := uint32(cost[ixIndex])
-						xjIndex := TriMatrixIndex(x, j)
-						xjCost := uint32(cost[xjIndex])
-						indirectCost := uint32(ixCost) + uint32(xjCost)
-						if indirectCost >= costDirect {
-							continue
-						}
-						working[numRoutes].relay = int32(x)
-						working[numRoutes].cost = indirectCost
-						numRoutes++
-					}
-
-					if numRoutes > constants.MaxIndirects {
-						sort.SliceStable(working[:numRoutes], func(i, j int) bool { return working[i].cost < working[j].cost })
 						indirect[i][j] = make([]Indirect, constants.MaxIndirects)
-						copy(indirect[i][j], working[:constants.MaxIndirects])
+						copy(indirect[i][j], best[:])
+
 					} else if numRoutes > 0 {
+
+						// 8 or fewer: keep them in x order, unsorted, exactly like the
+						// stable sort path never ran. phase 2 iteration order feeds
+						// AddRoute, and order matters at the 16 route cut boundary.
+
 						indirect[i][j] = make([]Indirect, numRoutes)
 						copy(indirect[i][j], working)
 					}
 				}
 			}
 
-		}(startIndex, endIndex)
+		}()
 	}
 
 	wg.Wait()
@@ -664,19 +521,20 @@ func Optimize2(numRelays int, numSegments int, cost []uint8, relayPrice []uint8,
 
 	wg.Add(numSegments)
 
-	for segment := range numSegments {
+	var nextRow2 atomic.Int64
 
-		startIndex := segment * numRelays / numSegments
-		endIndex := (segment+1)*numRelays/numSegments - 1
-		if segment == numSegments-1 {
-			endIndex = numRelays - 1
-		}
+	for range numSegments {
 
-		go func(startIndex int, endIndex int) {
+		go func() {
 
 			defer wg.Done()
 
-			for i := startIndex; i <= endIndex; i++ {
+			for {
+
+				i := int(nextRow2.Add(1)) - 1
+				if i >= numRelays {
+					break
+				}
 
 				for j := 0; j < i; j++ {
 
@@ -694,22 +552,25 @@ func Optimize2(numRelays int, numSegments int, cost []uint8, relayPrice []uint8,
 						routeManager.AddRoute(directCost, int32(relayPrice[i])+int32(relayPrice[j]), int32(i), int32(j))
 					}
 
-					if destinationRelay[i] || destinationRelay[j] {
+					// add subdivided routes. all four cases filter on the FULL path cost
+					// vs direct -- routes that cannot beat direct are dead weight (route
+					// selection requires improvement over direct) and waste entry slots.
 
-						// add subdivided routes
+					if allPairs || destinationRelay[i] || destinationRelay[j] {
 
 						for k_index := range indirect[i][j] {
 
 							k := int(indirect[i][j][k_index].relay)
 
-							ik_cost := cost[TriMatrixIndex(i, k)]
-							kj_cost := cost[TriMatrixIndex(k, j)]
+							ik_cost := square[i*numRelays+k]
+							kj_cost := square[k*numRelays+j]
 
 							// i -> (k) -> j
 							{
-								cost := int32(indirect[i][j][k_index].cost)
+								ikj_cost := indirect[i][j][k_index].cost
+								cost := int32(ikj_cost)
 								if cost < directCost {
-									routeManager.AddRoute(int32(cost), int32(relayPrice[i])+int32(relayPrice[k])+int32(relayPrice[j]), int32(i), int32(k), int32(j))
+									routeManager.AddRoute(cost, int32(relayPrice[i])+int32(relayPrice[k])+int32(relayPrice[j]), int32(i), int32(k), int32(j))
 								}
 							}
 
@@ -718,9 +579,10 @@ func Optimize2(numRelays int, numSegments int, cost []uint8, relayPrice []uint8,
 							for x_index := range indirect[i][k] {
 
 								x := indirect[i][k][x_index].relay
-								cost := int32(indirect[i][k][x_index].cost)
+								ixk_cost := indirect[i][k][x_index].cost
+								cost := int32(ixk_cost) + int32(kj_cost)
 								if cost < directCost {
-									routeManager.AddRoute(int32(cost)+int32(kj_cost), int32(relayPrice[i])+int32(relayPrice[x])+int32(relayPrice[k])+int32(relayPrice[j]), int32(i), int32(x), int32(k), int32(j))
+									routeManager.AddRoute(cost, int32(relayPrice[i])+int32(relayPrice[x])+int32(relayPrice[k])+int32(relayPrice[j]), int32(i), int32(x), int32(k), int32(j))
 								}
 							}
 
@@ -772,7 +634,7 @@ func Optimize2(numRelays int, numSegments int, cost []uint8, relayPrice []uint8,
 				}
 			}
 
-		}(startIndex, endIndex)
+		}()
 	}
 
 	wg.Wait()

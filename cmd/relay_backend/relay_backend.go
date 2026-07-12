@@ -1119,7 +1119,7 @@ func UpdateRouteMatrix(service *common.Service, relayManager *common.RelayManage
 
 				// optimize
 
-				routeEntries := core.Optimize2(relayData.NumRelays, numSegments, costs, relayPrice, relayData.RelayDatacenterIds, relayData.DestRelays)
+				routeEntries := core.Optimize(relayData.NumRelays, numSegments, costs, relayPrice, relayData.RelayDatacenterIds, relayData.DestRelays)
 
 				timeFinish := time.Now()
 

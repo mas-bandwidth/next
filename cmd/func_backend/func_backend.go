@@ -132,7 +132,7 @@ func OptimizeThread() {
 			destRelays[i] = true
 		}
 
-		core.Optimize2(numRelays, numSegments, costMatrix, relayPrice, relayDatacenterIds, destRelays)
+		core.Optimize(numRelays, numSegments, costMatrix, relayPrice, relayDatacenterIds, destRelays)
 
 		backend.mutex.Unlock()
 

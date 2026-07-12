@@ -56,7 +56,7 @@ func RunOptimizeThread(ctx context.Context) {
 
 				relayPrice := make([]byte, numRelays)
 
-				core.Optimize2(numRelays, numSegments, costs, relayPrice, relayDatacenterIds, destRelays)
+				core.Optimize(numRelays, numSegments, costs, relayPrice, relayDatacenterIds, destRelays)
 
 				fmt.Printf("iteration %d: optimize %d relays (%dms)\n", iteration, numRelays, time.Since(start).Milliseconds())
 

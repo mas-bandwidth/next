@@ -226,7 +226,7 @@ func RunHandlerThreads(threadCount int, updateChannels []chan *Update, numSessio
 
 		relayPrice := make([]byte, NumRelays)
 
-		entries = core.Optimize2(NumRelays, numSegments, costs, relayPrice, relayDatacenterIds, destRelays)
+		entries = core.Optimize(NumRelays, numSegments, costs, relayPrice, relayDatacenterIds, destRelays)
 	}
 
 	routeMatrix := common.RouteMatrix{}
