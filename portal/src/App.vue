@@ -89,14 +89,6 @@ export default {
 
   methods: {
 
-    nav_map() {
-      if (this.current_view != 'map') {
-        this.$router.push('/map')
-      } else {
-        this.onLoaded()
-      }
-    },
-
     nav_sessions() {
       if (this.current_view != 'sessions') {
         this.$router.push('/sessions')
@@ -124,14 +116,6 @@ export default {
     nav_buyers() {
       if (this.current_view != 'buyers') {
         this.$router.push('/buyers')
-      } else {
-        this.onLoaded()
-      }
-    },
-
-    nav_sellers() {
-      if (this.current_view != 'sellers') {
-        this.$router.push('/sellers')
       } else {
         this.onLoaded()
       }

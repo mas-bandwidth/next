@@ -19,8 +19,6 @@
 import axios from "axios";
 import update from "@/update.js"
 
-axios.defaults.headers.common = {'Authorization': `Bearer ${process.env.VUE_APP_PORTAL_API_KEY}`}
-
 export default {
 
   name: "App",
