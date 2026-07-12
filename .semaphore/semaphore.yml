@@ -114,6 +114,9 @@ blocks:
             - sudo ip link add xdptest0 type veth peer name xdptest1
             - sudo ip link set xdptest0 up
             - sudo ip link set xdptest1 up
+            # libxdp needs a bpffs for the dispatcher (and our maps pin by name) -- the
+            # semaphore VMs don't mount one (xdp-tools issue #364: fails EINVAL without it)
+            - mountpoint -q /sys/fs/bpf || sudo mount -t bpf bpf /sys/fs/bpf
             - sudo xdp-loader load -m skb -v xdptest0 relay_xdp.o
             - sudo xdp-loader status
             - sudo xdp-loader unload xdptest0 --all
