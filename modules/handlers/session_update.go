@@ -11,7 +11,8 @@ import (
 	"github.com/networknext/next/modules/core"
 	"github.com/networknext/next/modules/crypto"
 	db "github.com/networknext/next/modules/database"
-	"github.com/networknext/next/modules/encoding"
+
+	serialize "github.com/mas-bandwidth/goserialize"
 	"github.com/networknext/next/modules/messages"
 	"github.com/networknext/next/modules/packets"
 )
@@ -117,7 +118,7 @@ func SessionUpdate_ReadSessionData(state *SessionUpdateState) bool {
 		return false
 	}
 
-	readStream := encoding.CreateReadStream(state.Request.SessionData[:])
+	readStream := serialize.NewReadStream(state.Request.SessionData[:])
 
 	err := state.Input.Serialize(readStream)
 	if err != nil {
@@ -1020,7 +1021,7 @@ func SessionUpdate_Post(state *SessionUpdateState) {
 		Write session data
 	*/
 
-	writeStream := encoding.CreateWriteStream(state.Response.SessionData[:])
+	writeStream := serialize.NewWriteStream(state.Response.SessionData[:])
 
 	state.Output.Version = packets.SDK_SessionDataVersion_Write
 
@@ -1033,7 +1034,7 @@ func SessionUpdate_Post(state *SessionUpdateState) {
 
 	writeStream.Flush()
 
-	state.Response.SessionDataBytes = int32(writeStream.GetBytesProcessed())
+	state.Response.SessionDataBytes = int32(int(writeStream.BytesProcessed()))
 
 	copy(state.Response.SessionDataSignature[:], crypto.Sign(state.Response.SessionData[:state.Response.SessionDataBytes], state.ServerBackendPrivateKey))
 

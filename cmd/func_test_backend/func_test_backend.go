@@ -29,7 +29,8 @@ import (
 	"github.com/networknext/next/modules/core"
 	"github.com/networknext/next/modules/crypto"
 	db "github.com/networknext/next/modules/database"
-	"github.com/networknext/next/modules/encoding"
+
+	serialize "github.com/mas-bandwidth/goserialize"
 	"github.com/networknext/next/modules/packets"
 )
 
@@ -384,16 +385,16 @@ func test_session_data_serialize() {
 
 		buffer := [BufferSize]byte{}
 
-		writeStream := encoding.CreateWriteStream(buffer[:])
+		writeStream := serialize.NewWriteStream(buffer[:])
 
 		err := writePacket.Serialize(writeStream)
 		if err != nil {
 			panic(err)
 		}
 		writeStream.Flush()
-		packetBytes := writeStream.GetBytesProcessed()
+		packetBytes := int(writeStream.BytesProcessed())
 
-		readStream := encoding.CreateReadStream(buffer[:packetBytes])
+		readStream := serialize.NewReadStream(buffer[:packetBytes])
 		err = readPacket.Serialize(readStream)
 		if err != nil {
 			panic(err)

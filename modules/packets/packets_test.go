@@ -9,7 +9,8 @@ import (
 	"github.com/networknext/next/modules/constants"
 	"github.com/networknext/next/modules/core"
 	"github.com/networknext/next/modules/crypto"
-	"github.com/networknext/next/modules/encoding"
+
+	serialize "github.com/mas-bandwidth/goserialize"
 	"github.com/networknext/next/modules/packets"
 
 	"github.com/stretchr/testify/assert"
@@ -95,14 +96,14 @@ func PacketSerializationTest[P packets.Packet](writePacket P, readPacket P, t *t
 
 	buffer := [BufferSize]byte{}
 
-	writeStream := encoding.CreateWriteStream(buffer[:])
+	writeStream := serialize.NewWriteStream(buffer[:])
 
 	err := writePacket.Serialize(writeStream)
 	assert.Nil(t, err)
 	writeStream.Flush()
-	packetBytes := writeStream.GetBytesProcessed()
+	packetBytes := int(writeStream.BytesProcessed())
 
-	readStream := encoding.CreateReadStream(buffer[:packetBytes])
+	readStream := serialize.NewReadStream(buffer[:packetBytes])
 	err = readPacket.Serialize(readStream)
 	assert.Nil(t, err)
 

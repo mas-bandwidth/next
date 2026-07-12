@@ -2,7 +2,8 @@ package packets
 
 import (
 	"fmt"
-	"github.com/networknext/next/modules/encoding"
+
+	serialize "github.com/mas-bandwidth/goserialize"
 )
 
 const (
@@ -17,11 +18,11 @@ type SDKVersion struct {
 	Patch int32
 }
 
-func (version *SDKVersion) Serialize(stream encoding.Stream) error {
-	stream.SerializeInteger(&version.Major, 0, 255)
-	stream.SerializeInteger(&version.Minor, 0, 255)
-	stream.SerializeInteger(&version.Patch, 0, 255)
-	return stream.Error()
+func (version *SDKVersion) Serialize(stream serialize.Stream) error {
+	stream.SerializeInt(&version.Major, 0, 255)
+	stream.SerializeInt(&version.Minor, 0, 255)
+	stream.SerializeInt(&version.Patch, 0, 255)
+	return stream.Err()
 }
 
 func (a SDKVersion) Compare(b SDKVersion) int {

@@ -90,6 +90,19 @@ that fact is stale — reverify.
   (`sdk/serialize/README.md`). `next_bitpacker.h`/`next_stream.h`/`next_serialize.h` are thin
   adapters over it; the only SDK-specific serialize helper is `serialize_address`. Any wire-format
   change here breaks every deployed relay/backend — the functional suite is the wire-compat check.
+- **The Go backend bitpacker is `github.com/mas-bandwidth/goserialize`** (the Go port of the
+  canonical C++ serialize; bit-for-bit identical). Used directly via `serialize.Stream` /
+  `serialize.NewWriteStream` / `NewReadStream` — NOT wrapped. `modules/encoding` is now just the
+  fixed-layout byte helpers (`WriteUint64` at an offset, etc.) plus `encoding.SerializeAddress`,
+  the one SDK-specific serialize helper (a free function over `serialize.Stream`, the exact
+  analog of the C++ `serialize_address`). The hand-rolled Go bitpacker was replaced 2026-07-12
+  (`TestWireFormatGolden` in modules/packets pins the bytes). Two behavior facts from that
+  migration: goserialize write buffers must be a multiple of 8 bytes (route/cost matrix
+  GetMaxSize round up), and goserialize VALIDATES align padding is zero on read (rejecting
+  malformed packets the old lenient Go reader accepted — matches C++, which does the same).
+  The old Go reader also skipped the align after an empty string; goserialize aligns (C++
+  correct). goserialize methods return an error but also latch a sticky err, so the existing
+  `return stream.Err()` pattern still works.
 - **Do NOT remove the vendored `sdk/sodium/`** (flattened, Unreal-plugin-friendly). SDK Tests CI
   builds against it with no system sodium installed; the `next` tool bundles it into the customer
   SDK example; `sdk/visualstudio/next.sln` references it. It is SEPARATE from the Build pipeline's

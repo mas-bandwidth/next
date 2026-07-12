@@ -13,7 +13,8 @@ import (
 	"github.com/networknext/next/modules/core"
 	"github.com/networknext/next/modules/crypto"
 	db "github.com/networknext/next/modules/database"
-	"github.com/networknext/next/modules/encoding"
+
+	serialize "github.com/mas-bandwidth/goserialize"
 	"github.com/networknext/next/modules/envvar"
 	"github.com/networknext/next/modules/handlers"
 	"github.com/networknext/next/modules/packets"
@@ -74,13 +75,13 @@ func RunSessionUpdateThreads(threadCount int, updateChannels []chan *Update) {
 			sessionData_Output := make([]byte, packets.SDK_MaxSessionDataSize)
 			sessionData_Signature := make([]byte, crypto.Sign_SignatureSize)
 			{
-				stream := encoding.CreateWriteStream(sessionData_Output)
+				stream := serialize.NewWriteStream(sessionData_Output)
 				err := sessionData.Serialize(stream)
 				if err != nil {
 					panic("failed to write session data")
 				}
 				stream.Flush()
-				sessionDataBytes := stream.GetBytesProcessed()
+				sessionDataBytes := int(stream.BytesProcessed())
 				sessionData_Output = sessionData_Output[:sessionDataBytes]
 				copy(sessionData_Signature, crypto.Sign(sessionData_Output, ServerBackendPrivateKey))
 			}

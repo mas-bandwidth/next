@@ -29,6 +29,8 @@ import (
 	"github.com/networknext/next/modules/core"
 	"github.com/networknext/next/modules/crypto"
 	"github.com/networknext/next/modules/encoding"
+
+	serialize "github.com/mas-bandwidth/goserialize"
 	"github.com/networknext/next/modules/packets"
 )
 
@@ -809,7 +811,7 @@ func ProcessSessionUpdateRequestPacket(conn *net.UDPConn, from *net.UDPAddr, req
 
 	} else {
 
-		readStream := encoding.CreateReadStream(requestPacket.SessionData[:])
+		readStream := serialize.NewReadStream(requestPacket.SessionData[:])
 
 		err := sessionData.Serialize(readStream)
 		if err != nil {

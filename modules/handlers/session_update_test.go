@@ -11,7 +11,8 @@ import (
 	"github.com/networknext/next/modules/core"
 	"github.com/networknext/next/modules/crypto"
 	db "github.com/networknext/next/modules/database"
-	"github.com/networknext/next/modules/encoding"
+
+	serialize "github.com/mas-bandwidth/goserialize"
 	"github.com/networknext/next/modules/handlers"
 	"github.com/networknext/next/modules/packets"
 
@@ -84,7 +85,7 @@ func WriteSessionData(sessionData packets.SDK_SessionData) []byte {
 
 	buffer := [packets.SDK_MaxSessionDataSize]byte{}
 
-	writeStream := encoding.CreateWriteStream(buffer[:])
+	writeStream := serialize.NewWriteStream(buffer[:])
 
 	err := sessionData.Serialize(writeStream)
 	if err != nil {
@@ -93,7 +94,7 @@ func WriteSessionData(sessionData packets.SDK_SessionData) []byte {
 
 	writeStream.Flush()
 
-	sessionDataBytes := writeStream.GetBytesProcessed()
+	sessionDataBytes := int(writeStream.BytesProcessed())
 
 	return buffer[:sessionDataBytes]
 }

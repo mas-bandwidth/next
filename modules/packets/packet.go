@@ -1,21 +1,21 @@
 package packets
 
 import (
-	"github.com/networknext/next/modules/encoding"
+	serialize "github.com/mas-bandwidth/goserialize"
 )
 
 type Packet interface {
-	Serialize(stream encoding.Stream) error
+	Serialize(stream serialize.Stream) error
 }
 
 func WritePacket[P Packet](packetData []byte, packetObject P) ([]byte, error) {
-	writeStream := encoding.CreateWriteStream(packetData)
+	writeStream := serialize.NewWriteStream(packetData)
 	err := packetObject.Serialize(writeStream)
 	writeStream.Flush()
-	return packetData[:writeStream.GetBytesProcessed()], err
+	return packetData[:int(writeStream.BytesProcessed())], err
 }
 
 func ReadPacket[P Packet](packetData []byte, packetObject P) error {
-	readStream := encoding.CreateReadStream(packetData)
+	readStream := serialize.NewReadStream(packetData)
 	return packetObject.Serialize(readStream)
 }

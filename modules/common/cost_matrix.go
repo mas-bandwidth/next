@@ -7,6 +7,8 @@ import (
 	"github.com/networknext/next/modules/constants"
 	"github.com/networknext/next/modules/core"
 	"github.com/networknext/next/modules/encoding"
+
+	serialize "github.com/mas-bandwidth/goserialize"
 )
 
 const (
@@ -29,15 +31,18 @@ type CostMatrix struct {
 }
 
 func (m *CostMatrix) GetMaxSize() int {
-	// IMPORTANT: This must be an upper bound *and* a multiple of 4
+	// IMPORTANT: This must be an upper bound. goserialize requires the write buffer to be
+	// a multiple of 8 bytes, so round up (a larger buffer does not change the wire bytes).
 	numRelays := len(m.RelayIds)
 	size := 256 + numRelays*(8+19+constants.MaxRelayNameLength+4+4+8+1) + core.TriMatrixLength(numRelays) + numRelays + 4
 	size += 4
-	size -= size % 4
+	if size%8 != 0 {
+		size += 8 - size%8
+	}
 	return size
 }
 
-func (m *CostMatrix) Serialize(stream encoding.Stream) error {
+func (m *CostMatrix) Serialize(stream serialize.Stream) error {
 
 	if stream.IsWriting() && (m.Version < CostMatrixVersion_Min || m.Version > CostMatrixVersion_Max) {
 		panic(fmt.Errorf("invalid cost matrix version: %d", m.Version))
@@ -63,7 +68,7 @@ func (m *CostMatrix) Serialize(stream encoding.Stream) error {
 
 	for i := uint32(0); i < numRelays; i++ {
 		stream.SerializeUint64(&m.RelayIds[i])
-		stream.SerializeAddress(&m.RelayAddresses[i])
+		encoding.SerializeAddress(stream, &m.RelayAddresses[i])
 		stream.SerializeString(&m.RelayNames[i], constants.MaxRelayNameLength)
 		stream.SerializeFloat32(&m.RelayLatitudes[i])
 		stream.SerializeFloat32(&m.RelayLongitudes[i])
@@ -91,21 +96,21 @@ func (m *CostMatrix) Serialize(stream encoding.Stream) error {
 		stream.SerializeBool(&m.DestRelays[i])
 	}
 
-	return stream.Error()
+	return stream.Err()
 }
 
 func (m *CostMatrix) Write() ([]byte, error) {
 	buffer := make([]byte, m.GetMaxSize())
-	ws := encoding.CreateWriteStream(buffer)
+	ws := serialize.NewWriteStream(buffer)
 	if err := m.Serialize(ws); err != nil {
 		return nil, fmt.Errorf("failed to serialize cost matrix: %v", err)
 	}
 	ws.Flush()
-	return buffer[:ws.GetBytesProcessed()], nil
+	return buffer[:int(ws.BytesProcessed())], nil
 }
 
 func (m *CostMatrix) Read(buffer []byte) error {
-	readStream := encoding.CreateReadStream(buffer)
+	readStream := serialize.NewReadStream(buffer)
 	return m.Serialize(readStream)
 }
 

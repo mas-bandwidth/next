@@ -8,6 +8,8 @@ import (
 	"github.com/networknext/next/modules/constants"
 	"github.com/networknext/next/modules/core"
 	"github.com/networknext/next/modules/encoding"
+
+	serialize "github.com/mas-bandwidth/goserialize"
 )
 
 const (
@@ -56,7 +58,8 @@ func (m *RouteMatrix) GetCostMatrix() *CostMatrix {
 }
 
 func (m *RouteMatrix) GetMaxSize() int {
-	// IMPORTANT: This must be an upper bound *and* a multiple of 4
+	// IMPORTANT: This must be an upper bound. goserialize requires the write buffer to be
+	// a multiple of 8 bytes, so round up (a larger buffer does not change the wire bytes).
 	numRelays := len(m.RelayIds)
 	size := 1024
 	size += numRelays * (8 + 19 + constants.MaxRelayNameLength + 4 + 4 + 8)
@@ -64,11 +67,13 @@ func (m *RouteMatrix) GetMaxSize() int {
 	size += int(m.BinFileBytes)
 	size += core.TriMatrixLength(numRelays)
 	size += 4 + numRelays
-	size -= size % 4
+	if size%8 != 0 {
+		size += 8 - size%8
+	}
 	return size
 }
 
-func (m *RouteMatrix) Serialize(stream encoding.Stream) error {
+func (m *RouteMatrix) Serialize(stream serialize.Stream) error {
 
 	if stream.IsWriting() && (m.Version < RouteMatrixVersion_Min || m.Version > RouteMatrixVersion_Max) {
 		panic(fmt.Errorf("invalid route matrix version: %d", m.Version))
@@ -82,7 +87,7 @@ func (m *RouteMatrix) Serialize(stream encoding.Stream) error {
 
 	stream.SerializeUint64(&m.CreatedAt)
 
-	stream.SerializeInteger(&m.BinFileBytes, 0, constants.MaxDatabaseSize)
+	stream.SerializeInt(&m.BinFileBytes, 0, constants.MaxDatabaseSize)
 	if m.BinFileBytes > 0 {
 		if stream.IsReading() {
 			m.BinFileData = make([]byte, m.BinFileBytes)
@@ -107,7 +112,7 @@ func (m *RouteMatrix) Serialize(stream encoding.Stream) error {
 
 	for i := uint32(0); i < numRelays; i++ {
 		stream.SerializeUint64(&m.RelayIds[i])
-		stream.SerializeAddress(&m.RelayAddresses[i])
+		encoding.SerializeAddress(stream, &m.RelayAddresses[i])
 		stream.SerializeString(&m.RelayNames[i], constants.MaxRelayNameLength)
 		stream.SerializeFloat32(&m.RelayLatitudes[i])
 		stream.SerializeFloat32(&m.RelayLongitudes[i])
@@ -135,20 +140,20 @@ func (m *RouteMatrix) Serialize(stream encoding.Stream) error {
 	for i := uint32(0); i < numEntries; i++ {
 		entry := &m.RouteEntries[i]
 
-		stream.SerializeInteger(&entry.DirectCost, 0, constants.MaxRouteCost)
-		stream.SerializeInteger(&entry.NumRoutes, 0, constants.MaxRoutesPerEntry)
+		stream.SerializeInt(&entry.DirectCost, 0, constants.MaxRouteCost)
+		stream.SerializeInt(&entry.NumRoutes, 0, constants.MaxRoutesPerEntry)
 
 		for i := 0; i < int(entry.NumRoutes); i++ {
-			stream.SerializeInteger(&entry.RouteCost[i], -1, constants.MaxRouteCost)
+			stream.SerializeInt(&entry.RouteCost[i], -1, constants.MaxRouteCost)
 			if m.Version >= 5 {
 				// versions < 5 dropped route price, which silently disabled lowest price
 				// route selection in the server backend (all routes read back as price 0)
-				stream.SerializeInteger(&entry.RoutePrice[i], 0, constants.MaxRoutePrice)
+				stream.SerializeInt(&entry.RoutePrice[i], 0, constants.MaxRoutePrice)
 			}
-			stream.SerializeInteger(&entry.RouteNumRelays[i], 0, constants.MaxRouteRelays)
+			stream.SerializeInt(&entry.RouteNumRelays[i], 0, constants.MaxRouteRelays)
 			stream.SerializeUint32(&entry.RouteHash[i])
 			for j := 0; j < int(entry.RouteNumRelays[i]); j++ {
-				stream.SerializeInteger(&entry.RouteRelays[i][j], 0, math.MaxInt32)
+				stream.SerializeInt(&entry.RouteRelays[i][j], 0, math.MaxInt32)
 			}
 		}
 	}
@@ -172,21 +177,21 @@ func (m *RouteMatrix) Serialize(stream encoding.Stream) error {
 		stream.SerializeBytes(m.RelayPrice)
 	}
 
-	return stream.Error()
+	return stream.Err()
 }
 
 func (m *RouteMatrix) Write() ([]byte, error) {
 	buffer := make([]byte, m.GetMaxSize())
-	ws := encoding.CreateWriteStream(buffer)
+	ws := serialize.NewWriteStream(buffer)
 	if err := m.Serialize(ws); err != nil {
 		return nil, fmt.Errorf("failed to serialize route matrix: %v", err)
 	}
 	ws.Flush()
-	return buffer[:ws.GetBytesProcessed()], nil
+	return buffer[:int(ws.BytesProcessed())], nil
 }
 
 func (m *RouteMatrix) Read(buffer []byte) error {
-	readStream := encoding.CreateReadStream(buffer)
+	readStream := serialize.NewReadStream(buffer)
 	return m.Serialize(readStream)
 }
 

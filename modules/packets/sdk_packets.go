@@ -12,6 +12,8 @@ import (
 	"github.com/networknext/next/modules/core"
 	"github.com/networknext/next/modules/crypto"
 	"github.com/networknext/next/modules/encoding"
+
+	serialize "github.com/mas-bandwidth/goserialize"
 )
 
 // ------------------------------------------------------------
@@ -20,7 +22,7 @@ func SDK_WritePacket[P Packet](packet P, packetType int, maxPacketSize int, from
 
 	buffer := make([]byte, maxPacketSize)
 
-	writeStream := encoding.CreateWriteStream(buffer[:])
+	writeStream := serialize.NewWriteStream(buffer[:])
 
 	var dummy [18]byte
 	writeStream.SerializeBytes(dummy[:])
@@ -32,7 +34,7 @@ func SDK_WritePacket[P Packet](packet P, packetType int, maxPacketSize int, from
 
 	writeStream.Flush()
 
-	packetBytes := writeStream.GetBytesProcessed() + crypto.SDK_CRYPTO_SIGN_BYTES
+	packetBytes := int(writeStream.BytesProcessed()) + crypto.SDK_CRYPTO_SIGN_BYTES
 
 	packetData := buffer[:packetBytes]
 
@@ -65,7 +67,7 @@ type SDK_ServerInitRequestPacket struct {
 	DatacenterName string
 }
 
-func (packet *SDK_ServerInitRequestPacket) Serialize(stream encoding.Stream) error {
+func (packet *SDK_ServerInitRequestPacket) Serialize(stream serialize.Stream) error {
 	packet.Version.Serialize(stream)
 	stream.SerializeUint64(&packet.BuyerId)
 	if core.ProtocolVersionAtLeast(uint32(packet.Version.Major), uint32(packet.Version.Minor), uint32(packet.Version.Patch), 1, 2, 11) {
@@ -74,7 +76,7 @@ func (packet *SDK_ServerInitRequestPacket) Serialize(stream encoding.Stream) err
 	stream.SerializeUint64(&packet.RequestId)
 	stream.SerializeUint64(&packet.DatacenterId)
 	stream.SerializeString(&packet.DatacenterName, SDK_MaxDatacenterNameLength)
-	return stream.Error()
+	return stream.Err()
 }
 
 // ------------------------------------------------------------
@@ -87,13 +89,13 @@ type SDK_ServerInitResponsePacket struct {
 	PreviousMagic [8]byte
 }
 
-func (packet *SDK_ServerInitResponsePacket) Serialize(stream encoding.Stream) error {
+func (packet *SDK_ServerInitResponsePacket) Serialize(stream serialize.Stream) error {
 	stream.SerializeUint64(&packet.RequestId)
 	stream.SerializeBits(&packet.Response, 8)
 	stream.SerializeBytes(packet.UpcomingMagic[:])
 	stream.SerializeBytes(packet.CurrentMagic[:])
 	stream.SerializeBytes(packet.PreviousMagic[:])
-	return stream.Error()
+	return stream.Err()
 }
 
 // ------------------------------------------------------------
@@ -112,7 +114,7 @@ type SDK_ServerUpdateRequestPacket struct {
 	DeltaTimeAvg float32
 }
 
-func (packet *SDK_ServerUpdateRequestPacket) Serialize(stream encoding.Stream) error {
+func (packet *SDK_ServerUpdateRequestPacket) Serialize(stream serialize.Stream) error {
 	packet.Version.Serialize(stream)
 	stream.SerializeUint64(&packet.BuyerId)
 	if core.ProtocolVersionAtLeast(uint32(packet.Version.Major), uint32(packet.Version.Minor), uint32(packet.Version.Patch), 1, 2, 11) {
@@ -125,7 +127,7 @@ func (packet *SDK_ServerUpdateRequestPacket) Serialize(stream encoding.Stream) e
 		stream.SerializeUint64(&packet.ServerId)
 	} else if stream.IsReading() {
 		var serverAddress net.UDPAddr
-		stream.SerializeAddress(&serverAddress)
+		encoding.SerializeAddress(stream, &serverAddress)
 		packet.ServerId = common.HashString(serverAddress.String())
 	}
 	stream.SerializeUint64(&packet.Uptime)
@@ -134,7 +136,7 @@ func (packet *SDK_ServerUpdateRequestPacket) Serialize(stream encoding.Stream) e
 		stream.SerializeFloat32(&packet.DeltaTimeMax)
 		stream.SerializeFloat32(&packet.DeltaTimeAvg)
 	}
-	return stream.Error()
+	return stream.Err()
 }
 
 // ------------------------------------------------------------
@@ -146,12 +148,12 @@ type SDK_ServerUpdateResponsePacket struct {
 	PreviousMagic [8]byte
 }
 
-func (packet *SDK_ServerUpdateResponsePacket) Serialize(stream encoding.Stream) error {
+func (packet *SDK_ServerUpdateResponsePacket) Serialize(stream serialize.Stream) error {
 	stream.SerializeUint64(&packet.RequestId)
 	stream.SerializeBytes(packet.UpcomingMagic[:])
 	stream.SerializeBytes(packet.CurrentMagic[:])
 	stream.SerializeBytes(packet.PreviousMagic[:])
-	return stream.Error()
+	return stream.Err()
 }
 
 // ------------------------------------------------------------
@@ -164,13 +166,13 @@ type SDK_ClientRelayRequestPacket struct {
 	ClientAddress net.UDPAddr
 }
 
-func (packet *SDK_ClientRelayRequestPacket) Serialize(stream encoding.Stream) error {
+func (packet *SDK_ClientRelayRequestPacket) Serialize(stream serialize.Stream) error {
 	packet.Version.Serialize(stream)
 	stream.SerializeUint64(&packet.BuyerId)
 	stream.SerializeUint64(&packet.RequestId)
 	stream.SerializeUint64(&packet.DatacenterId)
-	stream.SerializeAddress(&packet.ClientAddress)
-	return stream.Error()
+	encoding.SerializeAddress(stream, &packet.ClientAddress)
+	return stream.Err()
 }
 
 // ------------------------------------------------------------
@@ -187,19 +189,19 @@ type SDK_ClientRelayResponsePacket struct {
 	ExpireTimestamp       uint64
 }
 
-func (packet *SDK_ClientRelayResponsePacket) Serialize(stream encoding.Stream) error {
-	stream.SerializeAddress(&packet.ClientAddress)
+func (packet *SDK_ClientRelayResponsePacket) Serialize(stream serialize.Stream) error {
+	encoding.SerializeAddress(stream, &packet.ClientAddress)
 	stream.SerializeUint64(&packet.RequestId)
 	stream.SerializeFloat32(&packet.Latitude)
 	stream.SerializeFloat32(&packet.Longitude)
-	stream.SerializeInteger(&packet.NumClientRelays, 0, constants.MaxClientRelays)
+	stream.SerializeInt(&packet.NumClientRelays, 0, constants.MaxClientRelays)
 	for i := 0; i < int(packet.NumClientRelays); i++ {
 		stream.SerializeUint64(&packet.ClientRelayIds[i])
-		stream.SerializeAddress(&packet.ClientRelayAddresses[i])
+		encoding.SerializeAddress(stream, &packet.ClientRelayAddresses[i])
 		stream.SerializeBytes(packet.ClientRelayPingTokens[i][:])
 	}
 	stream.SerializeUint64(&packet.ExpireTimestamp)
-	return stream.Error()
+	return stream.Err()
 }
 
 // ------------------------------------------------------------
@@ -211,12 +213,12 @@ type SDK_ServerRelayRequestPacket struct {
 	DatacenterId uint64
 }
 
-func (packet *SDK_ServerRelayRequestPacket) Serialize(stream encoding.Stream) error {
+func (packet *SDK_ServerRelayRequestPacket) Serialize(stream serialize.Stream) error {
 	packet.Version.Serialize(stream)
 	stream.SerializeUint64(&packet.BuyerId)
 	stream.SerializeUint64(&packet.RequestId)
 	stream.SerializeUint64(&packet.DatacenterId)
-	return stream.Error()
+	return stream.Err()
 }
 
 // ------------------------------------------------------------
@@ -230,16 +232,16 @@ type SDK_ServerRelayResponsePacket struct {
 	ExpireTimestamp       uint64
 }
 
-func (packet *SDK_ServerRelayResponsePacket) Serialize(stream encoding.Stream) error {
+func (packet *SDK_ServerRelayResponsePacket) Serialize(stream serialize.Stream) error {
 	stream.SerializeUint64(&packet.RequestId)
-	stream.SerializeInteger(&packet.NumServerRelays, 0, constants.MaxServerRelays)
+	stream.SerializeInt(&packet.NumServerRelays, 0, constants.MaxServerRelays)
 	for i := 0; i < int(packet.NumServerRelays); i++ {
 		stream.SerializeUint64(&packet.ServerRelayIds[i])
-		stream.SerializeAddress(&packet.ServerRelayAddresses[i])
+		encoding.SerializeAddress(stream, &packet.ServerRelayAddresses[i])
 		stream.SerializeBytes(packet.ServerRelayPingTokens[i][:])
 	}
 	stream.SerializeUint64(&packet.ExpireTimestamp)
-	return stream.Error()
+	return stream.Err()
 }
 
 // ------------------------------------------------------------
@@ -310,7 +312,7 @@ type SDK_SessionUpdateRequestPacket struct {
 	Flags                           uint32
 }
 
-func (packet *SDK_SessionUpdateRequestPacket) Serialize(stream encoding.Stream) error {
+func (packet *SDK_SessionUpdateRequestPacket) Serialize(stream serialize.Stream) error {
 
 	packet.Version.Serialize(stream)
 
@@ -321,18 +323,18 @@ func (packet *SDK_SessionUpdateRequestPacket) Serialize(stream encoding.Stream) 
 	stream.SerializeUint64(&packet.DatacenterId)
 	stream.SerializeUint64(&packet.SessionId)
 	stream.SerializeUint32(&packet.SliceNumber)
-	stream.SerializeInteger(&packet.RetryNumber, 0, SDK_MaxSessionUpdateRetries)
+	stream.SerializeInt(&packet.RetryNumber, 0, SDK_MaxSessionUpdateRetries)
 
-	stream.SerializeInteger(&packet.SessionDataBytes, 0, SDK_MaxSessionDataSize)
+	stream.SerializeInt(&packet.SessionDataBytes, 0, SDK_MaxSessionDataSize)
 	if packet.SessionDataBytes > 0 {
 		sessionData := packet.SessionData[:packet.SessionDataBytes]
 		stream.SerializeBytes(sessionData)
 		stream.SerializeBytes(packet.SessionDataSignature[:])
 	}
 
-	stream.SerializeAddress(&packet.ClientAddress)
+	encoding.SerializeAddress(stream, &packet.ClientAddress)
 
-	stream.SerializeAddress(&packet.ServerAddress)
+	encoding.SerializeAddress(stream, &packet.ServerAddress)
 
 	stream.SerializeBytes(packet.ClientRoutePublicKey[:])
 
@@ -340,9 +342,9 @@ func (packet *SDK_SessionUpdateRequestPacket) Serialize(stream encoding.Stream) 
 
 	stream.SerializeUint64(&packet.UserHash)
 
-	stream.SerializeInteger(&packet.PlatformType, SDK_PlatformTypeUnknown, SDK_PlatformTypeMax)
+	stream.SerializeInt(&packet.PlatformType, SDK_PlatformTypeUnknown, SDK_PlatformTypeMax)
 
-	stream.SerializeInteger(&packet.ConnectionType, SDK_ConnectionTypeUnknown, SDK_ConnectionTypeMax)
+	stream.SerializeInt(&packet.ConnectionType, SDK_ConnectionTypeUnknown, SDK_ConnectionTypeMax)
 
 	stream.SerializeBool(&packet.Next)
 
@@ -392,24 +394,24 @@ func (packet *SDK_SessionUpdateRequestPacket) Serialize(stream encoding.Stream) 
 	}
 
 	if packet.HasClientRelayPings {
-		stream.SerializeInteger(&packet.NumClientRelays, 0, int32(SDK_MaxClientRelays))
+		stream.SerializeInt(&packet.NumClientRelays, 0, int32(SDK_MaxClientRelays))
 		for i := int32(0); i < packet.NumClientRelays; i++ {
 			stream.SerializeUint64(&packet.ClientRelayIds[i])
 			if packet.HasClientRelayPings {
-				stream.SerializeInteger(&packet.ClientRelayRTT[i], 0, SDK_MaxRelayRTT)
-				stream.SerializeInteger(&packet.ClientRelayJitter[i], 0, SDK_MaxRelayJitter)
+				stream.SerializeInt(&packet.ClientRelayRTT[i], 0, SDK_MaxRelayRTT)
+				stream.SerializeInt(&packet.ClientRelayJitter[i], 0, SDK_MaxRelayJitter)
 				stream.SerializeFloat32(&packet.ClientRelayPacketLoss[i])
 			}
 		}
 	}
 
 	if packet.HasServerRelayPings {
-		stream.SerializeInteger(&packet.NumServerRelays, 0, int32(SDK_MaxServerRelays))
+		stream.SerializeInt(&packet.NumServerRelays, 0, int32(SDK_MaxServerRelays))
 		for i := int32(0); i < packet.NumServerRelays; i++ {
 			stream.SerializeUint64(&packet.ServerRelayIds[i])
 			if packet.HasServerRelayPings {
-				stream.SerializeInteger(&packet.ServerRelayRTT[i], 0, SDK_MaxRelayRTT)
-				stream.SerializeInteger(&packet.ServerRelayJitter[i], 0, SDK_MaxRelayJitter)
+				stream.SerializeInt(&packet.ServerRelayRTT[i], 0, SDK_MaxRelayRTT)
+				stream.SerializeInt(&packet.ServerRelayJitter[i], 0, SDK_MaxRelayJitter)
 				stream.SerializeFloat32(&packet.ServerRelayPacketLoss[i])
 			}
 		}
@@ -461,7 +463,7 @@ func (packet *SDK_SessionUpdateRequestPacket) Serialize(stream encoding.Stream) 
 		stream.SerializeUint32(&packet.Flags)
 	}
 
-	return stream.Error()
+	return stream.Err()
 }
 
 // IMPORTANT: every field that Serialize touches must be randomized here (respecting the
@@ -550,24 +552,24 @@ type SDK_SessionUpdateResponsePacket struct {
 	Multipath            bool
 }
 
-func (packet *SDK_SessionUpdateResponsePacket) Serialize(stream encoding.Stream) error {
+func (packet *SDK_SessionUpdateResponsePacket) Serialize(stream serialize.Stream) error {
 
 	stream.SerializeUint64(&packet.SessionId)
 
 	stream.SerializeUint32(&packet.SliceNumber)
 
-	stream.SerializeInteger(&packet.SessionDataBytes, 0, SDK_MaxSessionDataSize)
+	stream.SerializeInt(&packet.SessionDataBytes, 0, SDK_MaxSessionDataSize)
 	if packet.SessionDataBytes > 0 {
 		sessionData := packet.SessionData[:packet.SessionDataBytes]
 		stream.SerializeBytes(sessionData)
 		stream.SerializeBytes(packet.SessionDataSignature[:])
 	}
 
-	stream.SerializeInteger(&packet.RouteType, 0, SDK_RouteTypeContinue)
+	stream.SerializeInt(&packet.RouteType, 0, SDK_RouteTypeContinue)
 
 	if packet.RouteType != SDK_RouteTypeDirect {
 		stream.SerializeBool(&packet.Multipath)
-		stream.SerializeInteger(&packet.NumTokens, 0, SDK_MaxTokens)
+		stream.SerializeInt(&packet.NumTokens, 0, SDK_MaxTokens)
 	}
 
 	if packet.RouteType == SDK_RouteTypeNew {
@@ -584,7 +586,7 @@ func (packet *SDK_SessionUpdateResponsePacket) Serialize(stream encoding.Stream)
 		stream.SerializeBytes(packet.Tokens)
 	}
 
-	return stream.Error()
+	return stream.Err()
 }
 
 // ------------------------------------------------------------
@@ -630,7 +632,7 @@ type SDK_SessionData struct {
 	AllClientRelaysAreZero              bool
 }
 
-func (sessionData *SDK_SessionData) Serialize(stream encoding.Stream) error {
+func (sessionData *SDK_SessionData) Serialize(stream serialize.Stream) error {
 
 	if stream.IsWriting() {
 		if sessionData.Version < SDK_SessionDataVersion_Min || sessionData.Version > SDK_SessionDataVersion_Max {
@@ -662,13 +664,13 @@ func (sessionData *SDK_SessionData) Serialize(stream encoding.Stream) error {
 
 	stream.SerializeBool(&hasRoute)
 
-	stream.SerializeInteger(&sessionData.RouteCost, 0, SDK_InvalidRouteValue)
+	stream.SerializeInt(&sessionData.RouteCost, 0, SDK_InvalidRouteValue)
 
 	if hasRoute {
 		// IMPORTANT: bound by SDK_MaxRelaysPerRoute, not SDK_MaxTokens. RouteRelayIds only
 		// has SDK_MaxRelaysPerRoute entries, so a larger value would index out of range below.
 		// (same bit width as SDK_MaxTokens, so this is not a wire format change)
-		stream.SerializeInteger(&sessionData.RouteNumRelays, 0, SDK_MaxRelaysPerRoute)
+		stream.SerializeInt(&sessionData.RouteNumRelays, 0, SDK_MaxRelaysPerRoute)
 		for i := int32(0); i < sessionData.RouteNumRelays; i++ {
 			stream.SerializeUint64(&sessionData.RouteRelayIds[i])
 		}
@@ -767,7 +769,7 @@ func (sessionData *SDK_SessionData) Serialize(stream encoding.Stream) error {
 		stream.SerializeBool(&sessionData.AllClientRelaysAreZero)
 	}
 
-	return stream.Error()
+	return stream.Err()
 }
 
 // ------------------------------------------------------------
