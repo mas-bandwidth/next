@@ -8,6 +8,6 @@ import 'uplot/dist/uPlot.min.css';
 import axios from 'axios'
 
 // every view relies on this default header for its portal API requests
-axios.defaults.headers.common = {'Authorization': `Bearer ${process.env.VUE_APP_PORTAL_API_KEY}`}
+axios.defaults.headers.common = {'Authorization': `Bearer ${import.meta.env.VITE_PORTAL_API_KEY}`}
 
 createApp(App).use(router).mount('#app')

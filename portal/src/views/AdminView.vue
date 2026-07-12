@@ -163,7 +163,7 @@ async function getData() {
 
   try {
 
-    const url = process.env.VUE_APP_API_URL + '/portal/admin_data'
+    const url = import.meta.env.VITE_API_URL + '/portal/admin_data'
 
     const res = await axios.get(url)
 

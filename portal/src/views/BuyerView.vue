@@ -123,7 +123,7 @@ async function getData(page, buyer) {
       page = 0
     }
 
-    const url = process.env.VUE_APP_API_URL + '/portal/buyer/' + buyer
+    const url = import.meta.env.VITE_API_URL + '/portal/buyer/' + buyer
 
     const res = await axios.get(url);
 

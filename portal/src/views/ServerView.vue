@@ -178,7 +178,7 @@ async function getData(page, server) {
     if (page == null) {
       page = 0
     }
-    const url = process.env.VUE_APP_API_URL + '/portal/server/' + server + '/' + page
+    const url = import.meta.env.VITE_API_URL + '/portal/server/' + server + '/' + page
     const res = await axios.get(url);
     let i = 0
     let data = {}

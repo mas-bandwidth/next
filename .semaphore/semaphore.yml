@@ -133,6 +133,8 @@ blocks:
         - name: "Build Portal"
           commands:
             - checkout
+            # vite 8 needs node >= 22.12 (and babel 8 in the vue toolchain needs >= 22.18)
+            - sem-version node 24
             - cd portal
             - yarn install
             - cd ..

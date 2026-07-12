@@ -184,7 +184,7 @@ async function getData(page, relay_name) {
       page = 0
     }
 
-    const url = process.env.VUE_APP_API_URL + '/portal/relay/' + relay_name
+    const url = import.meta.env.VITE_API_URL + '/portal/relay/' + relay_name
 
     const res = await axios.get(url);
 

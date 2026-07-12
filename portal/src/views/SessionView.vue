@@ -424,7 +424,7 @@ async function getData(page, session_id) {
       page = 0
     }
   
-    const url = process.env.VUE_APP_API_URL + '/portal/session/' + session_id
+    const url = import.meta.env.VITE_API_URL + '/portal/session/' + session_id
   
     const res = await axios.get(url);
   

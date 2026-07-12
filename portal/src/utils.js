@@ -70,7 +70,7 @@ function getCountryName(countryCode) {
   try {
     const regionNames = new Intl.DisplayNames(['en'], {type: 'region'});
     return regionNames.of(countryCode);
-  } catch (error) {
+  } catch {
     return countryCode
   }
 }

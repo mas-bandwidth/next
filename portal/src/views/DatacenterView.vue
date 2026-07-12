@@ -115,7 +115,7 @@ async function getData(page, datacenter) {
     let data = {}
     data.relays = []
     data.datacenter = datacenter
-    const url = process.env.VUE_APP_API_URL + '/portal/datacenter/' + datacenter
+    const url = import.meta.env.VITE_API_URL + '/portal/datacenter/' + datacenter
     const res = await axios.get(url);
     let i = 0
     while (i < res.data.relays.length) {
