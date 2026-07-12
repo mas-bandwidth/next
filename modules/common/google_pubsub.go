@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"cloud.google.com/go/pubsub"
+	"cloud.google.com/go/pubsub/v2"
 	"github.com/networknext/next/modules/core"
 	"google.golang.org/api/option"
 )
@@ -25,7 +25,7 @@ type GooglePubsubProducer struct {
 	resultChannel   chan *pubsub.PublishResult
 	config          GooglePubsubConfig
 	pubsubClient    *pubsub.Client
-	pubsubTopic     *pubsub.Topic
+	pubsubPublisher *pubsub.Publisher
 	mutex           sync.RWMutex
 	numMessagesSent int
 	numBatchesSent  int
@@ -51,20 +51,16 @@ func CreateGooglePubsubProducer(ctx context.Context, config GooglePubsubConfig) 
 		return nil, err
 	}
 
-	pubsubTopic := pubsubClient.Topic(config.Topic)
-	if pubsubTopic == nil {
-		core.Error("failed to create google pubsub topic")
-		return nil, err
-	}
+	pubsubPublisher := pubsubClient.Publisher(config.Topic)
 
-	pubsubTopic.PublishSettings.CountThreshold = config.BatchSize
-	pubsubTopic.PublishSettings.DelayThreshold = config.BatchDuration
+	pubsubPublisher.PublishSettings.CountThreshold = config.BatchSize
+	pubsubPublisher.PublishSettings.DelayThreshold = config.BatchDuration
 
 	producer := &GooglePubsubProducer{}
 
 	producer.config = config
 	producer.pubsubClient = pubsubClient
-	producer.pubsubTopic = pubsubTopic
+	producer.pubsubPublisher = pubsubPublisher
 	producer.MessageChannel = make(chan []byte, config.MessageChannelSize)
 	producer.resultChannel = make(chan *pubsub.PublishResult, config.MessageChannelSize)
 
@@ -113,7 +109,7 @@ func (producer *GooglePubsubProducer) updateMessageChannel(ctx context.Context) 
 
 func (producer *GooglePubsubProducer) sendMessage(ctx context.Context, message []byte) {
 
-	result := producer.pubsubTopic.Publish(ctx, &pubsub.Message{Data: message})
+	result := producer.pubsubPublisher.Publish(ctx, &pubsub.Message{Data: message})
 
 	producer.resultChannel <- result
 
