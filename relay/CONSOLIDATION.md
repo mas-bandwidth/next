@@ -21,7 +21,14 @@ run the real datapath; the XDP relay is the only production relay. Consequences:
 shim maps' unbounded growth (no LRU eviction) and the synthetic frame assuming packets
 arrive on the public address (no IP_PKTINFO) are permanent non-issues, not open items.
 Windows support (Glenn, same day) IS wanted, for people who develop and test Network
-Next related code on Windows -- build and run there, dev/test only.
+Next related code on Windows -- build and run there, dev/test only. DONE, validated
+green on test-283: `make userspace-windows` cross compiles a self-contained PE32+ exe
+(mingw-w64, static libsodium, winsock2 + winhttp + win32 threads in
+relay_platform_windows.c), the CI XDP job cross compiles and wine-smoke-tests it every
+tag, and docs/build_the_relay_on_windows.md is the how-to. The port surfaced and fixed
+a real latent bug: `(void*)(long)ctx->data` truncates pointers on win64 (LLP64), now
+`relay_uptr_t` (long in the BPF build -- token-identical object; uintptr_t in
+userspace).
 
 ## Why only the relay, and only this way
 
