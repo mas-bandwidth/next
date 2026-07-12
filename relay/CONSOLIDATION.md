@@ -68,8 +68,17 @@ answer instead of a release-day surprise.
 
 ## Status
 
-- Step 1, BPF_PROG_RUN half: spike committed (`396fce33f`), validating on CI.
-- Everything else: not started.
+- **Step 1, BPF_PROG_RUN half: PROVEN** (green on test-265, spike `396fce33f`..`dc70424ef`).
+  The real compiled `relay_xdp.o` runs under `BPF_PROG_RUN` in CI: object loaded with the
+  kfunc resolved from the insmodded module, `config_map` populated from userspace, synthetic
+  ETH/IP/UDP frames fed in, verdicts read back (wrong port -> XDP_PASS, short payload ->
+  XDP_DROP, both correct). The three-way differential is achievable. Hard-won environment
+  facts baked into the job + `prog_test_run.c`: link `libbpf.a` from the xdp-tools source
+  tree (install path varies, ldconfig misses it); libbpf cannot infer the program type from
+  the nonstandard `SEC("relay_xdp")` section so set `BPF_PROG_TYPE_XDP` explicitly before
+  load; `libbpf_get_error` is gone from current libbpf.
+- Step 1, corpus generator + reference relay harness: not started (de-risked, see above).
+- Steps 2-5: not started.
 
 ## Invariants to preserve (do not regress)
 

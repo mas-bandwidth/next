@@ -130,6 +130,15 @@ that fact is stale — reverify.
   `SDK_MaxTokens` (7)** — same bit width so not a wire change, but the larger bound indexes
   out of range of `RouteRelayIds`.
 
+### In progress: relay consolidation (see relay/CONSOLIDATION.md)
+
+The wire-protocol consolidation project is underway — plan, sequencing, and status live
+in `relay/CONSOLIDATION.md` (keep that file current, not this section). Headline: the
+feasibility spike PASSED on test-265 — the real compiled relay_xdp.o runs under
+BPF_PROG_RUN in CI with maps populated from userspace, so the conformance corpus can be
+fired at the actual BPF object (three-way differential: reference relay vs future
+userspace core vs real kernel program). Next up: the corpus generator (step 1 proper).
+
 ### Open items (not yet done)
 
 - **API auth is thin** (single shared HS256 secret, `admin`/`portal` booleans, no token expiry).
