@@ -161,6 +161,15 @@ userspace core vs real kernel program). Next up: the corpus generator (step 1 pr
 
 ### Closed 2026-07-12, third batch (optimizer merge + unit test flake hunt + govulncheck)
 
+- **Dead code sweep done** (`1cc3f97db`, fully green on test-266): swept with
+  x/tools/deadcode (-test) + staticcheck U1000 — only 11 findings in ~60k lines, all
+  removed (unreachable SortedSet wrappers in both crunchers, dead test helpers, 17
+  return/continue statements after panics). go vet is now clean repo-wide except the
+  documented unkeyed SDKVersion literals. Kept: TestThread in both crunchers (manual
+  stress knob, commented activation in main). Not swept: C++ (SDK public API is the
+  product surface; relay/reference retirement is the consolidation project). Noted in
+  passing: the SortedSet skiplist is copy-pasted between server_cruncher and
+  session_cruncher — same fix-lands-once class as the old Optimize/Optimize2.
 - **govulncheck runs in CI** (`0bb98be73`, green on test-259): a Build pipeline job (next
   to Backend unit tests, every tag) and a weekly job in scheduled-functional-tests.yml.
   Fails only on vulnerabilities REACHABLE from our code. If it fails with no code change,
