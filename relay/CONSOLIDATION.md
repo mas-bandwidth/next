@@ -66,6 +66,17 @@ answer instead of a release-day surprise.
    func tests + local dev to the userspace mode. Add Windows platform layer.
 5. **Retire `relay/reference`** — or freeze it one release cycle as the differential oracle.
 
+## Findings (things the corpus has already surfaced)
+
+- **too-small drop counter attribution differs between the two relays.** The XDP relay
+  has a dedicated `PACKET_TOO_SMALL` guard before the basic filter; the reference relay
+  folds the `< 18` check inside `relay_basic_packet_filter`, so it attributes those drops
+  to `BASIC_PACKET_FILTER_DROPPED`. Wire behavior agrees (both drop, never relay) -- this
+  is a counter-accounting divergence, not a protocol one. The corpus caught it on the
+  first differential run (test-268). The oracle models the XDP behavior (canonical) with a
+  distinct `DropSize` verdict; a future reference-relay differential must know reference
+  reports these as basic-filter drops.
+
 ## Status
 
 - **Step 1, BPF_PROG_RUN half: PROVEN** (green on test-265, spike `396fce33f`..`dc70424ef`).

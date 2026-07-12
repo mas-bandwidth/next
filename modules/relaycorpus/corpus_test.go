@@ -35,8 +35,10 @@ func TestCorpus_ExercisesEveryVerdict(t *testing.T) {
 	assert.Greater(t, counts[relaycorpus.DropBasic], 100, "want many basic-filter drops")
 	assert.Greater(t, counts[relaycorpus.DropAdvanced], 20, "want advanced-filter drops")
 	assert.Greater(t, counts[relaycorpus.Pass], 20, "want passing packets")
-	t.Logf("corpus: %d entries (%d drop-basic, %d drop-advanced, %d pass)",
-		len(entries), counts[relaycorpus.DropBasic], counts[relaycorpus.DropAdvanced], counts[relaycorpus.Pass])
+	assert.Greater(t, counts[relaycorpus.DropSize], 2, "want sub-header size drops")
+	t.Logf("corpus: %d entries (%d drop-size, %d drop-basic, %d drop-advanced, %d pass)",
+		len(entries), counts[relaycorpus.DropSize], counts[relaycorpus.DropBasic],
+		counts[relaycorpus.DropAdvanced], counts[relaycorpus.Pass])
 }
 
 func TestCorpus_TypeSweepBoundary(t *testing.T) {

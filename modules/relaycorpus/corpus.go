@@ -43,6 +43,14 @@ const (
 	DropAdvanced
 	// Pass: passes both filters and reaches the per-type handler.
 	Pass
+	// DropSize: shorter than the 18-byte header, dropped by the size guard BEFORE the
+	// basic filter. This is modeled on the XDP relay (the consolidation's canonical
+	// datapath), which has a dedicated PACKET_TOO_SMALL guard. NOTE: the reference relay
+	// instead folds the <18 check into relay_basic_packet_filter, so it attributes these
+	// drops to the basic-filter counter -- a counter-accounting divergence between the
+	// two relays that this corpus surfaced (see relay/CONSOLIDATION.md). Wire behavior
+	// (the packet is dropped, never relayed) agrees in both.
+	DropSize
 )
 
 func (v Verdict) String() string {
@@ -53,6 +61,8 @@ func (v Verdict) String() string {
 		return "drop-advanced"
 	case Pass:
 		return "pass"
+	case DropSize:
+		return "drop-size"
 	}
 	return "?"
 }
@@ -125,9 +135,14 @@ func relayBasicPacketFilter(data []byte, packetLength int) bool {
 	return true
 }
 
-// oracle computes the verdict for a fully-formed packet.
+// oracle computes the verdict for a fully-formed packet, modeling the XDP relay's drop
+// path in order: size guard (< 18), then basic filter, then advanced filter, then the
+// packet reaches a type handler (Pass).
 func oracle(data []byte, magic []byte, fromAddress []byte, toAddress []byte) Verdict {
 	packetLength := len(data)
+	if packetLength < 18 {
+		return DropSize
+	}
 	if !relayBasicPacketFilter(data, packetLength) {
 		return DropBasic
 	}

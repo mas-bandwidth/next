@@ -25,16 +25,23 @@
 
 // must match relay/xdp/relay_constants.h
 #define RELAY_NUM_COUNTERS 150
-#define COUNTER_BASIC    4
-#define COUNTER_ADVANCED 5
+#define COUNTER_BASIC      4
+#define COUNTER_ADVANCED   5
+#define COUNTER_TOO_SMALL  121
 
 // must match modules/relaycorpus verdicts
 #define V_DROP_BASIC    0
 #define V_DROP_ADVANCED 1
 #define V_PASS          2
+#define V_DROP_SIZE     3
 
 static const char *verdict_name(int v) {
-    switch (v) { case V_DROP_BASIC: return "drop-basic"; case V_DROP_ADVANCED: return "drop-advanced"; case V_PASS: return "pass"; }
+    switch (v) {
+        case V_DROP_BASIC: return "drop-basic";
+        case V_DROP_ADVANCED: return "drop-advanced";
+        case V_PASS: return "pass";
+        case V_DROP_SIZE: return "drop-size";
+    }
     return "?";
 }
 
@@ -134,7 +141,7 @@ int main(int argc, char **argv) {
 
     unsigned char frame[2048], out[2048];
     unsigned int mismatches = 0, checked = 0;
-    unsigned int by_verdict[3] = {0,0,0};
+    unsigned int by_verdict[4] = {0,0,0,0};
 
     unsigned char *p = corpus + 12;
     for (unsigned int i = 0; i < count; i++) {
@@ -149,6 +156,7 @@ int main(int argc, char **argv) {
 
         int flen = build_frame(frame, from, to, 40000, packet, plen);
 
+        __u64 size_before = read_counter(COUNTER_TOO_SMALL);
         __u64 basic_before = read_counter(COUNTER_BASIC);
         __u64 adv_before = read_counter(COUNTER_ADVANCED);
 
@@ -157,23 +165,23 @@ int main(int argc, char **argv) {
         int err = bpf_prog_test_run_opts(prog_fd, &opts);
         if (err) { fprintf(stderr, "FAIL: test_run entry %u err=%d\n", i, err); return 2; }
 
+        __u64 size_delta = read_counter(COUNTER_TOO_SMALL) - size_before;
         __u64 basic_delta = read_counter(COUNTER_BASIC) - basic_before;
         __u64 adv_delta = read_counter(COUNTER_ADVANCED) - adv_before;
 
+        // classify by which pre-handler guard (if any) dropped the packet. order matters:
+        // the size guard runs before the basic filter, which runs before the advanced.
         int got;
-        if (basic_delta > 0) got = V_DROP_BASIC;
+        if (size_delta > 0) got = V_DROP_SIZE;
+        else if (basic_delta > 0) got = V_DROP_BASIC;
         else if (adv_delta > 0) got = V_DROP_ADVANCED;
-        else if (opts.retval == XDP_PASS || opts.retval == XDP_TX) got = V_PASS;
-        else got = -1; // dropped for another reason (a passing packet reached a handler that dropped it)
+        else got = V_PASS; // cleared every filter and reached a type handler (which may
+                           // itself DROP for its own reasons -- still a filter 'pass')
 
         checked++;
-        if (verdict >= 0 && verdict < 3) by_verdict[verdict]++;
+        if (verdict >= 0 && verdict < 4) by_verdict[verdict]++;
 
-        // a corpus 'pass' means it cleared the filters; a type handler may still DROP a
-        // malformed-but-filter-passing packet, so treat handler drops as pass-equivalent.
-        int ok;
-        if (verdict == V_PASS) ok = (basic_delta == 0 && adv_delta == 0);
-        else ok = (got == verdict);
+        int ok = (got == verdict);
 
         if (!ok) {
             if (mismatches < 20)
@@ -184,8 +192,8 @@ int main(int argc, char **argv) {
         }
     }
 
-    printf("corpus differential: %u checked (%u drop-basic, %u drop-advanced, %u pass), %u mismatches\n",
-           checked, by_verdict[V_DROP_BASIC], by_verdict[V_DROP_ADVANCED], by_verdict[V_PASS], mismatches);
+    printf("corpus differential: %u checked (%u drop-size, %u drop-basic, %u drop-advanced, %u pass), %u mismatches\n",
+           checked, by_verdict[V_DROP_SIZE], by_verdict[V_DROP_BASIC], by_verdict[V_DROP_ADVANCED], by_verdict[V_PASS], mismatches);
     printf(mismatches == 0 ? "CORPUS DIFFERENTIAL: PASS\n" : "CORPUS DIFFERENTIAL: FAIL\n");
     bpf_object__close(obj);
     return mismatches == 0 ? 0 : 1;
