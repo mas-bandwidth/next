@@ -1136,10 +1136,16 @@ func config(env Environment, regexes []string) {
 	}
 
 	for k, v := range keypairs {
-		dotEnvFile := fmt.Sprintf("portal/.env.%s", k)
+		// the portal env file for the local env is .env.localhost, NOT .env.local --
+		// vite loads a file named exactly .env.local into every mode as an override
+		portalEnv := k
+		if portalEnv == "local" {
+			portalEnv = "localhost"
+		}
+		dotEnvFile := fmt.Sprintf("portal/.env.%s", portalEnv)
 		fmt.Printf("%s\n", dotEnvFile)
 		{
-			replace(dotEnvFile, "^\\s*VUE_APP_PORTAL_API_KEY\\s*=.*$", fmt.Sprintf("VUE_APP_PORTAL_API_KEY=%s", v["portal_api_key"]))
+			replace(dotEnvFile, "^\\s*VITE_PORTAL_API_KEY\\s*=.*$", fmt.Sprintf("VITE_PORTAL_API_KEY=%s", v["portal_api_key"]))
 		}
 	}
 
@@ -1587,17 +1593,23 @@ func config(env Environment, regexes []string) {
 	fmt.Printf("\n------------------------------------------\n      updating portal .env files\n------------------------------------------\n\n")
 
 	for i := range envs {
-		filename := fmt.Sprintf("portal/.env.%s", envs[i])
+		// the portal env file for the local env is .env.localhost, NOT .env.local --
+		// vite loads a file named exactly .env.local into every mode as an override
+		portalEnv := envs[i]
+		if portalEnv == "local" {
+			portalEnv = "localhost"
+		}
+		filename := fmt.Sprintf("portal/.env.%s", portalEnv)
 		if fileExists(filename) {
 			fmt.Printf("%s\n", filename)
 			if envs[i] != "prod" {
 				if envs[i] == "local" {
-					replace(filename, "^VUE_APP_API_URL=.*$", "VUE_APP_API_URL=http://127.0.0.1:50000")
+					replace(filename, "^VITE_API_URL=.*$", "VITE_API_URL=http://127.0.0.1:50000")
 				} else {
-					replace(filename, "^VUE_APP_API_URL=.*$", fmt.Sprintf("VUE_APP_API_URL=https://api-%s.%s", envs[i], config.CloudflareDomain))
+					replace(filename, "^VITE_API_URL=.*$", fmt.Sprintf("VITE_API_URL=https://api-%s.%s", envs[i], config.CloudflareDomain))
 				}
 			} else {
-				replace(filename, "^VUE_APP_API_URL=.*$", fmt.Sprintf("VUE_APP_API_URL=https://api.%s", config.CloudflareDomain))
+				replace(filename, "^VITE_API_URL=.*$", fmt.Sprintf("VITE_API_URL=https://api.%s", config.CloudflareDomain))
 			}
 		}
 	}

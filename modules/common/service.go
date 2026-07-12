@@ -132,6 +132,8 @@ func CreateService(serviceName string) *Service {
 
 	service.Env = env
 
+	service.checkForCommittedKeys()
+
 	if service.Tag != "" {
 		core.Log("tag: %s", service.Tag)
 	}
@@ -214,6 +216,8 @@ func (service *Service) LoadDatabase(relayBackendPublicKey []byte, relayBackendP
 		core.Error("database does not validate: %v", err)
 		os.Exit(1)
 	}
+
+	service.checkDatabaseForCommittedKeys(service.database)
 
 	if relayBackendPublicKey != nil && relayBackendPrivateKey != nil {
 		service.database.GenerateRelaySecretKeys(relayBackendPublicKey, relayBackendPrivateKey)
