@@ -149,7 +149,7 @@ blocks:
             # SPIKE (relay consolidation step 1): prove BPF_PROG_RUN can drive the real
             # relay_xdp.o with populated maps and read back verdicts. two crypto-free cases.
             # if green, a wire-conformance corpus can be fired at the actual bpf object in CI.
-            - cd relay/xdp && gcc -O2 -o prog_test_run prog_test_run.c -lbpf -lelf -lz
+            - cd ../xdp && gcc -O2 -o prog_test_run prog_test_run.c -lbpf -lelf -lz
             - sudo ./prog_test_run relay_xdp.o
 
   - name: "Portal"
