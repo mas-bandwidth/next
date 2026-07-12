@@ -146,14 +146,19 @@ that fact is stale — reverify.
 ### In progress: relay consolidation (see relay/CONSOLIDATION.md)
 
 The wire-protocol consolidation project is underway — plan, sequencing, and status live
-in `relay/CONSOLIDATION.md` (keep that file current, not this section). Progress: the
-BPF_PROG_RUN mechanism is proven (test-265), and step 1's XDP conformance differential is
-DONE and green (test-269) — modules/relaycorpus fires 2343 filter-surface packets at the
-real compiled relay_xdp.o via BPF_PROG_RUN in the Build XDP job every tag, 0 mismatches.
-It already caught one real divergence (the two C relays attribute too-small drops to
-different counters — benign, wire behavior agrees; documented in CONSOLIDATION.md). Next:
-the reference-relay differential (same corpus over UDP), then the stateful surface
-(tokens, sessions), then the datapath extraction and userspace mode.
+in `relay/CONSOLIDATION.md` (keep that file current, not this section). Progress:
+BPF_PROG_RUN proven (test-265); the XDP conformance differential is DONE and green
+(test-269, 0 mismatches); and — the big one — **the relay datapath is now ONE source
+that compiles both ways** (test-272, merged to main). relay_xdp.c compiles as the BPF
+kernel program (byte-identical, unchanged) AND as userspace C via relay_userspace.h/.c
+(a shim: userspace stand-ins for the __uN types, eth/ip/udp structs, xdp_md, the 6 BPF
+maps, bpf_map_* helpers, resize helpers, and the crypto kfuncs — stubbed for now). The
+userspace-compiled datapath passes the corpus with 0 mismatches on mac AND CI
+(`make userspace-test`, wired into the XDP job). The edits to relay_xdp.c are only #ifdef
+guards; the shipped BPF program did not change. REMAINING before relay/reference can be
+deleted (the gate): byte-exact crypto in the shim, a userspace socket loop + control
+plane over the userspace maps, a RELAY_USERSPACE relay binary, and the full functional
+suite passing against it. Do NOT delete relay/reference until that gate is green.
 
 ### Open items (not yet done)
 
