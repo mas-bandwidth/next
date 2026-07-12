@@ -1,8 +1,9 @@
 version: v1.0
 
 # Weekly scheduled run of the functional tests against main. The functional tests pipeline
-# expects relay-debug and libnext.so as workflow artifacts (normally pushed by the Build
-# pipeline when a test tag is deployed), so build just those two here, then promote.
+# expects relay-debug, relay-userspace-debug, and libnext.so as workflow artifacts
+# (normally pushed by the Build pipeline when a test tag is deployed), so build just
+# those here, then promote.
 
 name: Scheduled Functional Tests
 
@@ -19,11 +20,13 @@ blocks:
       jobs:
         - name: "Build Components"
           commands:
-            - sudo DEBIAN_FRONTEND=noninteractive apt-get install -y libsodium-dev
+            - sudo DEBIAN_FRONTEND=noninteractive apt-get install -y libsodium-dev libcurl4-openssl-dev
             - checkout
             - mkdir dist
             - make -j ./dist/relay-debug ./dist/libnext.so
+            - make -j ./dist/relay-userspace-debug
             - artifact push workflow ./dist/relay-debug --force
+            - artifact push workflow ./dist/relay-userspace-debug --force
             - artifact push workflow ./dist/libnext.so --force
         # weekly vulnerability check so newly published vulns are caught even when
         # nothing is being pushed (the Build pipeline also runs this on every tag)

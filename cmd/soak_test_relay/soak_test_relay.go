@@ -52,10 +52,18 @@ const TestRelayPrivateKey = "cwvK44Pr5aHI3vE3siODS7CUgdPI/l1VwjVZ2FvEyAo="
 const TestRelayBackendPublicKey = "IsjRpWEz9H7qslhWWupW4A9LIpVh+PzWoLleuXL1NUE="
 const TestRelayBackendPrivateKey = "qXeUdLPZxaMnZ/zFHLHkmgkQOmunWq1AmRv55nqTYMg="
 
-const (
-	relayBin   = "./relay-debug"
-	backendBin = "./func_backend"
-)
+const backendBin = "./func_backend"
+
+// RELAY_BIN selects the relay binary under test: the reference relay by default, or the
+// userspace-mode XDP relay ("./relay-userspace-debug") for the consolidation gate. see
+// relay/CONSOLIDATION.md.
+var relayBin = "./relay-debug"
+
+func init() {
+	if v := os.Getenv("RELAY_BIN"); v != "" {
+		relayBin = v
+	}
+}
 
 func relay(name string, port int) *exec.Cmd {
 
