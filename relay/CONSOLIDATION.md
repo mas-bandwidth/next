@@ -141,16 +141,20 @@ answer instead of a release-day surprise.
   commit 'XDP datapath: per-packet session expiry checks'): per-packet session expiry
   drops in all seven session handlers + SESSION_CREATED/SESSION_CONTINUED counters --
   the counters existed and were reported but never incremented.
-- **THE GATE is wired and nearly green.** CI runs the full relay + sdk functional
-  suites against BOTH relays side by side (duplicated blocks with
+- **THE GATE IS GREEN (test-280, 2026-07-12).** CI runs the full relay + sdk
+  functional suites against BOTH relays side by side (duplicated blocks with
   RELAY_BIN=./relay-userspace-debug; the Build pipeline builds and pushes
-  relay-userspace-debug). On test-278: BOTH relay suites fully green, soak green for
-  both, and the sdk failures were identical across flavors (a func_backend zero-relay
-  answer regression affecting the direct tests -- fixed via BACKEND_EXPECT_RELAYS).
-  All 82 relay tests also pass one-by-one locally against the userspace relay.
-  Remaining: a fully green run end to end, one final review, then delete
-  relay/reference. Also remaining: benchmark + soak the XDP build on a real box before
-  any relay-* release tag (the session-expiry check touches the shipped BPF program).
+  relay-userspace-debug), and on test-280 every pipeline passed end to end: Build,
+  SDK Tests, Functional Tests (all relay + sdk blocks for both flavors, both soak
+  tests, load tests), Happy Path. All 82 relay tests also pass one-by-one locally
+  against the userspace relay on mac.
+- **Remaining:** (1) retire relay/reference -- Glenn's call whether to delete now or
+  freeze one release cycle as the differential oracle; the deletion checklist is:
+  rm relay/reference, drop the dist/relay-debug{,-asan} Makefile targets, remove the
+  reference-relay CI blocks, flip the default relayBin in func_test_relay /
+  func_test_sdk / soak_test_relay, simplify the userspaceRelay() branch.
+  (2) benchmark + soak the XDP build on a real box before any relay-* release tag
+  (the session-expiry checks touch the shipped BPF program).
 - **Optional: reference-relay differential** (fire the corpus at the reference relay over
   UDP) -- nice extra confidence, but the userspace relay passing the functional suite is
   the real gate for deletion.

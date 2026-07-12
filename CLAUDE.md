@@ -151,9 +151,9 @@ live in `relay/CONSOLIDATION.md` (keep that file current, not this section). As 
 (`make dist/relay-userspace-debug` — the relay_xdp.c datapath + real libsodium crypto +
 the XDP control plane over shim maps; the ping thread's socket IS the datapath), and CI
 runs the FULL relay + sdk functional suites against BOTH relays side by side (RELAY_BIN
-selects the binary in func_test_relay / func_test_sdk / soak_test_relay). On test-279
-every relay and sdk block passed for both flavors (the only failure was an unrelated
-proxy.golang.org flake in Load Tests). Key facts a future session needs:
+selects the binary in func_test_relay / func_test_sdk / soak_test_relay). **THE GATE IS
+GREEN: test-280 passed every pipeline end to end** (Build, SDK Tests, Functional Tests
+with all blocks for both relay flavors, Happy Path). Key facts a future session needs:
 
 - **The whitelist is the big XDP-vs-reference behavioral difference**: valid
   client/server/relay pings admit a source address; forwarding also requires the
