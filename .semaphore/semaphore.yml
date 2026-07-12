@@ -106,6 +106,12 @@ blocks:
             - mv relay relay-release
             - artifact push workflow relay-release --force
             - make relay_xdp.o
+            # load the program through the BPF verifier. compiling relay_xdp.o proves nothing --
+            # the verifier only runs at attach time, and it is what rejects a restructured filter.
+            # xdp-loader is libxdp, the same attach path the relay binary uses (relay_bpf.c).
+            - sudo xdp-loader load -m skb -v lo relay_xdp.o
+            - sudo xdp-loader status
+            - sudo xdp-loader unload lo --all
             - popd
             - cd relay/module && tar -zcvf relay_module.tar.gz *
             - artifact push workflow ./relay_module.tar.gz --force
