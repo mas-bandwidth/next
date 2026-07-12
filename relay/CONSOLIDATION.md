@@ -141,11 +141,16 @@ answer instead of a release-day surprise.
   commit 'XDP datapath: per-packet session expiry checks'): per-packet session expiry
   drops in all seven session handlers + SESSION_CREATED/SESSION_CONTINUED counters --
   the counters existed and were reported but never incremented.
-- **Remaining for THE GATE:** wire CI to run the full functional suites against the
-  userspace relay (parallel jobs with RELAY_BIN=./relay-userspace-debug next to the
-  existing reference-relay jobs), get it fully green, then delete relay/reference.
-  Also remaining: benchmark + soak the XDP build on a real box before any relay-*
-  release tag (the session-expiry check touches the shipped BPF program).
+- **THE GATE is wired and nearly green.** CI runs the full relay + sdk functional
+  suites against BOTH relays side by side (duplicated blocks with
+  RELAY_BIN=./relay-userspace-debug; the Build pipeline builds and pushes
+  relay-userspace-debug). On test-278: BOTH relay suites fully green, soak green for
+  both, and the sdk failures were identical across flavors (a func_backend zero-relay
+  answer regression affecting the direct tests -- fixed via BACKEND_EXPECT_RELAYS).
+  All 82 relay tests also pass one-by-one locally against the userspace relay.
+  Remaining: a fully green run end to end, one final review, then delete
+  relay/reference. Also remaining: benchmark + soak the XDP build on a real box before
+  any relay-* release tag (the session-expiry check touches the shipped BPF program).
 - **Optional: reference-relay differential** (fire the corpus at the reference relay over
   UDP) -- nice extra confidence, but the userspace relay passing the functional suite is
   the real gate for deletion.
