@@ -18,7 +18,11 @@ SDKNAME5 = libnext
 MODULE ?= "github.com/networknext/next/modules/common"
 
 BUILD_TIME ?= $(shell date -u +'%Y-%m-%d|%H:%M:%S')
-COMMIT_MESSAGE ?= $(shell git log -1 --pretty=%B | tr "\n" " " | tr \' '*')
+# the message is embedded in a double-quoted -ldflags string below, so anything the
+# shell or make can interpret there (quotes, $, backticks, backslashes) must not pass
+# through -- keep a safe whitelist and star out the rest (a commit message with a
+# double quote broke every artifact build on test-281)
+COMMIT_MESSAGE ?= $(shell git log -1 --pretty=%B | tr "\n" " " | tr -c "[:alnum:][:space:].,:;()/+=<>_-" "*")
 COMMIT_HASH ?= $(shell git rev-parse --short HEAD) 
 
 # Build and run tests by default
