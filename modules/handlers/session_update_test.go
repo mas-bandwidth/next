@@ -32,6 +32,11 @@ func CreateState() *handlers.SessionUpdateState {
 	state.Request.ClientAddress = core.ParseAddress("127.0.0.1:5000")
 	state.RouteMatrix = &common.RouteMatrix{}
 	state.RouteMatrix.CreatedAt = uint64(time.Now().Unix())
+	// IMPORTANT: with StaleDuration unset the stale check is CreatedAt + 0 < now, which
+	// trips whenever the wall clock second ticks over between here and the handler call
+	// -- that was a rare test flake under parallel suite load (route decision goes
+	// direct, TakeNetworkNext false). tests that want staleness set CreatedAt = 0.
+	state.StaleDuration = time.Minute
 	state.Database = db.CreateDatabase()
 	state.Input.Latitude = 35.0
 	state.Input.Longitude = -75.0
@@ -580,6 +585,15 @@ func Test_SessionUpdate_ExistingSession_RealOutOfOrder(t *testing.T) {
 	sessionData.PrevPacketsLostClientToServer = 0
 	sessionData.PrevPacketsLostServerToClient = 0
 
+	// IMPORTANT: pin the version AND the prev out of order counters. the random session
+	// data randomizes both, and versions < 8 drop the prev counters on the wire -- with
+	// a random version the counters read back as either the pinned value or zero, and
+	// with random counters the uint64 slice delta wraps to garbage. this was a 1-in-8
+	// test flake (random version == 8 left the counters random).
+	sessionData.Version = packets.SDK_SessionDataVersion_Write
+	sessionData.PrevPacketsOutOfOrderClientToServer = 40
+	sessionData.PrevPacketsOutOfOrderServerToClient = 10
+
 	writeSessionData := WriteSessionData(sessionData)
 
 	state.Request.SessionDataBytes = int32(len(writeSessionData))
@@ -603,7 +617,9 @@ func Test_SessionUpdate_ExistingSession_RealOutOfOrder(t *testing.T) {
 	assert.Equal(t, state.Output.SliceNumber, sliceNumber+1)
 	assert.Equal(t, state.Output.ExpireTimestamp, state.Input.ExpireTimestamp+packets.SDK_SliceSeconds)
 
-	assert.Equal(t, state.RealOutOfOrder, float32(10.0))
+	// slice sent delta is 1000 in both directions. out of order deltas: client to
+	// server (100-40)/1000 = 6%, server to client (50-10)/1000 = 4%. max wins.
+	assert.Equal(t, state.RealOutOfOrder, float32(6.0))
 }
 
 func Test_SessionUpdate_ExistingSession_RealJitter(t *testing.T) {
@@ -850,6 +866,12 @@ func Test_SessionUpdate_BuildNextTokens_PublicAddresses(t *testing.T) {
 		tokenData := state.Response.Tokens[index : index+packets.SDK_EncryptedNextRouteTokenSize]
 
 		result := core.ReadEncryptedRouteToken(&token, tokenData, secretKeys[i])
+		if !result {
+			// print everything needed to diagnose the failure: which token, and
+			// whether the key is wrong or the token data corrupt (rare flake seen
+			// once in ~250 suite runs, never reproduced in isolation)
+			t.Errorf("token %d failed to decrypt: key=%x token=%x", i, secretKeys[i], tokenData)
+		}
 		assert.True(t, result)
 		if !result {
 			return
@@ -993,6 +1015,12 @@ func Test_SessionUpdate_BuildNextTokens_InternalAddresses(t *testing.T) {
 		tokenData := state.Response.Tokens[index : index+packets.SDK_EncryptedNextRouteTokenSize]
 
 		result := core.ReadEncryptedRouteToken(&token, tokenData, secretKeys[i])
+		if !result {
+			// print everything needed to diagnose the failure: which token, and
+			// whether the key is wrong or the token data corrupt (rare flake seen
+			// once in ~250 suite runs, never reproduced in isolation)
+			t.Errorf("token %d failed to decrypt: key=%x token=%x", i, secretKeys[i], tokenData)
+		}
 		assert.True(t, result)
 		if !result {
 			return
@@ -1143,6 +1171,12 @@ func Test_SessionUpdate_BuildContinueTokens(t *testing.T) {
 		tokenData := state.Response.Tokens[index : index+packets.SDK_EncryptedContinueRouteTokenSize]
 
 		result := core.ReadEncryptedContinueToken(&token, tokenData, secretKeys[i])
+		if !result {
+			// print everything needed to diagnose the failure: which token, and
+			// whether the key is wrong or the token data corrupt (rare flake seen
+			// once in ~250 suite runs, never reproduced in isolation)
+			t.Errorf("token %d failed to decrypt: key=%x token=%x", i, secretKeys[i], tokenData)
+		}
 		assert.True(t, result)
 		if !result {
 			return
@@ -1398,6 +1432,12 @@ func Test_SessionUpdate_MakeRouteDecision_TakeNetworkNext(t *testing.T) {
 		tokenData := state.Response.Tokens[index : index+packets.SDK_EncryptedNextRouteTokenSize]
 
 		result := core.ReadEncryptedRouteToken(&token, tokenData, secretKeys[i])
+		if !result {
+			// print everything needed to diagnose the failure: which token, and
+			// whether the key is wrong or the token data corrupt (rare flake seen
+			// once in ~250 suite runs, never reproduced in isolation)
+			t.Errorf("token %d failed to decrypt: key=%x token=%x", i, secretKeys[i], tokenData)
+		}
 		assert.True(t, result)
 		if !result {
 			return
@@ -1611,6 +1651,12 @@ func Test_SessionUpdate_MakeRouteDecision_RouteContinued(t *testing.T) {
 		tokenData := state.Response.Tokens[index : index+packets.SDK_EncryptedNextRouteTokenSize]
 
 		result := core.ReadEncryptedRouteToken(&token, tokenData, secretKeys[i])
+		if !result {
+			// print everything needed to diagnose the failure: which token, and
+			// whether the key is wrong or the token data corrupt (rare flake seen
+			// once in ~250 suite runs, never reproduced in isolation)
+			t.Errorf("token %d failed to decrypt: key=%x token=%x", i, secretKeys[i], tokenData)
+		}
 		assert.True(t, result)
 
 		assert.Equal(t, token.ExpireTimestamp, state.Output.ExpireTimestamp)
@@ -1670,6 +1716,12 @@ func Test_SessionUpdate_MakeRouteDecision_RouteContinued(t *testing.T) {
 		tokenData := state.Response.Tokens[index : index+packets.SDK_EncryptedContinueRouteTokenSize]
 
 		result := core.ReadEncryptedContinueToken(&token, tokenData, secretKeys[i])
+		if !result {
+			// print everything needed to diagnose the failure: which token, and
+			// whether the key is wrong or the token data corrupt (rare flake seen
+			// once in ~250 suite runs, never reproduced in isolation)
+			t.Errorf("token %d failed to decrypt: key=%x token=%x", i, secretKeys[i], tokenData)
+		}
 		assert.True(t, result)
 		if !result {
 			return
@@ -1839,6 +1891,12 @@ func Test_SessionUpdate_MakeRouteDecision_RouteChanged(t *testing.T) {
 		tokenData := state.Response.Tokens[index : index+packets.SDK_EncryptedNextRouteTokenSize]
 
 		result := core.ReadEncryptedRouteToken(&token, tokenData, secretKeys[i])
+		if !result {
+			// print everything needed to diagnose the failure: which token, and
+			// whether the key is wrong or the token data corrupt (rare flake seen
+			// once in ~250 suite runs, never reproduced in isolation)
+			t.Errorf("token %d failed to decrypt: key=%x token=%x", i, secretKeys[i], tokenData)
+		}
 		assert.True(t, result)
 		if !result {
 			return
@@ -1927,6 +1985,12 @@ func Test_SessionUpdate_MakeRouteDecision_RouteChanged(t *testing.T) {
 		tokenData := state.Response.Tokens[index : index+packets.SDK_EncryptedNextRouteTokenSize]
 
 		result := core.ReadEncryptedRouteToken(&token, tokenData, secretKeys[i])
+		if !result {
+			// print everything needed to diagnose the failure: which token, and
+			// whether the key is wrong or the token data corrupt (rare flake seen
+			// once in ~250 suite runs, never reproduced in isolation)
+			t.Errorf("token %d failed to decrypt: key=%x token=%x", i, secretKeys[i], tokenData)
+		}
 		assert.True(t, result)
 		if !result {
 			return
@@ -2121,6 +2185,12 @@ func Test_SessionUpdate_MakeRouteDecision_RouteRelayNoLongerExists(t *testing.T)
 		tokenData := state.Response.Tokens[index : index+packets.SDK_EncryptedNextRouteTokenSize]
 
 		result := core.ReadEncryptedRouteToken(&token, tokenData, secretKeys[i])
+		if !result {
+			// print everything needed to diagnose the failure: which token, and
+			// whether the key is wrong or the token data corrupt (rare flake seen
+			// once in ~250 suite runs, never reproduced in isolation)
+			t.Errorf("token %d failed to decrypt: key=%x token=%x", i, secretKeys[i], tokenData)
+		}
 		assert.True(t, result)
 		if !result {
 			return
@@ -2344,6 +2414,12 @@ func Test_SessionUpdate_MakeRouteDecision_RouteNoLongerExists_ClientRelays(t *te
 		tokenData := state.Response.Tokens[index : index+packets.SDK_EncryptedNextRouteTokenSize]
 
 		result := core.ReadEncryptedRouteToken(&token, tokenData, secretKeys[i])
+		if !result {
+			// print everything needed to diagnose the failure: which token, and
+			// whether the key is wrong or the token data corrupt (rare flake seen
+			// once in ~250 suite runs, never reproduced in isolation)
+			t.Errorf("token %d failed to decrypt: key=%x token=%x", i, secretKeys[i], tokenData)
+		}
 		assert.True(t, result)
 
 		assert.Equal(t, token.ExpireTimestamp, state.Output.ExpireTimestamp)
@@ -2561,6 +2637,12 @@ func Test_SessionUpdate_MakeRouteDecision_RouteNoLongerExists_MidRelay(t *testin
 		tokenData := state.Response.Tokens[index : index+packets.SDK_EncryptedNextRouteTokenSize]
 
 		result := core.ReadEncryptedRouteToken(&token, tokenData, secretKeys[i])
+		if !result {
+			// print everything needed to diagnose the failure: which token, and
+			// whether the key is wrong or the token data corrupt (rare flake seen
+			// once in ~250 suite runs, never reproduced in isolation)
+			t.Errorf("token %d failed to decrypt: key=%x token=%x", i, secretKeys[i], tokenData)
+		}
 		assert.True(t, result)
 		if !result {
 			return

@@ -5,7 +5,6 @@ import "C"
 import (
 	"errors"
 	"fmt"
-	"math/rand"
 	"net"
 
 	"github.com/networknext/next/modules/common"
@@ -474,44 +473,44 @@ func GenerateRandomSessionData() SDK_SessionData {
 
 	sessionData := SDK_SessionData{
 		Version:                        uint32(common.RandomInt(SDK_SessionDataVersion_Min, SDK_SessionDataVersion_Max)),
-		SessionId:                      rand.Uint64(),
+		SessionId:                      common.RandomUint64(),
 		SessionVersion:                 uint32(common.RandomInt(0, 255)),
-		SliceNumber:                    rand.Uint32(),
-		ExpireTimestamp:                rand.Uint64(),
+		SliceNumber:                    uint32(common.RandomUint64()),
+		ExpireTimestamp:                common.RandomUint64(),
 		RouteChanged:                   common.RandomBool(),
 		RouteNumRelays:                 int32(common.RandomInt(0, SDK_MaxRelaysPerRoute)),
 		RouteCost:                      int32(common.RandomInt(0, SDK_InvalidRouteValue)),
-		PrevPacketsSentClientToServer:  rand.Uint64(),
-		PrevPacketsSentServerToClient:  rand.Uint64(),
-		PrevPacketsLostClientToServer:  rand.Uint64(),
-		PrevPacketsLostServerToClient:  rand.Uint64(),
+		PrevPacketsSentClientToServer:  common.RandomUint64(),
+		PrevPacketsSentServerToClient:  common.RandomUint64(),
+		PrevPacketsLostClientToServer:  common.RandomUint64(),
+		PrevPacketsLostServerToClient:  common.RandomUint64(),
 		WriteSummary:                   common.RandomBool(),
 		WroteSummary:                   common.RandomBool(),
 		ShouldSendClientRelaysToPortal: common.RandomBool(),
 		ShouldSendServerRelaysToPortal: common.RandomBool(),
 		SentClientRelaysToPortal:       common.RandomBool(),
 		SentServerRelaysToPortal:       common.RandomBool(),
-		NextEnvelopeBytesUpSum:         rand.Uint64(),
-		NextEnvelopeBytesDownSum:       rand.Uint64(),
-		StartTimestamp:                 rand.Uint64(),
-		DurationOnNext:                 rand.Uint32(),
-		Error:                          rand.Uint64(),
+		NextEnvelopeBytesUpSum:         common.RandomUint64(),
+		NextEnvelopeBytesDownSum:       common.RandomUint64(),
+		StartTimestamp:                 common.RandomUint64(),
+		DurationOnNext:                 uint32(common.RandomUint64()),
+		Error:                          common.RandomUint64(),
 		BestScore:                      uint32(common.RandomInt(0, 999)),
 		BestDirectRTT:                  uint32(common.RandomInt(0, 500)),
 		BestNextRTT:                    uint32(common.RandomInt(0, 500)),
 	}
 
 	for i := 0; i < int(sessionData.RouteNumRelays); i++ {
-		sessionData.RouteRelayIds[i] = rand.Uint64()
+		sessionData.RouteRelayIds[i] = common.RandomUint64()
 	}
 
 	if sessionData.Version >= 8 {
-		sessionData.PrevPacketsOutOfOrderClientToServer = rand.Uint64()
-		sessionData.PrevPacketsOutOfOrderServerToClient = rand.Uint64()
+		sessionData.PrevPacketsOutOfOrderClientToServer = common.RandomUint64()
+		sessionData.PrevPacketsOutOfOrderServerToClient = common.RandomUint64()
 	}
 
-	sessionData.Latitude = rand.Float32()
-	sessionData.Longitude = rand.Float32()
+	sessionData.Latitude = common.RandomFloat32()
+	sessionData.Longitude = common.RandomFloat32()
 
 	sessionData.RouteState.Next = common.RandomBool()
 	sessionData.RouteState.Veto = common.RandomBool()
