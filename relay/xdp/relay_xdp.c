@@ -372,7 +372,7 @@ static void relay_reflect_packet( void * data, int payload_bytes, __u8 * magic, 
 
 #if RELAY_ADVANCED_PACKET_FILTER
 
-// IMPORTANT: Must match relay_advanced_packet_filter in the reference relay exactly.
+// IMPORTANT: Must stay byte-identical to the Go core and C++ SDK implementations.
 // Checks pittle for (from,to) and chonkle for (magic,from,to). Callers try all
 // combinations of {current,previous,next} magic x {public,internal} relay address.
 
@@ -894,9 +894,9 @@ SEC("relay_xdp") int relay_xdp_filter( struct xdp_md *ctx )
 
                         // Advanced packet filter
                         //
-                        // IMPORTANT: Same acceptance rule as the reference relay: the packet passes
-                        // if any combination of {current,previous,next} magic x {public,internal}
-                        // relay address matches both pittle and chonkle.
+                        // IMPORTANT: The packet passes if any combination of
+                        // {current,previous,next} magic x {public,internal} relay address
+                        // matches both pittle and chonkle.
 
                         if ( !relay_advanced_packet_filter( packet_data, state->current_magic, ip->saddr, config->relay_public_address, packet_bytes )    &&
                              !relay_advanced_packet_filter( packet_data, state->previous_magic, ip->saddr, config->relay_public_address, packet_bytes )   &&

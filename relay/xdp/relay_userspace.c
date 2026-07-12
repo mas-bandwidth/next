@@ -155,8 +155,8 @@ long bpf_xdp_adjust_head(struct xdp_md *ctx, int delta) {
 //    construction the kernel's chacha20poly1305 library uses; libsodium's
 //    crypto_aead_xchacha20poly1305_ietf_decrypt is byte-identical. Already proven
 //    end-to-end in production: the Go backend encrypts route tokens with
-//    golang.org/x/crypto chacha20poly1305.NewX and BOTH the XDP relay (kernel
-//    crypto) and the reference relay (libsodium) decrypt them.
+//    golang.org/x/crypto chacha20poly1305.NewX and both the XDP relay (kernel
+//    crypto) and the retired reference relay (libsodium) decrypted them.
 
 // mirrors the definition in relay_xdp.c (nonce, then key). that definition lives in a
 // separate translation unit, so the struct is completed here with the same layout.
@@ -224,8 +224,8 @@ int us_map_get_next_key(struct us_map *m, const void *key, void *next_key) {
 	return 0;
 }
 
-// --- datapath debug print for RELAY_LOGS builds (same shape as the reference relay's
-//     relay_printf: one line per call, so the functional tests can poll stdout)
+// --- datapath debug print for RELAY_LOGS builds (one line per call, so the functional
+//     tests can poll stdout)
 
 #if RELAY_LOGS
 void us_relay_printf(const char *format, ...) {

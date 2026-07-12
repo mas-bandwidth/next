@@ -1,4 +1,16 @@
-# Relay consolidation plan (in progress, started 2026-07-12)
+# Relay consolidation (DONE 2026-07-12)
+
+**The project is complete.** The XDP relay compiles in a userspace socket mode
+(`make dist/relay-userspace-debug`) and is the only relay in the tree: the functional
+suites, soak test, happy path, local dev (`./run relay`), docker-compose relays, and
+the `${tag}-debug` relay artifact upload all use it. `relay/reference` (~6.6k lines of
+sync-by-convention) is DELETED -- the dual-flavor gate ran the full relay + sdk
+functional suites against both relays side by side and was green on test-279/test-280
+before deletion. The plan and per-step history below are kept as the record.
+
+Still owed before the next `relay-*` release tag: benchmark + soak the XDP build on a
+real box (the per-packet session-expiry checks landed in the shipped BPF program this
+session).
 
 ## Why only the relay, and only this way
 
@@ -64,7 +76,7 @@ answer instead of a release-day surprise.
    functional suite against it in parallel with the reference relay.
 4. **Port the mac platform layer** (`relay/reference/relay_mac.cpp` is the donor), swap
    func tests + local dev to the userspace mode. Add Windows platform layer.
-5. **Retire `relay/reference`** — or freeze it one release cycle as the differential oracle.
+5. **Retire `relay/reference`** — DONE (deleted after the dual-flavor gate went green).
 
 ## Findings (things the corpus has already surfaced)
 
@@ -135,22 +147,21 @@ answer instead of a release-day surprise.
   (3) func_backend never answers client/server relay requests with zero relays (harness
   starts everything at once; a zero-relay answer meant the client never pinged, was never
   whitelisted, and every route request dropped -- the SDK retries for 5s, relays register
-  within ~2s). RELAY_BIN env selects the relay binary in both func_test_relay and
-  func_test_sdk (default ./relay-debug).
+  within ~2s). RELAY_BIN env overrides the relay binary in func_test_relay, func_test_sdk
+  and soak_test_relay (default ./relay-userspace-debug).
 - **Datapath behavior aligned with the reference where the XDP relay had gaps** (see
   commit 'XDP datapath: per-packet session expiry checks'): per-packet session expiry
   drops in all seven session handlers + SESSION_CREATED/SESSION_CONTINUED counters --
   the counters existed and were reported but never incremented.
-- **THE GATE is wired and nearly green.** CI runs the full relay + sdk functional
-  suites against BOTH relays side by side (duplicated blocks with
-  RELAY_BIN=./relay-userspace-debug; the Build pipeline builds and pushes
-  relay-userspace-debug). On test-278: BOTH relay suites fully green, soak green for
-  both, and the sdk failures were identical across flavors (a func_backend zero-relay
-  answer regression affecting the direct tests -- fixed via BACKEND_EXPECT_RELAYS).
-  All 82 relay tests also pass one-by-one locally against the userspace relay.
-  Remaining: a fully green run end to end, one final review, then delete
-  relay/reference. Also remaining: benchmark + soak the XDP build on a real box before
-  any relay-* release tag (the session-expiry check touches the shipped BPF program).
+- **THE GATE went green, then the reference relay was deleted.** CI ran the full
+  relay + sdk functional suites against BOTH relays side by side (duplicated blocks
+  with RELAY_BIN=./relay-userspace-debug) and every relay and sdk block passed for
+  both flavors on test-279/test-280. All 82 relay tests also passed one-by-one locally
+  against the userspace relay. relay/reference is deleted; the userspace relay is the
+  default in the harnesses, the only relay flavor in functional-tests.yml, the docker
+  relay image, `./run relay` / happy path, and the `${tag}-debug` upload. Still owed:
+  benchmark + soak the XDP build on a real box before any relay-* release tag (the
+  session-expiry check touches the shipped BPF program).
 - **Optional: reference-relay differential** (fire the corpus at the reference relay over
   UDP) -- nice extra confidence, but the userspace relay passing the functional suite is
   the real gate for deletion.
@@ -160,6 +171,6 @@ answer instead of a release-day surprise.
 
 - The XDP hot path must not get slower — benchmark + soak on a real box before any
   `relay-*` tag (same discipline as the optimizer merge).
-- pittle/chonkle must stay byte-identical across Go/SDK/reference/XDP (existing invariant).
+- pittle/chonkle must stay byte-identical across Go/SDK/XDP (existing invariant).
 - The advanced packet filter magic combinations (all {current,previous,next} x
   {public,internal}) are load-bearing — the corpus must cover every one.

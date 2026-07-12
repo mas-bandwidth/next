@@ -2,15 +2,15 @@
 // stateless packet-processing surface -- the basic and advanced packet filters and the
 // packet-type dispatch. This is the most security-critical relay code (DDoS chaff
 // filters) and the most duplicated (pittle/chonkle exist byte-identical in the Go core,
-// the C++ SDK, the reference relay, and the XDP relay).
+// the C++ SDK, and the XDP relay).
 //
 // The corpus is the specification. Each entry carries the packet bytes, the 4-tuple and
 // magic it was built for, and the oracle verdict (does the relay filter accept it, and
-// if not, at which stage it drops). The same corpus is fired at every relay
-// implementation -- the reference relay over UDP, and the compiled relay_xdp.o via
-// BPF_PROG_RUN -- and each must agree with the oracle. A disagreement is a wire-protocol
-// divergence between implementations, which is exactly what the four hand-synced copies
-// risk. See relay/CONSOLIDATION.md.
+// if not, at which stage it drops). The same corpus is fired at the relay datapath both
+// ways it compiles -- the relay_xdp.o BPF object via BPF_PROG_RUN, and the userspace
+// build via relay_userspace_test -- and each must agree with the oracle. A disagreement
+// is a wire-protocol divergence between implementations, which is exactly what the
+// hand-synced copies risk. See relay/CONSOLIDATION.md.
 //
 // The oracle here (relayBasicPacketFilter + core.AdvancedPacketFilter) is a hypothesis
 // about the C relays' behavior; the differential tests are what validate it.
@@ -43,13 +43,11 @@ const (
 	DropAdvanced
 	// Pass: passes both filters and reaches the per-type handler.
 	Pass
-	// DropSize: shorter than the 18-byte header, dropped by the size guard BEFORE the
-	// basic filter. This is modeled on the XDP relay (the consolidation's canonical
-	// datapath), which has a dedicated PACKET_TOO_SMALL guard. NOTE: the reference relay
-	// instead folds the <18 check into relay_basic_packet_filter, so it attributes these
-	// drops to the basic-filter counter -- a counter-accounting divergence between the
-	// two relays that this corpus surfaced (see relay/CONSOLIDATION.md). Wire behavior
-	// (the packet is dropped, never relayed) agrees in both.
+	// DropSize: shorter than the 18-byte header, dropped by the relay's dedicated
+	// PACKET_TOO_SMALL guard BEFORE the basic filter. (The retired reference relay
+	// instead folded the <18 check into relay_basic_packet_filter and attributed these
+	// drops to the basic-filter counter -- a counter-accounting divergence this corpus
+	// surfaced; wire behavior agreed. See relay/CONSOLIDATION.md.)
 	DropSize
 )
 
@@ -79,7 +77,7 @@ type Entry struct {
 
 // relayBasicPacketFilter mirrors core.BasicPacketFilter but with the relay packet-type
 // range (1..14) instead of the SDK/backend range (0x32..0x3C). This is the only
-// difference between the two -- see relay/xdp/relay_xdp.c and relay/reference.
+// difference between the two -- see relay/xdp/relay_xdp.c.
 func relayBasicPacketFilter(data []byte, packetLength int) bool {
 	if packetLength < 18 {
 		return false

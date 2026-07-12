@@ -8,9 +8,9 @@
 //   basic counter incremented    -> the relay dropped it at the basic filter
 //   advanced counter incremented -> dropped at the advanced filter
 //   neither, and retval != DROP  -> the relay accepted it (reached a type handler)
-// A mismatch against the corpus verdict is a divergence between the Go oracle (which the
-// reference relay must also match) and the actual XDP relay -- exactly the four-way
-// desync risk the corpus exists to catch. Requires the relay_module kfunc insmodded.
+// A mismatch against the corpus verdict is a divergence between the Go oracle and the
+// actual XDP relay -- exactly the desync risk the corpus exists to catch. Requires the
+// relay_module kfunc insmodded.
 
 #include <bpf/libbpf.h>
 #include <bpf/bpf.h>

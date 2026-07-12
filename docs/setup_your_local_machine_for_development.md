@@ -63,7 +63,7 @@ root@linux:~/next# make build
 dist/func_test_terraform
 dist/func_test_sdk
 dist/func_test_database
-dist/relay-debug
+dist/relay-userspace-debug
 dist/func_test_api
 dist/func_backend
 dist/func_test_portal
@@ -232,7 +232,7 @@ gaffer@macbook next % make build
 dist/func_test_terraform
 dist/func_test_sdk
 dist/func_test_database
-dist/relay-debug
+dist/relay-userspace-debug
 dist/func_test_api
 dist/func_backend
 dist/func_test_portal

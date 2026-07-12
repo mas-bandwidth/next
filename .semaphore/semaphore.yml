@@ -21,7 +21,7 @@ blocks:
           commands:
             - |
               if [ -z "$SEMAPHORE_GIT_TAG_NAME" ]; then
-                export SEMAPHORE_GIT_TAG_NAME relay-debug
+                export SEMAPHORE_GIT_TAG_NAME relay-userspace-debug
               fi
             # apt update first: installing libcurl4-openssl-dev upgrades curl/libcurl and
             # a stale package index 404s on the mirrors (failed test-276)
@@ -29,12 +29,10 @@ blocks:
             - sudo DEBIAN_FRONTEND=noninteractive apt-get install -y libsodium-dev libcurl4-openssl-dev
             - checkout
             - mkdir dist
-            - make RELAY_VERSION=$SEMAPHORE_GIT_TAG_NAME -j ./dist/relay-debug ./dist/libnext.so
-            # userspace-mode XDP relay: the same relay_xdp.c datapath as a plain userspace
-            # binary. the functional suites run against BOTH relays until the reference
-            # relay is retired (relay/CONSOLIDATION.md).
-            - make -j ./dist/relay-userspace-debug
-            - artifact push workflow ./dist/relay-debug --force
+            # the userspace-mode XDP relay: the same relay_xdp.c datapath as a plain
+            # userspace binary (relay/CONSOLIDATION.md). the functional suites run against
+            # it, and on relay-* tags it uploads as the ${tag}-debug relay artifact.
+            - make RELAY_VERSION=$SEMAPHORE_GIT_TAG_NAME -j ./dist/relay-userspace-debug ./dist/libnext.so
             - artifact push workflow ./dist/relay-userspace-debug --force
             - artifact push workflow ./dist/libnext.so --force
             - artifact push workflow tools/build_artifact/bootstrap.sh --force
@@ -169,7 +167,7 @@ blocks:
             - sudo ./relay_corpus_diff relay_xdp.o corpus.bin
             # relay consolidation: prove the SAME datapath source (relay_xdp.c) compiled as
             # userspace C (non-BPF, -DRELAY_USERSPACE + relay_userspace.h) produces identical
-            # verdicts on the corpus. this is the userspace relay mode that replaces the
+            # verdicts on the corpus. this is the userspace relay mode that replaced the
             # reference relay -- one relay source. no BPF needed to build or run this.
             - make userspace-test
             - ./relay_userspace_test corpus.bin

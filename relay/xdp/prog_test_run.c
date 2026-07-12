@@ -1,11 +1,11 @@
 // Feasibility spike for the relay consolidation plan (step 1, the risky half):
 // prove we can run the ACTUAL compiled relay_xdp.o through BPF_PROG_RUN in CI,
 // populate its maps, feed it a frame, and read back the verdict + output bytes.
-// If this works, a conformance corpus can be fired three ways -- reference relay,
-// a future extracted userspace core, and the real BPF object -- for the strongest
-// possible wire-compat guarantee. Two crypto-free cases here; the full corpus is
-// a follow-up. Requires the relay_module kfunc to be insmodded (the object won't
-// load otherwise -- see the CI XDP job).
+// This is what made it possible to fire the conformance corpus at the real BPF
+// object (relay_corpus_diff.c) as well as the userspace build, for the strongest
+// possible wire-compat guarantee. Two crypto-free cases here; the full corpus
+// lives in modules/relaycorpus. Requires the relay_module kfunc to be insmodded
+// (the object won't load otherwise -- see the CI XDP job).
 
 #include <bpf/libbpf.h>
 #include <bpf/bpf.h>

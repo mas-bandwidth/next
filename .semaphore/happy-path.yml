@@ -41,7 +41,7 @@ blocks:
             - killall magic_backend || true
             - killall relay_gateway || true
             - killall relay_backend || true
-            - killall relay-debug || true
+            - killall relay-userspace-debug || true
             - killall server_backend || true
             - killall session_cruncher || true
             - killall server_cruncher || true

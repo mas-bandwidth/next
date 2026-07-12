@@ -56,23 +56,14 @@ const TestRelayBackendPrivateKey = "qXeUdLPZxaMnZ/zFHLHkmgkQOmunWq1AmRv55nqTYMg=
 
 const backendBin = "./func_backend"
 
-// RELAY_BIN selects the relay binary under test: the reference relay by default, or the
-// userspace-mode XDP relay ("./relay-userspace-debug") for the consolidation gate. see
-// relay/CONSOLIDATION.md.
-var relayBin = "./relay-debug"
+// RELAY_BIN overrides the relay binary under test (default: the userspace-mode XDP
+// relay -- see relay/CONSOLIDATION.md).
+var relayBin = "./relay-userspace-debug"
 
 func init() {
 	if v := os.Getenv("RELAY_BIN"); v != "" {
 		relayBin = v
 	}
-}
-
-// userspaceRelay reports whether the relay under test is the userspace-mode XDP
-// datapath. A few tests assert on behavior that legitimately differs between the two
-// relays (the XDP datapath drops relay pings from unregistered sources before spending
-// sha256 on them; the reference relay verifies first). Those tests branch on this.
-func userspaceRelay() bool {
-	return strings.Contains(relayBin, "userspace")
 }
 
 type RelayConfig struct {
@@ -217,13 +208,12 @@ func backend(mode string) (*exec.Cmd, *common.Buffer) {
 }
 
 // whitelistAddress sends valid client ping packets from conn to the relay until the
-// relay responds with a client pong. On the XDP-datapath relay a valid ping is what
-// admits a source address to the whitelist -- production traffic always pings before
-// routing, and every non-ping packet type from a non-whitelisted address is dropped
-// (see relay/CONSOLIDATION.md). The reference relay has no whitelist; for it this is
-// just a harmless ping/pong warmup, so tests call it unconditionally. Must be called
-// BEFORE any goroutine starts reading from conn. Assumes the ZERO_MAGIC backend mode
-// (zero ping key, zero magic) that all packet-crafting tests use.
+// relay responds with a client pong. A valid ping is what admits a source address to
+// the relay's whitelist -- production traffic always pings before routing, and every
+// non-ping packet type from a non-whitelisted address is dropped (see
+// relay/CONSOLIDATION.md). Must be called BEFORE any goroutine starts reading from
+// conn. Assumes the ZERO_MAGIC backend mode (zero ping key, zero magic) that all
+// packet-crafting tests use.
 func whitelistAddress(conn *net.UDPConn, relayAddress net.UDPAddr) {
 
 	clientPort := conn.LocalAddr().(*net.UDPAddr).Port
@@ -1694,13 +1684,8 @@ func test_relay_ping_packet_did_not_verify() {
 	}
 
 	// the XDP datapath drops relay pings from sources that are not registered relays
-	// BEFORE verifying the token (no sha256 spent on unknown sources); the reference
-	// relay verifies the token first. either way the ping is rejected.
-	if userspaceRelay() {
-		common.WaitForOutput(relay_stdout, "ping from unknown relay", 10*time.Second)
-	} else {
-		common.WaitForOutput(relay_stdout, "ping token did not verify", 10*time.Second)
-	}
+	// BEFORE verifying the token (no sha256 spent on unknown sources)
+	common.WaitForOutput(relay_stdout, "ping from unknown relay", 10*time.Second)
 
 	conn.Close()
 
@@ -1715,11 +1700,7 @@ func test_relay_ping_packet_did_not_verify() {
 	}
 
 	checkCounter("RELAY_COUNTER_RELAY_PING_PACKET_RECEIVED", relay_stdout.String())
-	if userspaceRelay() {
-		checkCounter("RELAY_COUNTER_RELAY_PING_PACKET_UNKNOWN_RELAY", relay_stdout.String())
-	} else {
-		checkCounter("RELAY_COUNTER_RELAY_PING_PACKET_DID_NOT_VERIFY", relay_stdout.String())
-	}
+	checkCounter("RELAY_COUNTER_RELAY_PING_PACKET_UNKNOWN_RELAY", relay_stdout.String())
 }
 
 // =======================================================================================================================
@@ -6398,7 +6379,7 @@ var counterNames [constants.NumRelayCounters]string
 var counterHash map[string]int
 
 func initCounterNames() {
-	// awk '/^#define RELAY_COUNTER_/ {print "    counterNames["$3"] = \""$2"\""}' ./relay/reference/reference_relay.cpp
+	// awk '/^#define RELAY_COUNTER_/ {print "    counterNames["$3"] = \""$2"\""}' ./relay/xdp/relay_constants.h
 	counterNames[0] = "RELAY_COUNTER_PACKETS_SENT"
 	counterNames[1] = "RELAY_COUNTER_PACKETS_RECEIVED"
 	counterNames[2] = "RELAY_COUNTER_BYTES_SENT"
