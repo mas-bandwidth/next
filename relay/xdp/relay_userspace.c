@@ -1,0 +1,170 @@
+/*
+    Userspace shim implementation for relay_xdp.c (see relay_userspace.h).
+
+    Backing storage for the six maps, a small chained hash table, the bpf_map_* helpers,
+    the packet resize helpers, and the crypto kfunc stubs. Compiled only in userspace
+    (non-BPF) builds of the relay.
+*/
+
+#include "relay_userspace.h"
+#include "relay_constants.h"
+#include "relay_shared.h"
+
+// --- backing storage for the six maps
+
+static __u8 config_storage[sizeof(struct relay_config)];
+static __u8 state_storage[sizeof(struct relay_state)];
+static __u8 stats_storage[sizeof(struct relay_stats)];
+
+#define RELAY_HASH_BUCKETS   ( MAX_RELAYS * 4 )
+#define SESSION_HASH_BUCKETS ( MAX_SESSIONS * 2 )
+
+static struct us_hash_entry *relay_buckets[RELAY_HASH_BUCKETS];
+static struct us_hash_entry *session_buckets[SESSION_HASH_BUCKETS];
+static struct us_hash_entry *whitelist_buckets[SESSION_HASH_BUCKETS];
+
+struct us_map config_map = {
+	.kind = US_MAP_ARRAY, .key_size = sizeof(__u32), .value_size = sizeof(struct relay_config),
+	.max_entries = 1, .array = config_storage,
+};
+struct us_map state_map = {
+	.kind = US_MAP_ARRAY, .key_size = sizeof(__u32), .value_size = sizeof(struct relay_state),
+	.max_entries = 1, .array = state_storage,
+};
+struct us_map stats_map = {
+	.kind = US_MAP_ARRAY, .key_size = sizeof(__u32), .value_size = sizeof(struct relay_stats),
+	.max_entries = 1, .array = stats_storage,
+};
+struct us_map relay_map = {
+	.kind = US_MAP_HASH, .key_size = sizeof(__u64), .value_size = sizeof(__u64),
+	.max_entries = MAX_RELAYS * 2, .buckets = relay_buckets, .num_buckets = RELAY_HASH_BUCKETS,
+};
+struct us_map session_map = {
+	.kind = US_MAP_HASH, .key_size = sizeof(struct session_key), .value_size = sizeof(struct session_data),
+	.max_entries = MAX_SESSIONS * 2, .buckets = session_buckets, .num_buckets = SESSION_HASH_BUCKETS,
+};
+struct us_map whitelist_map = {
+	.kind = US_MAP_HASH, .key_size = sizeof(struct whitelist_key), .value_size = sizeof(struct whitelist_value),
+	.max_entries = MAX_SESSIONS * 2, .buckets = whitelist_buckets, .num_buckets = SESSION_HASH_BUCKETS,
+};
+
+// --- hash table (FNV-1a over the key bytes)
+
+static size_t hash_key(struct us_map *m, const void *key) {
+	const __u8 *p = (const __u8 *)key;
+	__u64 h = 1469598103934665603ULL;
+	for (size_t i = 0; i < m->key_size; i++) {
+		h ^= p[i];
+		h *= 1099511628211ULL;
+	}
+	return (size_t)(h % (__u64)m->num_buckets);
+}
+
+void *bpf_map_lookup_elem(void *map, const void *key) {
+	struct us_map *m = (struct us_map *)map;
+	if (m->kind == US_MAP_ARRAY) {
+		__u32 index = *(const __u32 *)key;
+		if ((int)index >= m->max_entries) return NULL;
+		return (__u8 *)m->array + (size_t)index * m->value_size;
+	}
+	size_t b = hash_key(m, key);
+	for (struct us_hash_entry *e = m->buckets[b]; e; e = e->next) {
+		if (memcmp(e->key, key, m->key_size) == 0) return e->value;
+	}
+	return NULL;
+}
+
+long bpf_map_update_elem(void *map, const void *key, const void *value, __u64 flags) {
+	(void)flags;
+	struct us_map *m = (struct us_map *)map;
+	if (m->kind == US_MAP_ARRAY) {
+		__u32 index = *(const __u32 *)key;
+		if ((int)index >= m->max_entries) return -1;
+		memcpy((__u8 *)m->array + (size_t)index * m->value_size, value, m->value_size);
+		return 0;
+	}
+	size_t b = hash_key(m, key);
+	for (struct us_hash_entry *e = m->buckets[b]; e; e = e->next) {
+		if (memcmp(e->key, key, m->key_size) == 0) {
+			memcpy(e->value, value, m->value_size);
+			return 0;
+		}
+	}
+	// NOTE: no LRU eviction yet -- fine for the datapath-correctness harness (small maps).
+	// A production userspace relay needs bounded eviction like the BPF LRU_HASH maps.
+	struct us_hash_entry *e = (struct us_hash_entry *)malloc(sizeof(*e));
+	e->key = malloc(m->key_size);
+	e->value = malloc(m->value_size);
+	memcpy(e->key, key, m->key_size);
+	memcpy(e->value, value, m->value_size);
+	e->next = m->buckets[b];
+	m->buckets[b] = e;
+	m->count++;
+	return 0;
+}
+
+long bpf_map_delete_elem(void *map, const void *key) {
+	struct us_map *m = (struct us_map *)map;
+	if (m->kind != US_MAP_HASH) return -1;
+	size_t b = hash_key(m, key);
+	struct us_hash_entry **pp = &m->buckets[b];
+	while (*pp) {
+		struct us_hash_entry *e = *pp;
+		if (memcmp(e->key, key, m->key_size) == 0) {
+			*pp = e->next;
+			free(e->key);
+			free(e->value);
+			free(e);
+			m->count--;
+			return 0;
+		}
+		pp = &e->next;
+	}
+	return -1;
+}
+
+// --- packet resize: relay_xdp.c only ever shrinks the tail (adjust_tail with a negative
+//     delta) or grows the head; move data_end / data accordingly.
+
+long bpf_xdp_adjust_tail(struct xdp_md *ctx, int delta) {
+	ctx->data_end = (__u64)((long)ctx->data_end + delta);
+	return 0;
+}
+
+long bpf_xdp_adjust_head(struct xdp_md *ctx, int delta) {
+	ctx->data = (__u64)((long)ctx->data + delta);
+	return 0;
+}
+
+// --- crypto kfunc stubs (not reached by the stateless conformance corpus)
+
+int bpf_relay_sha256(void *data, int data__sz, void *output, int output__sz) {
+	(void)data; (void)data__sz; (void)output; (void)output__sz;
+	return -1;
+}
+
+int bpf_relay_xchacha20poly1305_decrypt(void *data, int data__sz, struct chacha20poly1305_crypto *crypto) {
+	(void)data; (void)data__sz; (void)crypto;
+	return -1;
+}
+
+// --- reset all maps between test runs
+void us_maps_reset(void) {
+	memset(config_storage, 0, sizeof(config_storage));
+	memset(state_storage, 0, sizeof(state_storage));
+	memset(stats_storage, 0, sizeof(stats_storage));
+	struct us_map *hashes[] = { &relay_map, &session_map, &whitelist_map };
+	for (int h = 0; h < 3; h++) {
+		struct us_map *m = hashes[h];
+		for (int b = 0; b < m->num_buckets; b++) {
+			struct us_hash_entry *e = m->buckets[b];
+			while (e) {
+				struct us_hash_entry *next = e->next;
+				free(e->key); free(e->value); free(e);
+				e = next;
+			}
+			m->buckets[b] = NULL;
+		}
+		m->count = 0;
+	}
+}

@@ -159,6 +159,12 @@ blocks:
             - gcc -O2 -o relay_corpus_diff relay_corpus_diff.c ../../xdp-tools-1.4.2/lib/libbpf/src/libbpf.a -lelf -lz
             - ( cd ../.. && go run ./cmd/relaycorpus_gen relay/xdp/corpus.bin )
             - sudo ./relay_corpus_diff relay_xdp.o corpus.bin
+            # relay consolidation: prove the SAME datapath source (relay_xdp.c) compiled as
+            # userspace C (non-BPF, -DRELAY_USERSPACE + relay_userspace.h) produces identical
+            # verdicts on the corpus. this is the userspace relay mode that replaces the
+            # reference relay -- one relay source. no BPF needed to build or run this.
+            - gcc -DRELAY_USERSPACE -I. -O2 -o relay_userspace_test relay_userspace_test.c relay_userspace.c -x c relay_xdp.c
+            - ./relay_userspace_test corpus.bin
 
   - name: "Portal"
     dependencies: []
