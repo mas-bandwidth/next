@@ -106,21 +106,15 @@ blocks:
             - mv relay relay-release
             - artifact push workflow relay-release --force
             - make relay_xdp.o
-            # load the program through the BPF verifier. compiling relay_xdp.o proves nothing --
-            # the verifier only runs at load/attach time, and it is what rejects a restructured
-            # filter. xdp-loader is libxdp, the same attach path the relay binary uses
-            # (relay_bpf.c). attach to a veth, not lo: XDP attach requires MTU <= ~3500 and
-            # lo has MTU 65536 (same reason relay_bpf.c needs MTU 1500 on AWS).
-            - sudo ip link add xdptest0 type veth peer name xdptest1
-            - sudo ip link set xdptest0 up
-            - sudo ip link set xdptest1 up
-            # libxdp needs a bpffs for the dispatcher (and our maps pin by name) -- the
-            # semaphore VMs don't mount one (xdp-tools issue #364: fails EINVAL without it)
+            # run relay_xdp.o through the BPF verifier. compiling it proves nothing -- the
+            # verifier only runs at BPF_PROG_LOAD time, and it is what rejects a restructured
+            # filter. bpftool prog load runs the verifier without a device attach (attach is
+            # driver dependent and fails EINVAL through libxdp's dispatcher on these VMs --
+            # xdp-tools issue #327 -- and prod attaches native mode on real NICs regardless).
+            # a verifier rejection fails the job and bpftool prints the verifier log.
             - mountpoint -q /sys/fs/bpf || sudo mount -t bpf bpf /sys/fs/bpf
-            - sudo xdp-loader load -m skb -v xdptest0 relay_xdp.o
-            - sudo xdp-loader status
-            - sudo xdp-loader unload xdptest0 --all
-            - sudo ip link del xdptest0
+            - sudo bpftool prog load relay_xdp.o /sys/fs/bpf/relay_xdp_test type xdp
+            - sudo bpftool prog show pinned /sys/fs/bpf/relay_xdp_test
             - popd
             - cd relay/module && tar -zcvf relay_module.tar.gz *
             - artifact push workflow ./relay_module.tar.gz --force
