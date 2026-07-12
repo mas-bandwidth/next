@@ -145,20 +145,33 @@ that fact is stale — reverify.
 
 ### In progress: relay consolidation (see relay/CONSOLIDATION.md)
 
-The wire-protocol consolidation project is underway — plan, sequencing, and status live
-in `relay/CONSOLIDATION.md` (keep that file current, not this section). Progress:
-BPF_PROG_RUN proven (test-265); the XDP conformance differential is DONE and green
-(test-269, 0 mismatches); and — the big one — **the relay datapath is now ONE source
-that compiles both ways** (test-272, merged to main). relay_xdp.c compiles as the BPF
-kernel program (byte-identical, unchanged) AND as userspace C via relay_userspace.h/.c
-(a shim: userspace stand-ins for the __uN types, eth/ip/udp structs, xdp_md, the 6 BPF
-maps, bpf_map_* helpers, resize helpers, and the crypto kfuncs — stubbed for now). The
-userspace-compiled datapath passes the corpus with 0 mismatches on mac AND CI
-(`make userspace-test`, wired into the XDP job). The edits to relay_xdp.c are only #ifdef
-guards; the shipped BPF program did not change. REMAINING before relay/reference can be
-deleted (the gate): byte-exact crypto in the shim, a userspace socket loop + control
-plane over the userspace maps, a RELAY_USERSPACE relay binary, and the full functional
-suite passing against it. Do NOT delete relay/reference until that gate is green.
+The wire-protocol consolidation project is nearly done — plan, sequencing, and status
+live in `relay/CONSOLIDATION.md` (keep that file current, not this section). As of
+2026-07-12 (commits `192f7395a`..`98b31e1f0`): the userspace relay is a WORKING BINARY
+(`make dist/relay-userspace-debug` — the relay_xdp.c datapath + real libsodium crypto +
+the XDP control plane over shim maps; the ping thread's socket IS the datapath), and CI
+runs the FULL relay + sdk functional suites against BOTH relays side by side (RELAY_BIN
+selects the binary in func_test_relay / func_test_sdk / soak_test_relay). On test-279
+every relay and sdk block passed for both flavors (the only failure was an unrelated
+proxy.golang.org flake in Load Tests). Key facts a future session needs:
+
+- **The whitelist is the big XDP-vs-reference behavioral difference**: valid
+  client/server/relay pings admit a source address; forwarding also requires the
+  DESTINATION whitelisted. Packet-crafting tests prime it (whitelistAddress helper in
+  func_test_relay.go); two real func_backend bugs it exposed are fixed (zero ping key
+  in relay updates — client/server ping tokens NEVER verified on any relay; and
+  zero-relay answers during the startup race — now withheld only under
+  BACKEND_EXPECT_RELAYS, set by the sdk harness when a test spawns relays, because the
+  DIRECT tests' packet-count assertions have ~1s of slack and cannot absorb any delay).
+- **The shipped BPF program CHANGED this session** (commit `37a600312`): per-packet
+  session-expiry drops in all seven session handlers + SESSION_CREATED/SESSION_CONTINUED
+  counters (defined+reported since forever, never incremented). Verifier + BPF_PROG_RUN
+  corpus green on CI. Benchmark + soak on a real box before any relay-* release tag.
+- **relay/reference deletion is UNBLOCKED but deliberately not done** — Glenn's call
+  whether to delete now or freeze one release cycle as the differential oracle (both
+  suites run in parallel in CI at no wall-clock cost). Deleting means: rm
+  relay/reference, drop the dist/relay-debug Makefile targets, remove the
+  reference-relay CI blocks, flip the default relayBin in the three harnesses.
 
 ### Open items (not yet done)
 
