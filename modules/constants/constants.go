@@ -35,6 +35,9 @@ const (
 
 	MaxRouteCost = 255
 
+	// route price is the sum of relay prices ([0,255] each) across all relays in a route
+	MaxRoutePrice = 255 * MaxRouteRelays
+
 	NextMaxNodes = MaxRouteRelays + 2
 
 	NextAddressBytes      = 19

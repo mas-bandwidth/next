@@ -1103,7 +1103,7 @@ func RouteExists(routeMatrix []RouteEntry, routeNumRelays int32, routeRelays [co
 	for i := 0; i < int(entry.NumRoutes); i++ {
 		if entry.RouteNumRelays[i] == routeNumRelays {
 			found := true
-			for j := range routeRelays {
+			for j := int32(0); j < routeNumRelays; j++ {
 				if entry.RouteRelays[i][j] != routeRelays[j] {
 					found = false
 					break
@@ -1538,7 +1538,9 @@ func GetRandomBestRoute_LowestPrice(routeMatrix []RouteEntry, sourceRelays []int
 	// any route with price >= 255 is not selectable for a new route
 
 	if lowestPrice >= 255 {
-		*debug += fmt.Sprintf("lowest price is >= 255, found no selectable routes")
+		if debug != nil {
+			*debug += "lowest price is >= 255, found no selectable routes\n"
+		}
 		return false
 	}
 

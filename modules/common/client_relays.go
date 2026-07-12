@@ -32,8 +32,8 @@ func GetClientRelays(maxClientRelays int, distanceThreshold int, latencyThreshol
 	for i, relayId := range relayIds {
 		clientRelayData[i].Id = relayId
 		clientRelayData[i].Address = relayAddresses[i]
-		clientRelayData[i].Latitude = float64(int64(relayLatitudes[i]))
-		clientRelayData[i].Longitude = float64(int64(relayLongitudes[i]))
+		clientRelayData[i].Latitude = float64(relayLatitudes[i])
+		clientRelayData[i].Longitude = float64(relayLongitudes[i])
 		clientRelayData[i].Distance = int(core.HaversineDistance(float64(sourceLatitude), float64(sourceLongitude), float64(clientRelayData[i].Latitude), float64(clientRelayData[i].Longitude)))
 	}
 

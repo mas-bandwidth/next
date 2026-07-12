@@ -236,10 +236,10 @@ type RelayUpdateResponsePacket struct {
 
 func (packet *RelayUpdateResponsePacket) GetMaxSize() int {
 	size := 256
-	size += int(packet.NumRelays) * (8 + 7 + 1)
+	size += int(packet.NumRelays) * (8 + constants.NextAddressBytes + 1) // addresses may be ipv6 (19 bytes)
 	size += constants.MaxRelayVersionLength
 	size += constants.MagicBytes * 3
-	size += 7 * 2
+	size += constants.NextAddressBytes * 2
 	size += 1 + 2*crypto.Box_PublicKeySize
 	size += constants.EncryptedRouteTokenBytes
 	size += crypto.Auth_KeySize

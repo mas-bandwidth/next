@@ -69,7 +69,6 @@ type RelayManager struct {
 	mutex         sync.RWMutex
 	EnableHistory bool
 	SourceEntries map[uint64]*RelayManagerSourceEntry
-	TotalCounters [constants.NumRelayCounters]uint64
 }
 
 func CreateRelayManager(enableHistory bool) *RelayManager {
@@ -459,10 +458,6 @@ func (relayManager *RelayManager) GetRelayCounters(relayId uint64) []uint64 {
 	counters := make([]uint64, len(sourceEntry.Counters))
 	copy(counters, sourceEntry.Counters[:])
 	return counters
-}
-
-func (relayManager *RelayManager) GetTotalCounters() []uint64 {
-	return relayManager.TotalCounters[:]
 }
 
 func (relayManager *RelayManager) Copy() *RelayManager {

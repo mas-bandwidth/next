@@ -360,7 +360,8 @@ func updateShuttingDown() {
 
 	go func() {
 
-		ticker := time.NewTicker(100 * time.Millisecond)
+		// each tick shells out to gcloud (~1s), so anything faster than 1s is a busy loop
+		ticker := time.NewTicker(time.Second)
 
 		for {
 			select {
@@ -463,7 +464,7 @@ func locateIP_Local(ip net.IP) (float32, float32) {
 
 func locateIP_Dev(ip net.IP) (float32, float32) {
 	ipv4 := ip.To4()
-	if ipv4[0] == 34 || ipv4[0] == 35 {
+	if ipv4 != nil && (ipv4[0] == 34 || ipv4[0] == 35) {
 		// This is a raspberry client running in google cloud: mock lat/long of major US cities for testing
 		index := common.RandomInt(0, 22)
 		switch index {
@@ -535,7 +536,7 @@ func getISPAndCountry_Local(ip net.IP) (string, string) {
 
 func getISPAndCountry_Dev(ip net.IP) (string, string) {
 	ipv4 := ip.To4()
-	if ipv4[0] == 34 || ipv4[0] == 35 {
+	if ipv4 != nil && (ipv4[0] == 34 || ipv4[0] == 35) {
 		return "Google Cloud", "BR"
 	}
 	// this is a real client. do ip2location with maxmind if enabled, otherwise fallback to fixed location for debugging

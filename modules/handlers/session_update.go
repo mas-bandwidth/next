@@ -80,7 +80,6 @@ type SessionUpdateState struct {
 	RouteContinued                              bool
 	TakeNetworkNext                             bool
 	StayDirect                                  bool
-	FirstUpdate                                 bool
 	ReadSessionData                             bool
 	NotUpdatingClientRelaysDatacenterNotEnabled bool
 	NotUpdatingServerRelaysDatacenterNotEnabled bool
@@ -1050,17 +1049,14 @@ func SessionUpdate_Post(state *SessionUpdateState) {
 		Send various messages to drive the portal and analytics
 	*/
 
-	if !state.FirstUpdate {
+	sendPortalSessionUpdateMessage(state)
+	sendPortalClientRelayUpdateMessage(state)
+	sendPortalServerRelayUpdateMessage(state)
 
-		sendPortalSessionUpdateMessage(state)
-		sendPortalClientRelayUpdateMessage(state)
-		sendPortalServerRelayUpdateMessage(state)
-
-		sendAnalyticsSessionUpdateMessage(state)
-		sendAnalyticsSessionSummaryMessage(state)
-		sendAnalyticsClientRelayPingMessages(state)
-		sendAnalyticsServerRelayPingMessages(state)
-	}
+	sendAnalyticsSessionUpdateMessage(state)
+	sendAnalyticsSessionSummaryMessage(state)
+	sendAnalyticsClientRelayPingMessages(state)
+	sendAnalyticsServerRelayPingMessages(state)
 }
 
 // -----------------------------------------
@@ -1316,8 +1312,8 @@ func sendAnalyticsSessionUpdateMessage(state *SessionUpdateState) {
 		message.NextJitter = state.Request.NextJitter
 		message.NextPacketLoss = state.Request.NextPacketLoss
 		message.NextPredictedRTT = float32(state.Input.RouteCost)
-		message.NextRouteRelays = make([]int64, len(state.Input.RouteRelayIds))
-		for i := range state.Input.RouteRelayIds {
+		message.NextRouteRelays = make([]int64, state.Input.RouteNumRelays)
+		for i := int32(0); i < state.Input.RouteNumRelays; i++ {
 			message.NextRouteRelays[i] = int64(state.Input.RouteRelayIds[i])
 		}
 	}

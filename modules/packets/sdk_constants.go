@@ -11,8 +11,8 @@ const (
 	SDK_MaxPacketBytes = constants.MaxPacketBytes
 
 	SDK_SessionDataVersion_Min   = 1
-	SDK_SessionDataVersion_Max   = 7
-	SDK_SessionDataVersion_Write = 7
+	SDK_SessionDataVersion_Max   = 8
+	SDK_SessionDataVersion_Write = 8
 
 	SDK_SERVER_INIT_REQUEST_PACKET     = 50
 	SDK_SERVER_INIT_RESPONSE_PACKET    = 51

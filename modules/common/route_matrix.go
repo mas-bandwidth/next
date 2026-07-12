@@ -12,8 +12,8 @@ import (
 
 const (
 	RouteMatrixVersion_Min   = 3
-	RouteMatrixVersion_Max   = 4
-	RouteMatrixVersion_Write = 4
+	RouteMatrixVersion_Max   = 5
+	RouteMatrixVersion_Write = 5
 )
 
 type RouteMatrix struct {
@@ -60,7 +60,7 @@ func (m *RouteMatrix) GetMaxSize() int {
 	numRelays := len(m.RelayIds)
 	size := 1024
 	size += numRelays * (8 + 19 + constants.MaxRelayNameLength + 4 + 4 + 8)
-	size += core.TriMatrixLength(numRelays) * (4 + 4 + 12*constants.MaxRoutesPerEntry + 4*constants.MaxRoutesPerEntry*constants.MaxRouteRelays)
+	size += core.TriMatrixLength(numRelays) * (4 + 4 + 16*constants.MaxRoutesPerEntry + 4*constants.MaxRoutesPerEntry*constants.MaxRouteRelays)
 	size += int(m.BinFileBytes)
 	size += core.TriMatrixLength(numRelays)
 	size += 4 + numRelays
@@ -140,6 +140,11 @@ func (m *RouteMatrix) Serialize(stream encoding.Stream) error {
 
 		for i := 0; i < int(entry.NumRoutes); i++ {
 			stream.SerializeInteger(&entry.RouteCost[i], -1, constants.MaxRouteCost)
+			if m.Version >= 5 {
+				// versions < 5 dropped route price, which silently disabled lowest price
+				// route selection in the server backend (all routes read back as price 0)
+				stream.SerializeInteger(&entry.RoutePrice[i], 0, constants.MaxRoutePrice)
+			}
 			stream.SerializeInteger(&entry.RouteNumRelays[i], 0, constants.MaxRouteRelays)
 			stream.SerializeUint32(&entry.RouteHash[i])
 			for j := 0; j < int(entry.RouteNumRelays[i]); j++ {
@@ -396,6 +401,7 @@ func GenerateRandomRouteMatrix(numRelays int) RouteMatrix {
 		routeMatrix.RouteEntries[i].NumRoutes = int32(RandomInt(0, constants.MaxRoutesPerEntry))
 		for j := 0; j < int(routeMatrix.RouteEntries[i].NumRoutes); j++ {
 			routeMatrix.RouteEntries[i].RouteCost[j] = int32(RandomInt(0, constants.MaxRouteCost))
+			routeMatrix.RouteEntries[i].RoutePrice[j] = int32(RandomInt(0, constants.MaxRoutePrice))
 			routeMatrix.RouteEntries[i].RouteNumRelays[j] = int32(RandomInt(1, constants.MaxRouteRelays))
 			for k := 0; k < int(routeMatrix.RouteEntries[i].RouteNumRelays[j]); k++ {
 				routeMatrix.RouteEntries[i].RouteRelays[j][k] = int32(k)
@@ -405,8 +411,10 @@ func GenerateRandomRouteMatrix(numRelays int) RouteMatrix {
 	}
 
 	routeMatrix.Costs = make([]byte, numEntries)
+	RandomBytes(routeMatrix.Costs)
 
 	routeMatrix.RelayPrice = make([]byte, numRelays)
+	RandomBytes(routeMatrix.RelayPrice)
 
 	return routeMatrix
 }

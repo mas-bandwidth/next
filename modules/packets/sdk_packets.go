@@ -500,6 +500,11 @@ func GenerateRandomSessionData() SDK_SessionData {
 		sessionData.RouteRelayIds[i] = rand.Uint64()
 	}
 
+	if sessionData.Version >= 8 {
+		sessionData.PrevPacketsOutOfOrderClientToServer = rand.Uint64()
+		sessionData.PrevPacketsOutOfOrderServerToClient = rand.Uint64()
+	}
+
 	sessionData.Latitude = rand.Float32()
 	sessionData.Longitude = rand.Float32()
 
@@ -656,7 +661,10 @@ func (sessionData *SDK_SessionData) Serialize(stream encoding.Stream) error {
 	stream.SerializeInteger(&sessionData.RouteCost, 0, SDK_InvalidRouteValue)
 
 	if hasRoute {
-		stream.SerializeInteger(&sessionData.RouteNumRelays, 0, SDK_MaxTokens)
+		// IMPORTANT: bound by SDK_MaxRelaysPerRoute, not SDK_MaxTokens. RouteRelayIds only
+		// has SDK_MaxRelaysPerRoute entries, so a larger value would index out of range below.
+		// (same bit width as SDK_MaxTokens, so this is not a wire format change)
+		stream.SerializeInteger(&sessionData.RouteNumRelays, 0, SDK_MaxRelaysPerRoute)
 		for i := int32(0); i < sessionData.RouteNumRelays; i++ {
 			stream.SerializeUint64(&sessionData.RouteRelayIds[i])
 		}
@@ -707,6 +715,14 @@ func (sessionData *SDK_SessionData) Serialize(stream encoding.Stream) error {
 	stream.SerializeUint64(&sessionData.PrevPacketsSentServerToClient)
 	stream.SerializeUint64(&sessionData.PrevPacketsLostClientToServer)
 	stream.SerializeUint64(&sessionData.PrevPacketsLostServerToClient)
+
+	if sessionData.Version >= 8 {
+		// versions < 8 dropped these, so per-slice out of order deltas were computed
+		// against zero and RealOutOfOrder reported the cumulative count every slice
+		stream.SerializeUint64(&sessionData.PrevPacketsOutOfOrderClientToServer)
+		stream.SerializeUint64(&sessionData.PrevPacketsOutOfOrderServerToClient)
+	}
+
 	stream.SerializeBool(&sessionData.WriteSummary)
 	stream.SerializeBool(&sessionData.WroteSummary)
 	stream.SerializeBool(&sessionData.ShouldSendClientRelaysToPortal)

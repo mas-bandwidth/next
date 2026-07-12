@@ -185,6 +185,10 @@ func UpdateAcceleratedPercent(service *common.Service) {
 			keys = []string{}
 			values := []float64{}
 
+			// IMPORTANT: the watcher getters read maps and slices that the watcher thread
+			// replaces every second, so they must be called with the watcher locked
+			countersWatcher.Lock()
+
 			sessionUpdates := countersWatcher.GetFloatValue("session_update")
 			nextSessionUpdates := countersWatcher.GetFloatValue("next_session_update")
 			if sessionUpdates > 0 {
@@ -208,6 +212,8 @@ func UpdateAcceleratedPercent(service *common.Service) {
 					values = append(values, acceleratedPercent)
 				}
 			}
+
+			countersWatcher.Unlock()
 
 			message := common.RedisTimeSeriesMessage{}
 			message.Timestamp = uint64(time.Now().UnixNano() / 1000000)

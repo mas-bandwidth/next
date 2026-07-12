@@ -180,9 +180,8 @@ func (leaderElection *RedisLeaderElection) Update(ctx context.Context) {
 
 	leaderInstance := instanceEntries[0]
 
-	leaderElection.leaderInstanceId = leaderInstance.InstanceId
-
 	leaderElection.leaderMutex.Lock()
+	leaderElection.leaderInstanceId = leaderInstance.InstanceId
 	previousValue := leaderElection.isLeader
 	currentValue := leaderInstance.InstanceId == leaderElection.instanceId
 	leaderElection.isLeader = currentValue
@@ -206,7 +205,10 @@ func (leaderElection *RedisLeaderElection) Store(ctx context.Context, name strin
 }
 
 func (leaderElection *RedisLeaderElection) Load(ctx context.Context, name string) []byte {
-	key := fmt.Sprintf("%s-instance-data-%d-%s-%s", leaderElection.config.ServiceName, RedisLeaderElectionVersion, leaderElection.leaderInstanceId, name)
+	leaderElection.leaderMutex.RLock()
+	leaderInstanceId := leaderElection.leaderInstanceId
+	leaderElection.leaderMutex.RUnlock()
+	key := fmt.Sprintf("%s-instance-data-%d-%s-%s", leaderElection.config.ServiceName, RedisLeaderElectionVersion, leaderInstanceId, name)
 	value, err := leaderElection.redisClient.Get(ctx, key).Result()
 	if err != nil {
 		return nil
