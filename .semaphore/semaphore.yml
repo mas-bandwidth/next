@@ -106,18 +106,25 @@ blocks:
             - mv relay relay-release
             - artifact push workflow relay-release --force
             - make relay_xdp.o
-            # run relay_xdp.o through the BPF verifier. compiling it proves nothing -- the
-            # verifier only runs at BPF_PROG_LOAD time, and it is what rejects a restructured
-            # filter. bpftool prog load runs the verifier without a device attach (attach is
-            # driver dependent and fails EINVAL through libxdp's dispatcher on these VMs --
-            # xdp-tools issue #327 -- and prod attaches native mode on real NICs regardless).
-            # a verifier rejection fails the job and bpftool prints the verifier log.
-            - mountpoint -q /sys/fs/bpf || sudo mount -t bpf bpf /sys/fs/bpf
-            - sudo bpftool prog load relay_xdp.o /sys/fs/bpf/relay_xdp_test type xdp
-            - sudo bpftool prog show pinned /sys/fs/bpf/relay_xdp_test
             - popd
+            # tar the module artifact BEFORE building the module below, so the tarball
+            # doesn't pick up build products
             - cd relay/module && tar -zcvf relay_module.tar.gz *
             - artifact push workflow ./relay_module.tar.gz --force
+            # run relay_xdp.o through the BPF verifier. compiling it proves nothing -- the
+            # verifier only runs at BPF_PROG_LOAD time, and it is what rejects a restructured
+            # filter. relay_xdp.c calls the bpf_relay_sha256 kfunc, so the relay kernel module
+            # must be built and insmodded first or the load fails before the verifier even
+            # runs (unresolved kfunc -- that was the EINVAL xdp-loader misreported as an
+            # attach failure). the make module target swallows insmod errors, hence the lsmod
+            # assert. bpftool prog load runs the verifier without a device attach (attach is
+            # driver dependent; prod attaches native mode on real NICs). a verifier rejection
+            # fails the job and prints the verifier log.
+            - make module
+            - lsmod | grep relay_module
+            - mountpoint -q /sys/fs/bpf || sudo mount -t bpf bpf /sys/fs/bpf
+            - sudo bpftool prog load ../xdp/relay_xdp.o /sys/fs/bpf/relay_xdp_test type xdp
+            - sudo bpftool prog show pinned /sys/fs/bpf/relay_xdp_test
 
   - name: "Portal"
     dependencies: []
