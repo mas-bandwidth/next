@@ -76,6 +76,12 @@ type Backend struct {
 
 var backend Backend
 
+// Set by the SDK functional test harness when the test spawns relays. Relay-list
+// requests that race relay registration are withheld only in that case; tests with no
+// relays (the direct tests) get an immediate zero-relay answer, because their timing
+// assertions have almost no slack.
+var backendExpectRelays = os.Getenv("BACKEND_EXPECT_RELAYS") != ""
+
 type SessionCacheEntry struct {
 	BuyerID                    uint64
 	SessionID                  uint64
@@ -670,13 +676,14 @@ func ProcessClientRelayRequestPacket(conn *net.UDPConn, from *net.UDPAddr, reque
 
 	relayIds, relayAddresses := backend.GetRelays()
 
-	// IMPORTANT: if no relays have registered yet (func tests start all processes at
-	// once; relays take a second to complete their first relay update), don't answer --
-	// the SDK resends the request every second for 5 seconds, and by then the relays
-	// are registered. Answering with zero relays means the client never pings any
-	// relay, is never admitted to the XDP datapath whitelist, and every route request
-	// it sends is dropped for the rest of the session.
-	if len(relayIds) == 0 {
+	// IMPORTANT: when the test spawns relays, never answer with zero relays -- the
+	// harness starts all processes at once and relays take a second or two to complete
+	// their first relay update. The SDK resends the request every second for 5 seconds,
+	// and by then the relays are registered. Answering with zero relays in that window
+	// means the client never pings any relay, is never admitted to the XDP datapath
+	// whitelist, and every route request it sends is dropped for the rest of the
+	// session. Tests with no relays get an immediate zero-relay answer.
+	if len(relayIds) == 0 && backendExpectRelays {
 		fmt.Printf("no relays registered yet, not answering client relay request\n")
 		return
 	}
@@ -713,9 +720,9 @@ func ProcessServerRelayRequestPacket(conn *net.UDPConn, from *net.UDPAddr, reque
 
 	relayIds, relayAddresses := backend.GetRelays()
 
-	// IMPORTANT: same as the client relay request above -- never answer with zero
-	// relays, the SDK retries and the relays register within a second or two.
-	if len(relayIds) == 0 {
+	// IMPORTANT: same as the client relay request above -- when the test spawns
+	// relays, don't answer with zero relays; the SDK retries every second.
+	if len(relayIds) == 0 && backendExpectRelays {
 		fmt.Printf("no relays registered yet, not answering server relay request\n")
 		return
 	}

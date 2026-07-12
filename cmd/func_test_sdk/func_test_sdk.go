@@ -42,6 +42,12 @@ func init() {
 	}
 }
 
+// set by relay() so backend() can tell func_backend the test has relays. every sdk
+// test that spawns relays starts them before the backend (test_server_under_load
+// starts the backend first but explicitly waits for relay init, so the flag is
+// irrelevant there).
+var startedRelays = false
+
 func backend(mode string) (*exec.Cmd, *common.Buffer) {
 
 	cmd := exec.Command(backendBin)
@@ -52,6 +58,11 @@ func backend(mode string) (*exec.Cmd, *common.Buffer) {
 	cmd.Env = os.Environ()
 	if mode != "" {
 		cmd.Env = append(cmd.Env, fmt.Sprintf("BACKEND_MODE=%s", mode))
+	}
+	if startedRelays {
+		// func_backend must not answer relay-list requests with zero relays while
+		// the relays are still registering -- see cmd/func_backend/func_backend.go
+		cmd.Env = append(cmd.Env, "BACKEND_EXPECT_RELAYS=1")
 	}
 
 	var output common.Buffer
@@ -68,6 +79,8 @@ type RelayConfig struct {
 }
 
 func relay(name string, port int, configArray ...RelayConfig) (*exec.Cmd, *common.Buffer) {
+
+	startedRelays = true
 
 	var config RelayConfig
 	if len(configArray) == 1 {
