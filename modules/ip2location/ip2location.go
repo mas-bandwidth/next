@@ -166,25 +166,6 @@ func RemoveOldDatabaseFiles() {
 	}
 }
 
-func LoadDatabases() (*maxminddb.Reader, *maxminddb.Reader, error) {
-
-	isp_db, err := maxminddb.Open("GeoIP2-ISP.mmdb")
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to load isp database: %v", err)
-	}
-
-	core.Debug("loaded ip2location isp file")
-
-	city_db, err := maxminddb.Open("GeoIP2-City.mmdb")
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to load city database: %v", err)
-	}
-
-	core.Debug("loaded ip2location city file")
-
-	return isp_db, city_db, nil
-}
-
 func GetLocation(city_db *maxminddb.Reader, ip net.IP) (float32, float32) {
 	var city City
 	if city_db != nil && city_db.Lookup(ip, &city) == nil {

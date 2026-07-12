@@ -1,13 +1,7 @@
 package constants
 
 const (
-	MajorVersion = 1
-	MinorVersion = 0
-	PatchVersion = 0
-
 	MaxPacketBytes = 1384
-
-	MaxBuyers = 1024
 
 	MaxRelays        = 1000
 	NumRelayCounters = 150
@@ -19,9 +13,8 @@ const (
 	MaxServerRelays = 8
 	MaxDestRelays   = MaxServerRelays
 
-	MaxRelayNameLength      = 63
-	MaxRelayVersionLength   = 32
-	MaxDatacenterNameLength = 256
+	MaxRelayNameLength    = 63
+	MaxRelayVersionLength = 32
 
 	MagicBytes = 8
 
@@ -40,8 +33,7 @@ const (
 
 	NextMaxNodes = MaxRouteRelays + 2
 
-	NextAddressBytes      = 19
-	NextAddressBytes_IPv4 = 6
+	NextAddressBytes = 19
 
 	RouteTokenBytes          = 71
 	EncryptedRouteTokenBytes = 111

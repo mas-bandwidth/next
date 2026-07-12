@@ -108,22 +108,6 @@ type PortalServerData struct {
 
 // ----------------------------------------------------------------------------------------
 
-func bash(command string) {
-
-	cmd := exec.Command("bash", "-c", command)
-	if cmd == nil {
-		fmt.Printf("error: could not run bash!\n")
-		os.Exit(1)
-	}
-
-	if err := cmd.Run(); err != nil {
-		fmt.Printf("error: failed to run command: %v\n", err)
-		os.Exit(1)
-	}
-
-	cmd.Wait()
-}
-
 func api() *exec.Cmd {
 
 	cmd := exec.Command("./api")

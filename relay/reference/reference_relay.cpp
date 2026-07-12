@@ -42,7 +42,6 @@
 
 #define RELAY_REPLAY_PROTECTION_BUFFER_SIZE                                                    256
 
-#define RELAY_BANDWIDTH_LIMITER_INTERVAL                                                       1.0
 
 #define RELAY_ROUTE_TOKEN_BYTES                                                                 71
 #define RELAY_ENCRYPTED_ROUTE_TOKEN_BYTES                                                      111
@@ -349,16 +348,6 @@ inline uint64_t bswap( uint32_t value )
 #endif // #ifdef __GNUC__
 }
 
-uint32_t relay_ntohl( uint32_t in )
-{
-    return bswap( in );
-}
-
-uint32_t relay_htonl( uint32_t in )
-{
-    return bswap( in );
-}
-
 // -----------------------------------------------------------------------------
 
 void relay_write_uint8( uint8_t ** p, uint8_t value )
@@ -403,15 +392,6 @@ void relay_write_float32( uint8_t ** p, float value )
     char * p_value_int = (char*)(&value_int);
     memcpy(p_value_int, p_value, sizeof(uint32_t));
     relay_write_uint32( p, value_int);
-}
-
-void relay_write_float64( uint8_t ** p, double value )
-{
-    uint64_t value_int = 0;
-    char * p_value = (char *)(&value);
-    char * p_value_int = (char *)(&value_int);
-    memcpy(p_value_int, p_value, sizeof(uint64_t));
-    relay_write_uint64( p, value_int);
 }
 
 void relay_write_bytes( uint8_t ** p, const uint8_t * byte_array, int num_bytes )
@@ -475,26 +455,6 @@ uint64_t relay_read_uint64( const uint8_t ** p )
     value |= ( ( (uint64_t)( (*p)[7] ) ) << 56 );
     *p += 8;
     return value;
-}
-
-float relay_read_float32( const uint8_t ** p )
-{
-    uint32_t value_int = relay_read_uint32( p );
-    float value_float = 0.0f;
-    uint8_t * pointer_int = (uint8_t *)( &value_int );
-    uint8_t * pointer_float = (uint8_t *)( &value_float );
-    memcpy( pointer_float, pointer_int, sizeof( value_int ) );
-    return value_float;
-}
-
-double relay_read_float64( const uint8_t ** p )
-{
-    uint64_t value_int = relay_read_uint64( p );
-    double value_float = 0.0;
-    uint8_t * pointer_int = (uint8_t *)( &value_int );
-    uint8_t * pointer_float = (uint8_t *)( &value_float );
-    memcpy( pointer_float, pointer_int, sizeof( value_int ) );
-    return value_float;
 }
 
 void relay_read_bytes( const uint8_t ** p, uint8_t * byte_array, int num_bytes )
@@ -660,24 +620,6 @@ void relay_read_address( const uint8_t ** buffer, relay_address_t * address )
 
 // ----------------------------------------------------------------------------------------------
 
-void relay_read_address_ipv4( const uint8_t ** buffer, relay_address_t * address )
-{
-    const uint8_t * start = *buffer;
-
-    address->type = RELAY_ADDRESS_IPV4;
-
-    for ( int j = 0; j < 4; ++j )
-    {
-        address->data.ipv4[j] = relay_read_uint8( buffer );
-    }
-
-    address->port = relay_read_uint16( buffer );
-
-    (void) start;
-
-    assert( *buffer - start == RELAY_ADDRESS_IPV4_BYTES );
-}
-
 void relay_read_address_variable( const uint8_t ** p, relay_address_t * address )
 {
     address->type = relay_read_uint8( p );
@@ -743,26 +685,6 @@ void relay_write_address( uint8_t ** buffer, const relay_address_t * address )
     (void) start;
 
     assert( *buffer - start == RELAY_ADDRESS_BYTES );
-}
-
-void relay_write_address_ipv4( uint8_t ** buffer, const relay_address_t * address )
-{
-    assert( buffer );
-    assert( *buffer );
-    assert( address );
-
-    uint8_t * start = *buffer;
-
-    (void) buffer;
-
-    for ( int i = 0; i < 4; ++i )
-    {
-        relay_write_uint8( buffer, address->data.ipv4[i] );
-    }
-    relay_write_uint16( buffer, address->port );
-    (void) start;
-
-    assert( *buffer - start == RELAY_ADDRESS_IPV4_BYTES );
 }
 
 void relay_write_address_variable( uint8_t ** p, const relay_address_t * address )
@@ -2377,80 +2299,6 @@ namespace relay
 
 // --------------------------------------------------------------------------
 
-int relay_wire_packet_bits( int packet_bytes )
-{
-    return ( 14 + 20 + 8 + packet_bytes + 4 ) * 8;
-}
-
-struct relay_bandwidth_limiter_t
-{
-    uint64_t bits_sent;
-    double last_check_time;
-    double average_kbps;
-};
-
-void relay_bandwidth_limiter_reset( relay_bandwidth_limiter_t * bandwidth_limiter )
-{
-    assert( bandwidth_limiter );
-    bandwidth_limiter->last_check_time = -100.0;
-    bandwidth_limiter->bits_sent = 0;
-    bandwidth_limiter->average_kbps = 0.0;
-}
-
-bool relay_bandwidth_limiter_add_packet( relay_bandwidth_limiter_t * bandwidth_limiter, double current_time, uint32_t kbps_allowed, uint32_t packet_bits )
-{
-    assert( bandwidth_limiter );
-    const bool invalid = bandwidth_limiter->last_check_time < 0.0;
-    if ( invalid || current_time - bandwidth_limiter->last_check_time >= RELAY_BANDWIDTH_LIMITER_INTERVAL - 0.001f )
-    {
-        bandwidth_limiter->bits_sent = 0;
-        bandwidth_limiter->last_check_time = current_time;
-    }
-    bandwidth_limiter->bits_sent += packet_bits;
-    return bandwidth_limiter->bits_sent > (uint64_t) ( kbps_allowed * 1000 * RELAY_BANDWIDTH_LIMITER_INTERVAL );
-}
-
-void relay_bandwidth_limiter_add_sample( relay_bandwidth_limiter_t * bandwidth_limiter, double kbps )
-{
-    if ( bandwidth_limiter->average_kbps == 0.0 && kbps != 0.0 )
-    {
-        bandwidth_limiter->average_kbps = kbps;
-        return;
-    }
-
-    if ( bandwidth_limiter->average_kbps != 0.0 && kbps == 0.0 )
-    {
-        bandwidth_limiter->average_kbps = 0.0;
-        return;
-    }
-
-    const double delta = kbps - bandwidth_limiter->average_kbps;
-
-    if ( delta < 0.000001f )
-    {
-        bandwidth_limiter->average_kbps = kbps;
-        return;
-    }
-
-    bandwidth_limiter->average_kbps += delta * 0.1f;
-}
-
-double relay_bandwidth_limiter_usage_kbps( relay_bandwidth_limiter_t * bandwidth_limiter, double current_time )
-{
-    assert( bandwidth_limiter );
-    const bool invalid = bandwidth_limiter->last_check_time < 0.0;
-    if ( !invalid )
-    {
-        const double delta_time = current_time - bandwidth_limiter->last_check_time;
-        if ( delta_time > 0.1f )
-        {
-            const double kbps = bandwidth_limiter->bits_sent / delta_time / 1000.0;
-            relay_bandwidth_limiter_add_sample( bandwidth_limiter, kbps );
-        }
-    }
-    return bandwidth_limiter->average_kbps;
-}
-
 // --------------------------------------------------------------------------
 
 struct relay_route_token_t
@@ -2692,63 +2540,6 @@ int relay_verify_header( int packet_type, const uint8_t * private_key, uint8_t *
 
 // -------------------------------------------------------------
 
-static const unsigned char base64_table_encode[65] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
-int relay_base64_encode_data( const uint8_t * input, size_t input_length, char * output, size_t output_size )
-{
-    assert( input );
-    assert( output );
-    assert( output_size > 0 );
-
-    char * pos;
-    const uint8_t * end;
-    const uint8_t * in;
-
-    size_t output_length = 4 * ( ( input_length + 2 ) / 3 ); // 3-byte blocks to 4-byte
-
-    if ( output_length < input_length )
-    {
-        return -1; // integer overflow
-    }
-
-    if ( output_length >= output_size )
-    {
-        return -1; // not enough room in output buffer
-    }
-
-    end = input + input_length;
-    in = input;
-    pos = output;
-    while ( end - in >= 3 )
-    {
-        *pos++ = base64_table_encode[in[0] >> 2];
-        *pos++ = base64_table_encode[( ( in[0] & 0x03 ) << 4 ) | ( in[1] >> 4 )];
-        *pos++ = base64_table_encode[( ( in[1] & 0x0f ) << 2 ) | ( in[2] >> 6 )];
-        *pos++ = base64_table_encode[in[2] & 0x3f];
-        in += 3;
-    }
-
-    if ( end - in )
-    {
-        *pos++ = base64_table_encode[in[0] >> 2];
-        if (end - in == 1)
-        {
-            *pos++ = base64_table_encode[(in[0] & 0x03) << 4];
-            *pos++ = '=';
-        }
-        else
-        {
-            *pos++ = base64_table_encode[((in[0] & 0x03) << 4) | (in[1] >> 4)];
-            *pos++ = base64_table_encode[(in[1] & 0x0f) << 2];
-        }
-        *pos++ = '=';
-    }
-
-    output[output_length] = '\0';
-
-    return int( output_length );
-}
-
 static const int base64_table_decode[256] =
 {
     0,  0,  0,  0,  0,  0,   0,  0,  0,  0,  0,  0,
@@ -2804,32 +2595,6 @@ int relay_base64_decode_data( const char * input, uint8_t * output, size_t outpu
     return int( output_length );
 }
 
-int relay_base64_encode_string( const char * input, char * output, size_t output_size )
-{
-    assert( input );
-    assert( output );
-    assert( output_size > 0 );
-
-    return relay_base64_encode_data( (const uint8_t *)( input ), strlen( input ), output, output_size );
-}
-
-int relay_base64_decode_string( const char * input, char * output, size_t output_size )
-{
-    assert( input );
-    assert( output );
-    assert( output_size > 0 );
-
-    int output_length = relay_base64_decode_data( input, (uint8_t *)( output ), output_size - 1 );
-    if ( output_length < 0 )
-    {
-        return 0;
-    }
-
-    output[output_length] = '\0';
-
-    return output_length;
-}
-
 // ---------------------------------------------------------------
 
 typedef uint64_t relay_fnv_t;
@@ -2851,14 +2616,6 @@ void relay_fnv_write( relay_fnv_t * fnv, const uint8_t * data, size_t size )
 uint64_t relay_fnv_finalize( relay_fnv_t * fnv )
 {
     return *fnv;
-}
-
-uint64_t relay_hash_string( const char * string )
-{
-    relay_fnv_t fnv;
-    relay_fnv_init( &fnv );
-    relay_fnv_write( &fnv, (uint8_t *)( string ), strlen( string ) );
-    return relay_fnv_finalize( &fnv );
 }
 
 // ---------------------------------------------------------------

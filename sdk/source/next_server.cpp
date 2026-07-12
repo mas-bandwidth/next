@@ -4228,13 +4228,6 @@ const next_address_t * next_server_address( next_server_t * server )
     return &server->address;
 }
 
-uint64_t next_server_id( next_server_t * server )
-{
-    next_server_verify_sentinels( server );
-
-    return server->server_id;
-}
-
 void next_server_destroy( next_server_t * server )
 {
     next_server_verify_sentinels( server );

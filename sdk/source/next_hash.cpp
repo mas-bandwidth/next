@@ -36,11 +36,6 @@ uint64_t next_hash_string( const char * string )
     return next_fnv_finalize( &fnv );
 }
 
-uint64_t next_relay_id( const char * name )
-{
-    return next_hash_string( name );
-}
-
 uint64_t next_datacenter_id( const char * name )
 {
     return next_hash_string( name );

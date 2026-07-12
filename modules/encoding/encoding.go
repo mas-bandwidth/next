@@ -13,16 +13,6 @@ const (
 	AddressSize   = 19
 )
 
-func WriteBool(data []byte, index *int, value bool) {
-	if value {
-		data[*index] = byte(1)
-	} else {
-		data[*index] = byte(0)
-	}
-
-	*index += 1
-}
-
 func WriteUint8(data []byte, index *int, value uint8) {
 	data[*index] = byte(value)
 	*index += 1
@@ -43,19 +33,9 @@ func WriteUint64(data []byte, index *int, value uint64) {
 	*index += 8
 }
 
-func WriteInt(data []byte, index *int, value int) {
-	binary.LittleEndian.PutUint64(data[*index:], uint64(value))
-	*index += 8
-}
-
 func WriteFloat32(data []byte, index *int, value float32) {
 	uintValue := math.Float32bits(value)
 	WriteUint32(data, index, uintValue)
-}
-
-func WriteFloat64(data []byte, index *int, value float64) {
-	uintValue := math.Float64bits(value)
-	WriteUint64(data, index, uintValue)
 }
 
 func WriteString(data []byte, index *int, value string, maxStringLength uint32) {
@@ -104,22 +84,6 @@ func WriteAddress(data []byte, index *int, address *net.UDPAddr) {
 	}
 }
 
-func ReadBool(data []byte, index *int, value *bool) bool {
-
-	if *index+1 > len(data) {
-		return false
-	}
-
-	if data[*index] > 0 {
-		*value = true
-	} else {
-		*value = false
-	}
-
-	*index += 1
-	return true
-}
-
 func ReadUint8(data []byte, index *int, value *uint8) bool {
 	if *index+1 > len(data) {
 		return false
@@ -156,30 +120,12 @@ func ReadUint64(data []byte, index *int, value *uint64) bool {
 	return true
 }
 
-func ReadInt(data []byte, index *int, value *int) bool {
-	if *index+8 > len(data) {
-		return false
-	}
-	*value = int(binary.LittleEndian.Uint64(data[*index:]))
-	*index += 8
-	return true
-}
-
 func ReadFloat32(data []byte, index *int, value *float32) bool {
 	var intValue uint32
 	if !ReadUint32(data, index, &intValue) {
 		return false
 	}
 	*value = math.Float32frombits(intValue)
-	return true
-}
-
-func ReadFloat64(data []byte, index *int, value *float64) bool {
-	var uintValue uint64
-	if !ReadUint64(data, index, &uintValue) {
-		return false
-	}
-	*value = math.Float64frombits(uintValue)
 	return true
 }
 

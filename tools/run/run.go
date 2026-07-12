@@ -69,17 +69,6 @@ func bash_ignore_result(command string) {
 	cmd.Wait()
 }
 
-func bash_no_wait(command string) {
-
-	cmd = exec.Command("bash", "-c", command)
-	if cmd == nil {
-		fmt.Printf("error: could not run bash!\n")
-		os.Exit(1)
-	}
-
-	cmd.Run()
-}
-
 func main() {
 
 	args := os.Args
@@ -588,10 +577,6 @@ func load_test_crypto_box() {
 
 func load_test_crypto_sign() {
 	bash("go run tools/load_test_crypto_sign/load_test_crypto_sign.go")
-}
-
-func load_test_crypto_auth() {
-	bash("go run tools/load_test_crypto_auth/load_test_crypto_auth.go")
 }
 
 func load_test_server_update() {

@@ -154,21 +154,6 @@ func ReadAddress(buffer []byte) net.UDPAddr {
 	return net.UDPAddr{}
 }
 
-func WriteAddress_IPv4(buffer []byte, address *net.UDPAddr) {
-	ipv4 := address.IP.To4()
-	port := address.Port
-	buffer[0] = ipv4[0]
-	buffer[1] = ipv4[1]
-	buffer[2] = ipv4[2]
-	buffer[3] = ipv4[3]
-	buffer[4] = (byte)(port & 0xFF)
-	buffer[5] = (byte)(port >> 8)
-}
-
-func ReadAddress_IPv4(buffer []byte) net.UDPAddr {
-	return net.UDPAddr{IP: net.IPv4(buffer[0], buffer[1], buffer[2], buffer[3]), Port: ((int)(binary.LittleEndian.Uint16(buffer[4:])))}
-}
-
 func AnonymizeAddress(address net.UDPAddr) net.UDPAddr {
 	ipv4 := address.IP.To4()
 	if ipv4 != nil {

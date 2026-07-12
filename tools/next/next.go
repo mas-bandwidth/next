@@ -2661,22 +2661,6 @@ func relayLog(env Environment, regexes []string) {
 	}
 }
 
-func keys(env Environment, regexes []string) {
-	for _, regex := range regexes {
-		relays := getRelayInfo(env, regex)
-		for i := range relays {
-			if relays[i].SSH_IP == "0.0.0.0" {
-				fmt.Printf("Relay %s does not have an SSH address :(\n", relays[i].RelayName)
-				continue
-			}
-			fmt.Printf("connecting to %s\n", relays[i].RelayName)
-			con := NewSSHConn(relays[i].SSH_User, relays[i].SSH_IP, fmt.Sprintf("%d", relays[i].SSH_Port), env.SSHKeyFile)
-			con.ConnectAndIssueCmd("sudo cat /app/relay.env | grep _KEY")
-			break
-		}
-	}
-}
-
 // --------------------------------------------------------------------------------------------
 
 type Environment struct {
@@ -3108,31 +3092,6 @@ func runCommandEnv(command string, args []string, env map[string]string) bool {
 
 // stdout is the string return value
 // stderr is contained in the error return value or nil if the command exited successfully
-func runCommandGetOutput(command string, args []string, env map[string]string) (string, error) {
-	var stdout bytes.Buffer
-	var stderr bytes.Buffer
-
-	cmd := exec.Command(command, args...)
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-
-	finalEnv := os.Environ()
-	for k, v := range env {
-		finalEnv = append(finalEnv, fmt.Sprintf("%s=%s", k, v))
-	}
-	cmd.Env = finalEnv
-
-	err := cmd.Run()
-
-	stdoutStr := strings.Trim(stdout.String(), "\r\n")
-	if err != nil {
-		stderrStr := strings.Trim(stderr.String(), "\r\n")
-		return stdoutStr, fmt.Errorf("%v, %s", err, stderrStr)
-	}
-
-	return stdoutStr, nil
-}
-
 func runCommandQuiet(command string, args []string, stdoutOnly bool) (bool, string) {
 	cmd := exec.Command(command, args...)
 
@@ -3202,23 +3161,6 @@ func bash(command string) bool {
 func bashQuiet(command string) string {
 	_, output := runCommandQuiet("bash", []string{"-c", command}, false)
 	return output
-}
-
-func secureShell(user string, address string, port int) {
-	ssh, err := exec.LookPath("ssh")
-	if err != nil {
-		handleRunTimeError(fmt.Sprintln("error: could not find ssh"), 1)
-	}
-	args := make([]string, 4)
-	args[0] = "ssh"
-	args[1] = "-p"
-	args[2] = fmt.Sprintf("%d", port)
-	args[3] = fmt.Sprintf("%s@%s", user, address)
-	env := os.Environ()
-	err = syscall.Exec(ssh, args, env)
-	if err != nil {
-		handleRunTimeError(fmt.Sprintln("error: failed to exec ssh"), 1)
-	}
 }
 
 // level 0: user error

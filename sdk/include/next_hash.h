@@ -10,7 +10,6 @@
 
 uint64_t next_hash_string( const char * string );
 
-uint64_t next_relay_id( const char * name );
 
 uint64_t next_datacenter_id( const char * name );
 

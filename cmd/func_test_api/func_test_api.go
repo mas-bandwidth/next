@@ -73,45 +73,6 @@ func api() (*exec.Cmd, *bytes.Buffer) {
 
 // ----------------------------------------------------------------------------------------
 
-func GetText(path string) (string, error) {
-
-	url := Hostname + "/" + path
-
-	var err error
-	var response *http.Response
-	for range 5 {
-		req, err := http.NewRequest("GET", url, bytes.NewBuffer(nil))
-		req.Header.Set("Authorization", "Bearer "+TestAPIKey)
-		client := &http.Client{}
-		response, err = client.Do(req)
-		if err == nil {
-			break
-		}
-		time.Sleep(time.Second)
-	}
-
-	if err != nil {
-		return "", fmt.Errorf("failed to read %s: %v", url, err)
-	}
-
-	if response == nil {
-		return "", fmt.Errorf("no response from %s", url)
-	}
-
-	if response.StatusCode != 200 {
-		return "", fmt.Errorf("got %d response for %s", response.StatusCode, url)
-	}
-
-	body, error := io.ReadAll(response.Body)
-	if error != nil {
-		return "", fmt.Errorf("could not read response body for %s: %v", url, err)
-	}
-
-	response.Body.Close()
-
-	return string(body), nil
-}
-
 func GetJSON(path string, object any) error {
 
 	url := Hostname + "/" + path

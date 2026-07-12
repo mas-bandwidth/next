@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	"github.com/networknext/next/modules/core"
 
 	_ "github.com/lib/pq"
 	"golang.org/x/crypto/nacl/box"
@@ -46,24 +45,6 @@ type RouteShaderData struct {
 	RouteSwitchThreshold          int     `json:"route_switch_threshold"`
 	RouteSelectThreshold          int     `json:"route_select_threshold"`
 	ForceNext                     bool    `json:"force_next"`
-}
-
-func (controller *Controller) RouteShaderDefaults() *RouteShaderData {
-	routeShader := core.NewRouteShader()
-	data := RouteShaderData{}
-	data.ABTest = routeShader.ABTest
-	data.AcceptableLatency = int(routeShader.AcceptableLatency)
-	data.AcceptablePacketLoss = float64(routeShader.AcceptablePacketLoss)
-	data.BandwidthEnvelopeUpKbps = int(routeShader.BandwidthEnvelopeUpKbps)
-	data.BandwidthEnvelopeDownKbps = int(routeShader.BandwidthEnvelopeDownKbps)
-	data.DisableNetworkNext = routeShader.DisableNetworkNext
-	data.LatencyReductionThreshold = int(routeShader.LatencyReductionThreshold)
-	data.SelectionPercent = float64(routeShader.SelectionPercent)
-	data.MaxLatencyTradeOff = int(routeShader.MaxLatencyTradeOff)
-	data.RouteSwitchThreshold = int(routeShader.RouteSwitchThreshold)
-	data.RouteSelectThreshold = int(routeShader.RouteSelectThreshold)
-	data.ForceNext = routeShader.ForceNext
-	return &data
 }
 
 func (controller *Controller) CreateRouteShader(routeShaderData *RouteShaderData) (uint64, error) {

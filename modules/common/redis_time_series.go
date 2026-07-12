@@ -177,20 +177,6 @@ func (publisher *RedisTimeSeriesPublisher) sendBatch(ctx context.Context) {
 	publisher.messageBatch = publisher.messageBatch[:0]
 }
 
-func (publisher *RedisTimeSeriesPublisher) NumMessagesSent() int {
-	publisher.mutex.Lock()
-	numMessagesSent := publisher.numMessagesSent
-	publisher.mutex.Unlock()
-	return numMessagesSent
-}
-
-func (publisher *RedisTimeSeriesPublisher) NumBatchesSent() int {
-	publisher.mutex.Lock()
-	numBatchesSent := publisher.numBatchesSent
-	publisher.mutex.Unlock()
-	return numBatchesSent
-}
-
 // -------------------------------------------------------------------------------
 
 type RedisTimeSeriesWatcher struct {

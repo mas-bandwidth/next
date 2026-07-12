@@ -700,148 +700,6 @@ func GenerateRandomRelayData() *RelayData {
 
 // ------------------------------------------------------------------------------------------------------------
 
-type RelaySample struct {
-	Timestamp                 uint64  `json:"timestamp,string"`
-	NumSessions               uint32  `json:"num_sessions"`
-	EnvelopeBandwidthUpKbps   uint32  `json:"envelope_bandwidth_up_kbps"`
-	EnvelopeBandwidthDownKbps uint32  `json:"envelope_bandwidth_down_kbps"`
-	PacketsSentPerSecond      float32 `json:"packets_sent_per_second"`
-	PacketsReceivedPerSecond  float32 `json:"packets_recieved_per_second"`
-	BandwidthSentKbps         float32 `json:"bandwidth_sent_kbps"`
-	BandwidthReceivedKbps     float32 `json:"bandwidth_received_kbps"`
-	ClientPingsPerSecond      float32 `json:"client_pings_per_second"`
-	ServerPingsPerSecond      float32 `json:"server_pings_per_second"`
-	RelayPingsPerSecond       float32 `json:"relay_pings_per_second"`
-	RelayFlags                uint64  `json:"relay_flags,string"`
-	NumRoutable               uint32  `json:"num_routable"`
-	NumUnroutable             uint32  `json:"num_unroutable"`
-	CurrentTime               uint64  `json:"current_time,string"`
-}
-
-func (data *RelaySample) Value() string {
-	return fmt.Sprintf("%x|%d|%d|%d|%.2f|%.2f|%.2f|%.2f|%.2f|%.2f|%.2f|%x|%d|%d|%x",
-		data.Timestamp,
-		data.NumSessions,
-		data.EnvelopeBandwidthUpKbps,
-		data.EnvelopeBandwidthDownKbps,
-		data.PacketsSentPerSecond,
-		data.PacketsReceivedPerSecond,
-		data.BandwidthSentKbps,
-		data.BandwidthReceivedKbps,
-		data.ClientPingsPerSecond,
-		data.ServerPingsPerSecond,
-		data.RelayPingsPerSecond,
-		data.RelayFlags,
-		data.NumRoutable,
-		data.NumUnroutable,
-		data.CurrentTime,
-	)
-}
-
-func (data *RelaySample) Parse(value string) {
-	values := strings.Split(value, "|")
-	if len(values) != 15 {
-		return
-	}
-	timestamp, err := strconv.ParseUint(values[0], 16, 64)
-	if err != nil {
-		return
-	}
-	numSessions, err := strconv.ParseUint(values[1], 10, 32)
-	if err != nil {
-		return
-	}
-	envelopeBandwidthUpKbps, err := strconv.ParseUint(values[2], 10, 32)
-	if err != nil {
-		return
-	}
-	envelopeBandwidthDownKbps, err := strconv.ParseUint(values[3], 10, 32)
-	if err != nil {
-		return
-	}
-	packetsSentPerSecond, err := strconv.ParseFloat(values[4], 32)
-	if err != nil {
-		return
-	}
-	packetsReceivedPerSecond, err := strconv.ParseFloat(values[5], 32)
-	if err != nil {
-		return
-	}
-	bandwidthSentKbps, err := strconv.ParseFloat(values[6], 32)
-	if err != nil {
-		return
-	}
-	bandwidthReceivedKbps, err := strconv.ParseFloat(values[7], 32)
-	if err != nil {
-		return
-	}
-	clientPingsPerSecond, err := strconv.ParseFloat(values[8], 32)
-	if err != nil {
-		return
-	}
-	serverPingsPerSecond, err := strconv.ParseFloat(values[9], 32)
-	if err != nil {
-		return
-	}
-	relayPingsPerSecond, err := strconv.ParseFloat(values[10], 32)
-	if err != nil {
-		return
-	}
-	relayFlags, err := strconv.ParseUint(values[11], 16, 64)
-	if err != nil {
-		return
-	}
-	numRoutable, err := strconv.ParseUint(values[12], 10, 32)
-	if err != nil {
-		return
-	}
-	numUnroutable, err := strconv.ParseUint(values[13], 10, 32)
-	if err != nil {
-		return
-	}
-	currentTime, err := strconv.ParseUint(values[14], 16, 64)
-	if err != nil {
-		return
-	}
-	data.Timestamp = timestamp
-	data.NumSessions = uint32(numSessions)
-	data.EnvelopeBandwidthUpKbps = uint32(envelopeBandwidthUpKbps)
-	data.EnvelopeBandwidthDownKbps = uint32(envelopeBandwidthDownKbps)
-	data.PacketsSentPerSecond = float32(packetsSentPerSecond)
-	data.PacketsReceivedPerSecond = float32(packetsReceivedPerSecond)
-	data.BandwidthSentKbps = float32(bandwidthSentKbps)
-	data.BandwidthReceivedKbps = float32(bandwidthReceivedKbps)
-	data.ClientPingsPerSecond = float32(clientPingsPerSecond)
-	data.ServerPingsPerSecond = float32(serverPingsPerSecond)
-	data.RelayPingsPerSecond = float32(relayPingsPerSecond)
-	data.RelayFlags = relayFlags
-	data.NumRoutable = uint32(numRoutable)
-	data.NumUnroutable = uint32(numUnroutable)
-	data.CurrentTime = uint64(currentTime)
-}
-
-func GenerateRandomRelaySample() *RelaySample {
-	data := RelaySample{}
-	data.Timestamp = rand.Uint64()
-	data.NumSessions = rand.Uint32()
-	data.EnvelopeBandwidthUpKbps = rand.Uint32()
-	data.EnvelopeBandwidthDownKbps = rand.Uint32()
-	data.PacketsSentPerSecond = float32(common.RandomInt(0, 1000))
-	data.PacketsReceivedPerSecond = float32(common.RandomInt(0, 1000))
-	data.BandwidthSentKbps = float32(common.RandomInt(0, 1000))
-	data.BandwidthReceivedKbps = float32(common.RandomInt(0, 1000))
-	data.ClientPingsPerSecond = float32(common.RandomInt(0, 1000))
-	data.ServerPingsPerSecond = float32(common.RandomInt(0, 1000))
-	data.RelayPingsPerSecond = float32(common.RandomInt(0, 1000))
-	data.RelayFlags = rand.Uint64()
-	data.NumRoutable = rand.Uint32()
-	data.NumUnroutable = rand.Uint32()
-	data.CurrentTime = rand.Uint64()
-	return &data
-}
-
-// ------------------------------------------------------------------------------------------------------------
-
 type SessionCruncherEntry struct {
 	SessionId uint64
 	Score     uint32
@@ -994,20 +852,6 @@ func postBinary(url string, data []byte) error {
 	_ = body
 
 	return nil
-}
-
-func (publisher *SessionCruncherPublisher) NumMessagesSent() int {
-	publisher.mutex.RLock()
-	value := publisher.numMessagesSent
-	publisher.mutex.RUnlock()
-	return value
-}
-
-func (publisher *SessionCruncherPublisher) NumBatchesSent() int {
-	publisher.mutex.RLock()
-	value := publisher.numBatchesSent
-	publisher.mutex.RUnlock()
-	return value
 }
 
 // ------------------------------------------------------------------------------------------------------------
@@ -1536,20 +1380,6 @@ func (publisher *ServerCruncherPublisher) sendBatch() {
 	publisher.batchMessages = publisher.batchMessages[:0]
 	publisher.numBatchesSent++
 	publisher.lastBatchSendTime = time.Now()
-}
-
-func (publisher *ServerCruncherPublisher) NumMessagesSent() int {
-	publisher.mutex.RLock()
-	value := publisher.numMessagesSent
-	publisher.mutex.RUnlock()
-	return value
-}
-
-func (publisher *ServerCruncherPublisher) NumBatchesSent() int {
-	publisher.mutex.RLock()
-	value := publisher.numBatchesSent
-	publisher.mutex.RUnlock()
-	return value
 }
 
 // ------------------------------------------------------------------------------------------------------------

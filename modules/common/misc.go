@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"golang.org/x/exp/constraints"
 	"hash/fnv"
 	"math/rand"
 	"net"
@@ -105,29 +104,10 @@ func RandomAddress() net.UDPAddr {
 	return core.ParseAddress(fmt.Sprintf("%d.%d.%d.%d:%d", RandomIntn(256), RandomIntn(256), RandomIntn(256), RandomIntn(256), RandomIntn(65536)))
 }
 
-type Number interface {
-	constraints.Integer | constraints.Float
-}
-
-func Clamp[T Number](value *T, min T, max T) bool {
-	if *value < min {
-		*value = min
-		return true
-	} else if *value > max {
-		*value = max
-		return true
-	}
-	return false
-}
-
 func HashString(s string) uint64 {
 	hash := fnv.New64a()
 	hash.Write([]byte(s))
 	return hash.Sum64()
-}
-
-func HashTag(tag string) uint64 {
-	return HashString(tag)
 }
 
 func DatacenterId(datacenterName string) uint64 {

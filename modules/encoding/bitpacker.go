@@ -32,23 +32,6 @@ func BitsRequiredSigned(min int32, max int32) int {
 	}
 }
 
-func SequenceGreaterThan(s1 uint16, s2 uint16) bool {
-	return ((s1 > s2) && (s1-s2 <= 32768)) ||
-		((s1 < s2) && (s2-s1 > 32768))
-}
-
-func SequenceLessThan(s1 uint16, s2 uint16) bool {
-	return SequenceGreaterThan(s2, s1)
-}
-
-func SignedToUnsigned(n int32) uint32 {
-	return uint32((n << 1) ^ (n >> 31))
-}
-
-func UnsignedToSigned(n uint32) int32 {
-	return int32(n>>1) ^ (-int32(n & 1))
-}
-
 // ------------------------------------------------------
 
 type BitWriter struct {

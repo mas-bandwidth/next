@@ -138,7 +138,6 @@ void next_client_internal_update_direct_pings( next_client_internal_t * client )
 
 void next_client_internal_update_next_pings( next_client_internal_t * client );
 
-void next_client_internal_update_client_pings( next_client_internal_t * client );
 
 void next_client_internal_update_fallback_to_direct( next_client_internal_t * client );
 
@@ -3043,13 +3042,6 @@ uint64_t next_client_session_id( next_client_t * client )
     next_client_verify_sentinels( client );
 
     return client->session_id;
-}
-
-uint64_t next_client_server_id( next_client_t * client )
-{
-    next_client_verify_sentinels( client );
-
-    return client->server_id;
 }
 
 const next_client_stats_t * next_client_stats( next_client_t * client )

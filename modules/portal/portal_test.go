@@ -76,13 +76,3 @@ func TestRelayData(t *testing.T) {
 	}
 }
 
-func TestRelaySample(t *testing.T) {
-	t.Parallel()
-	for range NumIterations {
-		writeData := portal.GenerateRandomRelaySample()
-		value := writeData.Value()
-		readData := portal.RelaySample{}
-		readData.Parse(value)
-		assert.Equal(t, *writeData, readData)
-	}
-}

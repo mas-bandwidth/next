@@ -6,7 +6,6 @@
 package main
 
 import (
-	"encoding/base64"
 	"fmt"
 	"os"
 	"os/exec"
@@ -16,14 +15,6 @@ import (
 
 	"github.com/networknext/next/modules/common"
 )
-
-func Base64String(value string) []byte {
-	data, err := base64.StdEncoding.DecodeString(value)
-	if err != nil {
-		panic(err)
-	}
-	return data
-}
 
 const TestRelayPublicKey = "1nTj7bQmo8gfIDqG+o//GFsak/g1TRo4hl6XXw1JkyI="
 const TestRelayPrivateKey = "cwvK44Pr5aHI3vE3siODS7CUgdPI/l1VwjVZ2FvEyAo="

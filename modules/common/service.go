@@ -316,13 +316,6 @@ func (service *Service) Database() *db.Database {
 	return database
 }
 
-func (service *Service) DatabaseBinFile() []byte {
-	service.databaseMutex.RLock()
-	database := service.database
-	service.databaseMutex.RUnlock()
-	return database.GetBinary()
-}
-
 func (service *Service) RelayData() *RelayData {
 	service.databaseMutex.RLock()
 	relayData := service.databaseRelayData

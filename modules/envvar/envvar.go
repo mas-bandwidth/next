@@ -9,11 +9,6 @@ import (
 	"time"
 )
 
-func Exists(name string) bool {
-	_, ok := os.LookupEnv(name)
-	return ok
-}
-
 func GetString(name string, defaultValue string) string {
 	value, ok := os.LookupEnv(name)
 	if !ok {
@@ -28,15 +23,6 @@ func GetStringArray(name string, defaultValue []string) []string {
 		return defaultValue
 	}
 	return strings.Split(value, " ,")
-}
-
-func GetList(name string, defaultValue []string) []string {
-	valueStrings, ok := os.LookupEnv(name)
-	if !ok {
-		return defaultValue
-	}
-	value := strings.Split(valueStrings, ",")
-	return value
 }
 
 func GetInt(name string, defaultValue int) int {

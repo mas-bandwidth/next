@@ -33,22 +33,6 @@ import (
 	"github.com/networknext/next/modules/packets"
 )
 
-func bash(command string) {
-
-	cmd := exec.Command("bash", "-c", command)
-	if cmd == nil {
-		fmt.Printf("error: could not run bash!\n")
-		os.Exit(1)
-	}
-
-	if err := cmd.Run(); err != nil {
-		fmt.Printf("error: failed to run command: %v\n", err)
-		os.Exit(1)
-	}
-
-	cmd.Wait()
-}
-
 func Base64String(value string) []byte {
 	data, err := base64.StdEncoding.DecodeString(value)
 	if err != nil {

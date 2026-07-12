@@ -240,16 +240,6 @@ func TestThread() {
 	}
 }
 
-func GetBucketIndex(score uint32) int {
-	index := int(score)
-	if index < 0 {
-		index = 0
-	} else if index > constants.NumBuckets-1 {
-		index = constants.NumBuckets - 1
-	}
-	return index
-}
-
 func StartProcessThread(bucket *Bucket) {
 	go func() {
 		for {
