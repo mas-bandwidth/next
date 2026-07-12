@@ -25,6 +25,15 @@ blocks:
             - make -j ./dist/relay-debug ./dist/libnext.so
             - artifact push workflow ./dist/relay-debug --force
             - artifact push workflow ./dist/libnext.so --force
+        # weekly vulnerability check so newly published vulns are caught even when
+        # nothing is being pushed (the Build pipeline also runs this on every tag)
+        - name: "Vulnerability Check"
+          commands:
+            - sudo DEBIAN_FRONTEND=noninteractive apt-get install -y libsodium-dev
+            - checkout
+            - go install golang.org/x/vuln/cmd/govulncheck@latest
+            - export PATH=$PATH:$(go env GOPATH)/bin
+            - govulncheck ./...
 
 promotions:
 
