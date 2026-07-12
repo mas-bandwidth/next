@@ -67,40 +67,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	core.Debug("ping key: %x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x",
-		pingKey[0],
-		pingKey[1],
-		pingKey[2],
-		pingKey[3],
-		pingKey[4],
-		pingKey[5],
-		pingKey[6],
-		pingKey[7],
-		pingKey[8],
-		pingKey[9],
-		pingKey[10],
-		pingKey[11],
-		pingKey[12],
-		pingKey[13],
-		pingKey[14],
-		pingKey[15],
-		pingKey[16],
-		pingKey[17],
-		pingKey[18],
-		pingKey[19],
-		pingKey[20],
-		pingKey[21],
-		pingKey[22],
-		pingKey[23],
-		pingKey[24],
-		pingKey[25],
-		pingKey[26],
-		pingKey[27],
-		pingKey[28],
-		pingKey[29],
-		pingKey[30],
-		pingKey[31],
-	)
+	// IMPORTANT: don't log the ping key itself, it's a secret. log a fingerprint so
+	// mismatched keys between services can still be diagnosed from debug logs
+	core.Debug("ping key fingerprint: %016x", common.HashString(string(pingKey)))
 
 	httpClient = &http.Client{
 		Timeout: 5 * time.Second,
