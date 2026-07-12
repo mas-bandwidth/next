@@ -55,7 +55,7 @@ int ping_init( struct ping_t * ping, struct config_t * config, struct main_t * m
 #if defined(RELAY_USERSPACE) && RELAY_TEST
 
     // IMPORTANT: fake packet loss lets the functional tests exercise loss handling.
-    // same env vars and prints as the reference relay.
+    // the env vars and prints are part of the functional test harness contract.
 
     ping->fake_packet_loss_percent = 0.0f;
     ping->fake_packet_loss_start_time = -1.0f;

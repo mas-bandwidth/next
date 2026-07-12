@@ -1,7 +1,8 @@
 # CLAUDE.md
 
 Network Next: a network accelerator for multiplayer games. Go backend services (`cmd/`, `modules/`),
-C++ SDK (`sdk/`), reference relay (`relay/reference/`), and XDP relay (`relay/xdp/`, Linux only).
+C++ SDK (`sdk/`), and the relay (`relay/xdp/` — one datapath source that compiles as the XDP kernel
+program on Linux, and as the userspace relay `relay-userspace-debug` everywhere else).
 
 ## Workflow (Glenn's preferences)
 
@@ -21,8 +22,9 @@ C++ SDK (`sdk/`), reference relay (`relay/reference/`), and XDP relay (`relay/xd
   `sem get ppl <id>` (lowercase `state:`/`result:` fields), `sem logs <job-id>`. Per-job results
   are only in `sem get job <id>`.
 - A Semaphore scheduled task `weekly-functional-tests` runs the functional tests against main
-  every Monday 09:00 UTC via `.semaphore/scheduled-functional-tests.yml` (it builds relay-debug
-  and libnext.so, the only two artifacts functional-tests.yml doesn't build itself).
+  every Monday 09:00 UTC via `.semaphore/scheduled-functional-tests.yml` (it builds
+  relay-userspace-debug and libnext.so, the only two artifacts functional-tests.yml doesn't
+  build itself).
 
 ## Build and test locally
 
@@ -31,10 +33,10 @@ C++ SDK (`sdk/`), reference relay (`relay/reference/`), and XDP relay (`relay/xd
 - The Makefile's Go-binary dependency tracking is unreliable; force with `go build -o dist/<name> ./cmd/<name>/`.
   (`go build ./cmd/<name>/` alone drops a stray binary in the cwd — avoid.)
 - Run a single functional test: `cd dist && ./func_test_relay <test_name>` (needs `func_backend`,
-  `relay-debug` in cwd; sdk tests also need `func_client`, `func_server`, `libnext.so`).
-- `make dist/relay-debug-asan` builds the reference relay with AddressSanitizer for local runs
-  (`cp` it over `dist/relay-debug`, `export ASAN_OPTIONS=detect_leaks=0`). There is deliberately
-  no ASan CI job — it ran all tests sequentially and was too slow.
+  `relay-userspace-debug` in cwd; sdk tests also need `func_client`, `func_server`, `libnext.so`).
+- `make dist/relay-userspace-debug-asan` builds the userspace relay with AddressSanitizer for
+  local runs (`cp` it over `dist/relay-userspace-debug`, `export ASAN_OPTIONS=detect_leaks=0`).
+  There is deliberately no ASan CI job — it ran all tests sequentially and was too slow.
 
 ## Functional test conventions (hardened 2026-07-10, keep these invariants)
 
@@ -59,7 +61,7 @@ Rules learned the hard way:
   "could not verify header" (client↔server, session ping/pong).
 - Relay counters print only at shutdown, summed from `relay[j].counters` AFTER thread join
   (the periodic stats snapshots miss the final second — that was the original flake).
-- relay-debug line-buffers stdout (`RELAY_LOGS` builds) so tests can poll it through a pipe.
+- The relay line-buffers stdout (`RELAY_LOGS` builds) so tests can poll it through a pipe.
 - Route tokens that create sessions need a few seconds of validity (`time.Now().Unix() + 5`);
   a `+0` expiry races the second boundary under CI load and resends can never recover.
 - Clean-shutdown timing is env-configurable in `RELAY_TEST` builds: `RELAY_SHUTDOWN_TIME` /
@@ -109,9 +111,9 @@ that fact is stale — reverify.
   "Sodium" job that wgets+builds libsodium 1.0.18 for a GCS artifact.
 - **Advanced packet filter is ON everywhere** (`NEXT_ADVANCED_PACKET_FILTER=1` in sdk/include/next.h,
   `RELAY_ADVANCED_PACKET_FILTER=1` in relay/xdp/relay_xdp.c). Magic values are now load-bearing.
-  The XDP filter mirrors the reference relay exactly (all {current,previous,next} magic x
-  {public,internal} address combos). Keep the Go/SDK/reference/XDP pittle+chonkle implementations
-  byte-identical.
+  The filter tries all {current,previous,next} magic x {public,internal} address combos. Keep
+  the Go/SDK/XDP pittle+chonkle implementations byte-identical (the relaycorpus differential
+  in the Build XDP job pins Go vs XDP every tag).
 - **UDP packet-handler concurrency is bounded** by `x/sync/semaphore` (default 16384,
   `UDP_MAX_CONCURRENT_PACKETS`), same goroutine-per-packet model with a `defer recover()`. A
   goroutine-POOL library (ants) benchmarked ~12% SLOWER — do not "optimize" into a worker pool
@@ -143,20 +145,21 @@ that fact is stale — reverify.
   `SDK_MaxTokens` (7)** — same bit width so not a wire change, but the larger bound indexes
   out of range of `RouteRelayIds`.
 
-### In progress: relay consolidation (see relay/CONSOLIDATION.md)
+### Relay consolidation: DONE 2026-07-12 (see relay/CONSOLIDATION.md)
 
-The wire-protocol consolidation project is nearly done — plan, sequencing, and status
-live in `relay/CONSOLIDATION.md` (keep that file current, not this section). As of
-2026-07-12 (commits `192f7395a`..`98b31e1f0`): the userspace relay is a WORKING BINARY
-(`make dist/relay-userspace-debug` — the relay_xdp.c datapath + real libsodium crypto +
-the XDP control plane over shim maps; the ping thread's socket IS the datapath), and CI
-runs the FULL relay + sdk functional suites against BOTH relays side by side (RELAY_BIN
-selects the binary in func_test_relay / func_test_sdk / soak_test_relay). **THE GATE IS
-GREEN: test-280 passed every pipeline end to end** (Build, SDK Tests, Functional Tests
-with all blocks for both relay flavors, Happy Path). Key facts a future session needs:
+The wire-protocol consolidation is complete and `relay/reference` is DELETED. There is
+one relay source: `relay/xdp/relay_xdp.c` compiles as the BPF kernel program AND (via
+`-DRELAY_USERSPACE` + shims) as the userspace relay `dist/relay-userspace-debug` — the
+relay_xdp.c datapath + real libsodium crypto + the XDP control plane over shim maps;
+the ping thread's socket IS the datapath. The dual-flavor gate (full relay + sdk
+functional suites against both relays side by side) was green on test-279/test-280
+before deletion. The userspace relay is now the default everywhere: harnesses
+(func_test_relay / func_test_sdk / soak_test_relay, `RELAY_BIN` still overrides),
+functional-tests.yml, happy path, `./run relay`, docker-compose relays, and the
+`${tag}-debug` relay artifact upload. Key facts a future session needs:
 
-- **The whitelist is the big XDP-vs-reference behavioral difference**: valid
-  client/server/relay pings admit a source address; forwarding also requires the
+- **The whitelist is the big behavioral difference vs the retired reference relay**:
+  valid client/server/relay pings admit a source address; forwarding also requires the
   DESTINATION whitelisted. Packet-crafting tests prime it (whitelistAddress helper in
   func_test_relay.go); two real func_backend bugs it exposed are fixed (zero ping key
   in relay updates — client/server ping tokens NEVER verified on any relay; and
@@ -167,11 +170,6 @@ with all blocks for both relay flavors, Happy Path). Key facts a future session 
   session-expiry drops in all seven session handlers + SESSION_CREATED/SESSION_CONTINUED
   counters (defined+reported since forever, never incremented). Verifier + BPF_PROG_RUN
   corpus green on CI. Benchmark + soak on a real box before any relay-* release tag.
-- **relay/reference deletion is UNBLOCKED but deliberately not done** — Glenn's call
-  whether to delete now or freeze one release cycle as the differential oracle (both
-  suites run in parallel in CI at no wall-clock cost). Deleting means: rm
-  relay/reference, drop the dist/relay-debug Makefile targets, remove the
-  reference-relay CI blocks, flip the default relayBin in the three harnesses.
 
 ### Open items (not yet done)
 
@@ -201,7 +199,7 @@ with all blocks for both relay flavors, Happy Path). Key facts a future session 
   return/continue statements after panics). go vet is now clean repo-wide except the
   documented unkeyed SDKVersion literals. Kept: TestThread in both crunchers (manual
   stress knob, commented activation in main). Not swept: C++ (SDK public API is the
-  product surface; relay/reference retirement is the consolidation project). Noted in
+  product surface; relay/reference retirement was the consolidation project). Noted in
   passing: the SortedSet skiplist is copy-pasted between server_cruncher and
   session_cruncher — same fix-lands-once class as the old Optimize/Optimize2.
 - **govulncheck runs in CI** (`0bb98be73`, green on test-259): a Build pipeline job (next
@@ -326,8 +324,9 @@ is auth in front of the portal, not hiding the token. Actionable defects are in 
 ## Codebase assessment (Claude audit, 2026-07-11)
 
 Honest assessment from a full read of the codebase: Go backend (~60k lines across `cmd/` and
-`modules/`), C++ SDK (~21k lines source), reference relay (~7.7k), XDP relay (~13k), CI config,
-terraform (~20k), and docs. Portal (Vue 3) was only skimmed.
+`modules/`), C++ SDK (~21k lines source), reference relay (~7.7k, since deleted — see the
+consolidation section), XDP relay (~13k), CI config, terraform (~20k), and docs. Portal (Vue 3)
+was only skimmed.
 
 ### What is genuinely good
 
@@ -369,14 +368,15 @@ undocumented invariants are where the bugs live in this codebase.
 
 ### Structural weaknesses (honest, in rough priority order)
 
-- **The wire protocol exists four times.** Route/continue tokens, headers, and packet filters
-  are hand-implemented in Go (`modules/core`, `modules/packets`), the C++ SDK, the reference
-  relay, and the XDP relay, kept in sync by convention and functional tests only. This is the
-  single biggest ongoing tax and the most likely source of subtle future bugs.
-- **Copy-paste divergence.** The reference relay is a 6.6k-line single file. The one-author
-  style makes this workable, but every duplicated block is a place where a fix lands once.
-  (The two big ones are gone: `Optimize`/`Optimize2` merged in `83350d8bf`, the `cmd/api`
-  auth middleware clones deduped in `ff09fe321`.)
+- **The wire protocol exists three times** (was four — the reference relay is deleted, see the
+  consolidation section). Route/continue tokens, headers, and packet filters are
+  hand-implemented in Go (`modules/core`, `modules/packets`), the C++ SDK, and the XDP relay,
+  kept in sync by convention, the functional tests, and the relaycorpus conformance corpus.
+  The three that remain are structurally irreducible (customer SDK, Go backend, the datapath).
+- **Copy-paste divergence.** The one-author style makes duplication workable, but every
+  duplicated block is a place where a fix lands once. (The three big ones are gone:
+  `Optimize`/`Optimize2` merged in `83350d8bf`, the `cmd/api` auth middleware clones deduped
+  in `ff09fe321`, and the 6.6k-line reference relay retired by the consolidation project.)
 - **Sparse comments exactly where they'd pay off.** The route optimizer's invariants (what
   `working` holds, why stored cost is trusted in phase 2) are undocumented — which is precisely
   where the confirmed bug lived for 2.5 years. Mechanical code doesn't need comments; the
@@ -402,6 +402,6 @@ undocumented invariants are where the bugs live in this codebase.
 This is a disciplined, coherent, production-hardened codebase with an unusually strong test and
 docs culture, written in a deliberately simple style that trades abstraction for readability —
 and that trade mostly pays off. Its two real risks are concentration (one author, one style,
-four hand-synced protocol implementations) and the thin observability/error story. The one
+three hand-synced protocol implementations) and the thin observability/error story. The one
 confirmed defect (the `Optimize` sort bug) is exactly the kind of failure the style permits:
 simple code, subtle invariant, no comment, no targeted test.

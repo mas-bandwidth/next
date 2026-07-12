@@ -215,9 +215,9 @@ gaffer@batman next % next relays akamai
 ┌──────────────────┬───────────────────────┬──────────────────┬────────┬────────┬──────────┬─────────────┐
 │ Name             │ PublicAddress         │ Id               │ Status │ Uptime │ Sessions │ Version     │
 ├──────────────────┼───────────────────────┼──────────────────┼────────┼────────┼──────────┼─────────────┤
-│ akamai.newyork   │ 50.116.55.244:40000   │ 95d452eef2604bc4 │ online │ 1d     │ 9        │ relay-debug │
-│ akamai.frankfurt │ 170.187.190.118:40000 │ c223d2eb62b013f5 │ online │ 22h    │ 0        │ relay-debug │
-│ akamai.london    │ 212.71.249.92:40000   │ 33cf1e5d5af28532 │ online │ 22h    │ 0        │ relay-debug │
+│ akamai.newyork   │ 50.116.55.244:40000   │ 95d452eef2604bc4 │ online │ 1d     │ 9        │ relay-148   │
+│ akamai.frankfurt │ 170.187.190.118:40000 │ c223d2eb62b013f5 │ online │ 22h    │ 0        │ relay-148   │
+│ akamai.london    │ 212.71.249.92:40000   │ 33cf1e5d5af28532 │ online │ 22h    │ 0        │ relay-148   │
 └──────────────────┴───────────────────────┴──────────────────┴────────┴────────┴──────────┴─────────────┘
 ```
 

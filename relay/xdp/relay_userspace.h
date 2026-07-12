@@ -5,7 +5,7 @@
     the kernel XDP program; compiled with -DRELAY_USERSPACE and this header it is a plain
     userspace C function relay_xdp_filter() that processes one synthetic ETH/IP/UDP frame
     and returns an XDP verdict. This is what lets the XDP relay run in a non-XDP mode on
-    mac / windows / CI, so there is a single relay source and the reference relay can go.
+    mac / windows / CI, so there is a single relay source (see relay/CONSOLIDATION.md).
 
     This shim provides userspace stand-ins for everything relay_xdp.c gets from the kernel:
     the __uN types, the ethernet/ip/udp structs, struct xdp_md over a userspace buffer, the
@@ -194,9 +194,8 @@ int bpf_relay_xchacha20poly1305_decrypt(void *data, int data__sz, struct chacha2
 
 // --- datapath debug print. In BPF builds relay_printf is bpf_printk gated on
 //     RELAY_DEBUG; in userspace builds it is gated on RELAY_LOGS and prints one line
-//     per call to stdout, exactly like the reference relay's relay_printf -- the
-//     functional tests poll these lines. relay_xdp.c skips its own definition under
-//     RELAY_USERSPACE.
+//     per call to stdout -- the functional tests poll these lines. relay_xdp.c skips
+//     its own definition under RELAY_USERSPACE.
 #ifndef relay_printf
 #if RELAY_LOGS
 void us_relay_printf(const char *format, ...);

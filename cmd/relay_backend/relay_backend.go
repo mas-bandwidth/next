@@ -779,7 +779,7 @@ func relayManagerHandler(service *common.Service, relayManager *common.RelayMana
 }
 
 func initCounterNames() {
-	// awk '/^#define RELAY_COUNTER_/ {print "    counterNames["$3"] = \""$2"\""}' ./relay/reference/reference_relay.cpp
+	// awk '/^#define RELAY_COUNTER_/ {print "    counterNames["$3"] = \""$2"\""}' ./relay/xdp/relay_constants.h
 	counterNames[0] = "RELAY_COUNTER_PACKETS_SENT"
 	counterNames[1] = "RELAY_COUNTER_PACKETS_RECEIVED"
 	counterNames[2] = "RELAY_COUNTER_BYTES_SENT"

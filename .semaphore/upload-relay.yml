@@ -34,9 +34,9 @@ blocks:
 
         - name: "Debug Relay"
           commands:
-            - artifact pull workflow relay-debug
-            - chmod +x relay-debug
-            - mv relay-debug ${SEMAPHORE_GIT_TAG_NAME}-debug
+            - artifact pull workflow relay-userspace-debug
+            - chmod +x relay-userspace-debug
+            - mv relay-userspace-debug ${SEMAPHORE_GIT_TAG_NAME}-debug
             - gsutil cp ${SEMAPHORE_GIT_TAG_NAME}-debug $RELAY_BUCKET
 
         - name: "Release Relay"

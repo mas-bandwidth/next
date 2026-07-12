@@ -31,10 +31,9 @@ const (
 	serverBin  = "./func_server"
 )
 
-// RELAY_BIN selects the relay binary under test: the reference relay by default, or the
-// userspace-mode XDP relay ("./relay-userspace-debug") for the consolidation gate. see
-// relay/CONSOLIDATION.md.
-var relayBin = "./relay-debug"
+// RELAY_BIN overrides the relay binary under test (default: the userspace-mode XDP
+// relay -- see relay/CONSOLIDATION.md).
+var relayBin = "./relay-userspace-debug"
 
 func init() {
 	if v := os.Getenv("RELAY_BIN"); v != "" {

@@ -4,12 +4,10 @@ FROM network_next_base
 
 WORKDIR /app
 
-COPY relay/reference /app
+COPY relay/xdp /app
 
-RUN g++ -o relay *.cpp -lsodium -lcurl -lpthread -lm
+RUN cc -O2 -DRELAY_USERSPACE -DRELAY_VERSION=\"relay-docker\" -o relay relay.c relay_platform.c relay_base64.c relay_ping_history.c relay_manager.c relay_main.c relay_ping.c relay_config.c relay_userspace.c relay_xdp.c -lsodium -lcurl -lpthread -lm
 
 EXPOSE 40000/udp
-
-ENV RELAY_NUM_THREADS="1"
 
 CMD [ "/app/relay" ]

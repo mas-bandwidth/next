@@ -1,8 +1,8 @@
 # Network Next Makefile
 
-RELAY_VERSION := "relay-debug"
+RELAY_VERSION := "relay-userspace-debug"
 
-CXX_FLAGS := -g -Wall -Wextra -DRELAY_VERSION=\"$(RELAY_VERSION)\"
+CXX_FLAGS := -g -Wall -Wextra
 
 OS := $(shell uname -s | tr A-Z a-z)
 SDK_LDFLAGS = -lsodium -lpthread -lm -lcurl
@@ -48,7 +48,7 @@ build: update-schemas
 	@make -s build-fast
 
 .PHONY: build-fast
-build-fast: dist/$(SDKNAME5).so dist/relay-debug dist/client dist/server dist/test dist/raspberry_server dist/raspberry_client dist/func_server dist/func_client $(shell ./scripts/all_commands.sh)
+build-fast: dist/$(SDKNAME5).so dist/relay-userspace-debug dist/client dist/server dist/test dist/raspberry_server dist/raspberry_client dist/func_server dist/func_client $(shell ./scripts/all_commands.sh)
 
 .PHONY: rebuild
 rebuild: clean update-schemas ## rebuild everything
@@ -100,25 +100,19 @@ dist/test: dist/$(SDKNAME5).so sdk/test.cpp
 	@cd dist && $(CXX) $(CXX_FLAGS) $(SDK_FLAGS) -I../sdk/include -I../sdk/serialize -o test ../sdk/test.cpp $(SDKNAME5).so $(APP_LDFLAGS)
 	@echo $@
 
-# Build relay
-
-dist/relay-debug: relay/reference/*
-	@$(CXX) $(CXX_FLAGS) -DRELAY_TEST=1 -DRELAY_LOGS=1 -o dist/relay-debug relay/reference/*.cpp $(SDK_LDFLAGS) $(APP_LDFLAGS)
-	@echo $@
-
-# Build relay with address sanitizer, for running the relay functional tests against it
-
-dist/relay-debug-asan: relay/reference/*
-	@$(CXX) $(CXX_FLAGS) -fsanitize=address -fno-omit-frame-pointer -DRELAY_TEST=1 -DRELAY_LOGS=1 -o dist/relay-debug-asan relay/reference/*.cpp $(SDK_LDFLAGS) $(APP_LDFLAGS)
-	@echo $@
-
 # Build the userspace-mode XDP relay (one datapath source, non-BPF backend -- see
-# relay/CONSOLIDATION.md). functional tests run against this via RELAY_BIN.
+# relay/CONSOLIDATION.md). this is the relay the functional tests and local dev run.
 
 USERSPACE_RELAY_SOURCES = relay/xdp/relay.c relay/xdp/relay_platform.c relay/xdp/relay_base64.c relay/xdp/relay_ping_history.c relay/xdp/relay_manager.c relay/xdp/relay_main.c relay/xdp/relay_ping.c relay/xdp/relay_config.c relay/xdp/relay_userspace.c relay/xdp/relay_xdp.c
 
 dist/relay-userspace-debug: relay/xdp/*.c relay/xdp/*.h
-	@cc -g -DRELAY_USERSPACE -DRELAY_TEST=1 -DRELAY_LOGS=1 -DRELAY_VERSION=\"relay-userspace-debug\" -O2 -o dist/relay-userspace-debug $(USERSPACE_RELAY_SOURCES) $(SDK_LDFLAGS) $(APP_LDFLAGS)
+	@cc -g -DRELAY_USERSPACE -DRELAY_TEST=1 -DRELAY_LOGS=1 -DRELAY_VERSION=\"$(RELAY_VERSION)\" -O2 -o dist/relay-userspace-debug $(USERSPACE_RELAY_SOURCES) $(SDK_LDFLAGS) $(APP_LDFLAGS)
+	@echo $@
+
+# Build the userspace relay with address sanitizer, for running the relay functional tests against it
+
+dist/relay-userspace-debug-asan: relay/xdp/*.c relay/xdp/*.h
+	@cc -g -fsanitize=address -fno-omit-frame-pointer -DRELAY_USERSPACE -DRELAY_TEST=1 -DRELAY_LOGS=1 -DRELAY_VERSION=\"$(RELAY_VERSION)\" -O2 -o dist/relay-userspace-debug-asan $(USERSPACE_RELAY_SOURCES) $(SDK_LDFLAGS) $(APP_LDFLAGS)
 	@echo $@
 
 # Functional tests (sdk)

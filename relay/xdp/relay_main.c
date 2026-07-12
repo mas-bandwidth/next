@@ -304,7 +304,8 @@ struct session_stats
 #ifdef RELAY_USERSPACE
 
 // same sweep as the BPF version below, over the shim maps. RELAY_DISABLE_DESTROY (test
-// builds) skips the deletes but still counts sessions, matching the reference relay.
+// builds) skips the deletes but still counts sessions -- the functional tests assert
+// session counters with destroy disabled.
 struct session_stats main_update_timeouts( struct main_t * main )
 {
     struct session_stats stats;
