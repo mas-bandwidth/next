@@ -153,7 +153,8 @@ one relay source: `relay/xdp/relay_xdp.c` compiles as the BPF kernel program AND
 relay_xdp.c datapath + real libsodium crypto + the XDP control plane over shim maps;
 the ping thread's socket IS the datapath. The dual-flavor gate (full relay + sdk
 functional suites against both relays side by side) was green on test-279/test-280
-before deletion. The userspace relay is now the default everywhere: harnesses
+before deletion, and the retirement itself validated fully green on test-282. The
+userspace relay is now the default everywhere: harnesses
 (func_test_relay / func_test_sdk / soak_test_relay, `RELAY_BIN` still overrides),
 functional-tests.yml, happy path, `./run relay`, docker-compose relays, and the
 `${tag}-debug` relay artifact upload. Key facts a future session needs:

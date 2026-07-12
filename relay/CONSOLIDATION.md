@@ -5,8 +5,11 @@
 suites, soak test, happy path, local dev (`./run relay`), docker-compose relays, and
 the `${tag}-debug` relay artifact upload all use it. `relay/reference` (~6.6k lines of
 sync-by-convention) is DELETED -- the dual-flavor gate ran the full relay + sdk
-functional suites against both relays side by side and was green on test-279/test-280
-before deletion. The plan and per-step history below are kept as the record.
+functional suites against both relays side by side, and test-280 passed every pipeline
+end to end (all relay + sdk blocks for both flavors, both soak tests, load tests,
+happy path) before deletion. The retirement itself then validated fully green on
+test-282 (Build, SDK Tests, Functional Tests, Happy Path with the userspace relay as
+the only flavor). The plan and per-step history below are kept as the record.
 
 Still owed before the next `relay-*` release tag: benchmark + soak the XDP build on a
 real box (the per-packet session-expiry checks landed in the shipped BPF program this
