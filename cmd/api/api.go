@@ -385,7 +385,12 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-func isAdminAuthorized(endpoint func(http.ResponseWriter, *http.Request)) func(w http.ResponseWriter, r *http.Request) {
+// isAuthorized wraps an endpoint with bearer token auth: the token must be an HMAC
+// signed JWT under the api private key, and its claims must pass the check. admin and
+// portal below differ only in which claim they require -- keep it that way, auth code
+// should exist exactly once.
+
+func isAuthorized(check func(claims *Claims) bool, endpoint func(http.ResponseWriter, *http.Request)) func(w http.ResponseWriter, r *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -393,72 +398,39 @@ func isAdminAuthorized(endpoint func(http.ResponseWriter, *http.Request)) func(w
 
 		split := strings.Split(auth, "Bearer ")
 
-		if len(split) == 2 {
-
-			apiKey := split[1]
-
-			claims := Claims{}
-
-			token, err := jwt.ParseWithClaims(apiKey, &claims, func(token *jwt.Token) (any, error) {
-				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-					return nil, fmt.Errorf("There was an error")
-				}
-				return []byte(privateKey), nil
-			})
-
-			if token == nil || err != nil || !claims.Admin {
-				w.WriteHeader(http.StatusUnauthorized)
-				fmt.Fprintf(w, "Not Authorized")
-				return
-			}
-
-			endpoint(w, r)
-
-		} else {
-
+		if len(split) != 2 {
 			w.WriteHeader(http.StatusUnauthorized)
 			fmt.Fprintf(w, "Not Authorized")
-
+			return
 		}
+
+		apiKey := split[1]
+
+		claims := Claims{}
+
+		token, err := jwt.ParseWithClaims(apiKey, &claims, func(token *jwt.Token) (any, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("There was an error")
+			}
+			return []byte(privateKey), nil
+		})
+
+		if token == nil || err != nil || !check(&claims) {
+			w.WriteHeader(http.StatusUnauthorized)
+			fmt.Fprintf(w, "Not Authorized")
+			return
+		}
+
+		endpoint(w, r)
 	}
 }
 
+func isAdminAuthorized(endpoint func(http.ResponseWriter, *http.Request)) func(w http.ResponseWriter, r *http.Request) {
+	return isAuthorized(func(claims *Claims) bool { return claims.Admin }, endpoint)
+}
+
 func isPortalAuthorized(endpoint func(http.ResponseWriter, *http.Request)) func(w http.ResponseWriter, r *http.Request) {
-
-	return func(w http.ResponseWriter, r *http.Request) {
-
-		auth := r.Header.Get("Authorization")
-
-		split := strings.Split(auth, "Bearer ")
-
-		if len(split) == 2 {
-
-			apiKey := split[1]
-
-			claims := Claims{}
-
-			token, err := jwt.ParseWithClaims(apiKey, &claims, func(token *jwt.Token) (any, error) {
-				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-					return nil, fmt.Errorf("There was an error")
-				}
-				return []byte(privateKey), nil
-			})
-
-			if token == nil || err != nil || !claims.Portal {
-				w.WriteHeader(http.StatusUnauthorized)
-				fmt.Fprintf(w, "Not Authorized")
-				return
-			}
-
-			endpoint(w, r)
-
-		} else {
-
-			w.WriteHeader(http.StatusUnauthorized)
-			fmt.Fprintf(w, "Not Authorized")
-
-		}
-	}
+	return isAuthorized(func(claims *Claims) bool { return claims.Portal }, endpoint)
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
