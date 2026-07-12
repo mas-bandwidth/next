@@ -141,6 +141,12 @@ that fact is stale — reverify.
   DNS/network hiccups fail it (seen test-239). Just re-run `./dist/deploy test`. If it recurs,
   cache the sodium download/build in a Semaphore artifact rather than re-fetching. Do NOT solve it
   by touching the vendored sdk/sodium/ (see invariant above).
+- **Major-version dependency migrations** (deliberate projects, not bumps — all direct deps are
+  otherwise current as of 2026-07-12, `ebca6bca5`, with `toolchain go1.26.5` pinned in go.mod and
+  govulncheck reporting 0 reachable vulnerabilities): `cloud.google.com/go/pubsub` v1 is formally
+  DEPRECATED in favor of pubsub/v2 (producer code in modules/common/google_pubsub.go is small);
+  `hamba/avro` v1.8.0 -> hamba/avro/v2 (touches every avro.Marshal call site; analytics schemas
+  are explicit so wire risk is low); `oschwald/maxminddb-golang` -> /v2 (ip2location reader API).
 
 ### Reviewed and cleared this session (don't re-audit without reason)
 
@@ -177,8 +183,9 @@ terraform (~20k), and docs. Portal (Vue 3) was only skimmed.
   C-style Go: flat, explicit, data-oriented, almost no interfaces or generics, goroutines +
   RWMutexes used plainly (see `modules/common/service.go`). Once you've read one module you can
   predict the shape of every other. Zero TODO/FIXME/HACK comments in the Go code. `go vet` is
-  clean except unkeyed `SDKVersion` struct literals; `gofmt` is clean except 2 files
-  (`modules/admin/admin.go`, `modules/crypto/crypto.go`).
+  clean except unkeyed `SDKVersion` struct literals; `gofmt -l` is clean repo-wide as of
+  2026-07-12 (`ac6fafa6b` formatted the two long-unformatted files admin.go and crypto.go —
+  keep it clean).
 - **Test culture.** 86 unit tests in core alone, ~155 parallel functional-test CI jobs, soak
   tests, load-test harnesses, seeded/reproducible functional tests with watchdogs. The
   functional-test hardening (see above) shows real maintenance discipline.
