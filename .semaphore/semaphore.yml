@@ -126,8 +126,8 @@ blocks:
             # filter. relay_xdp.c calls the bpf_relay_sha256 kfunc, so the relay kernel module
             # must be built and insmodded first or the load fails before the verifier even
             # runs (unresolved kfunc -- that was the EINVAL xdp-loader misreported as an
-            # attach failure). the make module target swallows insmod errors, hence the lsmod
-            # assert. bpftool prog load runs the verifier without a device attach (attach is
+            # attach failure). the lsmod assert double-checks the module actually loaded.
+            # bpftool prog load runs the verifier without a device attach (attach is
             # driver dependent; prod attaches native mode on real NICs). a verifier rejection
             # fails the job and prints the verifier log.
             - make module
