@@ -182,13 +182,15 @@ that fact is stale — reverify.
   read. Every token read loop now dumps index+key+token on failure — if you see it,
   grab that output; do not chase it blind (several hours already spent). No evidence of
   a production bug: relays decrypt these tokens constantly in the functional suite.
-  IMPORTANT context (Glenn, 2026-07-12): heavy unrelated CPU load (profiling in other
-  contexts) was running on this machine during the hunt, which fits the evidence better
-  than a code bug — failures clustered unevenly across batches (2/60 then 0/80),
-  CI has NEVER shown this failure across test-247..258 on clean VMs, and a single bit
-  flip under sustained load produces exactly this signature (valid-looking key, genuine
-  AEAD reject, unreproducible). If it fires again, note what else the machine was doing
-  before treating it as a code bug.
+  IMPORTANT context (Glenn, 2026-07-12): heavy BURSTY unrelated CPU load (profiling in
+  other contexts) was running on this machine during the hunt. With burstiness confirmed
+  the evidence is fully consistent with an environmental cause and not a code bug:
+  failures clustered unevenly across batches (2/60 then 0/80 — matches bursts), the
+  clean targeted stress runs likely fell between bursts, CI has NEVER shown this failure
+  across test-247..258 on clean VMs, and a bit flip under burst load produces exactly
+  this signature (valid-looking key, genuine AEAD reject, unreproducible on replay).
+  Treat as environmental unless it fires on an idle machine or CI — and if it fires,
+  the token read loops dump index+key+token; note what else the machine was doing.
 
 ### Closed 2026-07-12, second batch (guard + CI cache + Makefile + middleware dedupe)
 
