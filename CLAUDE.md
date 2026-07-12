@@ -133,11 +133,14 @@ that fact is stale — reverify.
 ### In progress: relay consolidation (see relay/CONSOLIDATION.md)
 
 The wire-protocol consolidation project is underway — plan, sequencing, and status live
-in `relay/CONSOLIDATION.md` (keep that file current, not this section). Headline: the
-feasibility spike PASSED on test-265 — the real compiled relay_xdp.o runs under
-BPF_PROG_RUN in CI with maps populated from userspace, so the conformance corpus can be
-fired at the actual BPF object (three-way differential: reference relay vs future
-userspace core vs real kernel program). Next up: the corpus generator (step 1 proper).
+in `relay/CONSOLIDATION.md` (keep that file current, not this section). Progress: the
+BPF_PROG_RUN mechanism is proven (test-265), and step 1's XDP conformance differential is
+DONE and green (test-269) — modules/relaycorpus fires 2343 filter-surface packets at the
+real compiled relay_xdp.o via BPF_PROG_RUN in the Build XDP job every tag, 0 mismatches.
+It already caught one real divergence (the two C relays attribute too-small drops to
+different counters — benign, wire behavior agrees; documented in CONSOLIDATION.md). Next:
+the reference-relay differential (same corpus over UDP), then the stateful surface
+(tokens, sessions), then the datapath extraction and userspace mode.
 
 ### Open items (not yet done)
 

@@ -79,17 +79,27 @@ answer instead of a release-day surprise.
 
 ## Status
 
-- **Step 1, BPF_PROG_RUN half: PROVEN** (green on test-265, spike `396fce33f`..`dc70424ef`).
-  The real compiled `relay_xdp.o` runs under `BPF_PROG_RUN` in CI: object loaded with the
-  kfunc resolved from the insmodded module, `config_map` populated from userspace, synthetic
-  ETH/IP/UDP frames fed in, verdicts read back (wrong port -> XDP_PASS, short payload ->
-  XDP_DROP, both correct). The three-way differential is achievable. Hard-won environment
-  facts baked into the job + `prog_test_run.c`: link `libbpf.a` from the xdp-tools source
-  tree (install path varies, ldconfig misses it); libbpf cannot infer the program type from
-  the nonstandard `SEC("relay_xdp")` section so set `BPF_PROG_TYPE_XDP` explicitly before
-  load; `libbpf_get_error` is gone from current libbpf.
-- Step 1, corpus generator + reference relay harness: not started (de-risked, see above).
-- Steps 2-5: not started.
+- **BPF_PROG_RUN mechanism: PROVEN** (test-265). The real compiled relay_xdp.o runs under
+  BPF_PROG_RUN in CI with maps populated from userspace. Environment lessons baked into the
+  job + prog_test_run.c: link libbpf.a from the xdp-tools source tree; set
+  BPF_PROG_TYPE_XDP explicitly (the SEC("relay_xdp") section name defeats libbpf type
+  inference); libbpf_get_error is gone from current libbpf.
+- **Step 1, XDP differential: COMPLETE AND GREEN** (test-269). The stateless surface (size
+  guard + basic + advanced filters + type dispatch) is pinned. modules/relaycorpus
+  generates 2343 packets with oracle verdicts; cmd/relaycorpus_gen emits the binary corpus;
+  relay/xdp/relay_corpus_diff.c fires all of them at the real relay_xdp.o via BPF_PROG_RUN
+  in the Build XDP job every tag -- 0 mismatches (2221 drop-basic, 39 drop-advanced, 27
+  drop-size, 56 pass). The Go filter and the production XDP relay are proven equivalent
+  here. The corpus already caught one real divergence (see Findings).
+- **Step 1 remaining: reference-relay differential.** Fire the same corpus at the reference
+  relay over UDP (the func_test_relay pattern), accounting for the too-small
+  counter-attribution difference. Closes the three-way differential (oracle vs XDP vs
+  reference).
+- **Later corpus work: the stateful surface** -- tokens (route/continue decrypt) and
+  session table transitions. Needs map/session preloading and real crypto keys in the
+  driver. Bigger; the stateless surface was the highest-value, most-duplicated slice.
+- Steps 2-5 (extract datapath core, userspace mode, mac/windows platform, retire
+  reference): not started.
 
 ## Invariants to preserve (do not regress)
 
