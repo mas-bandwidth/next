@@ -675,6 +675,13 @@ func generateRelayData(database *db.Database) *RelayData {
 	relayData.RelayHash = make(map[uint64]db.Relay)
 	relayData.RelayArray = database.Relays
 
+	// IMPORTANT: this sort is load-bearing. it sorts database.Relays IN PLACE by name, and
+	// DatabaseBinFile below re-serializes the sorted database. this is the only reason
+	// server_backend can index Database.Relays[] with route matrix relay indices
+	// (session_update.go BuildNextTokens/BuildContinueTokens) -- the database.bin on disk is
+	// NOT sorted (postgres row order, no ORDER BY). do not reorder these steps, and do not
+	// index Relays with route matrix indices on a database that didn't come through here.
+
 	sort.SliceStable(relayData.RelayArray, func(i, j int) bool {
 		return relayData.RelayArray[i].Name < relayData.RelayArray[j].Name
 	})
@@ -740,6 +747,7 @@ func generateRelayData(database *db.Database) *RelayData {
 	relayData.RelaySecretKeys = database.RelaySecretKeys
 
 	// stash the database bin file in the relay data, so it's all guaranteed to be consistent
+	// (serialized AFTER the sort above, so relay order matches the route matrix everywhere)
 
 	relayData.DatabaseBinFile = database.GetBinary()
 

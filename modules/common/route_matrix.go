@@ -353,6 +353,11 @@ func (m *RouteMatrix) Analyze() RouteMatrixAnalysis {
 	return analysis
 }
 
+// IMPORTANT: every field that Serialize touches must be randomized here (respecting the
+// same version gates), otherwise the serialization round-trip test cannot detect a field
+// that Serialize drops -- that is exactly how the route price bug hid (route price existed
+// in the struct, was never serialized, and every route read back as price 0).
+
 func GenerateRandomRouteMatrix(numRelays int) RouteMatrix {
 
 	routeMatrix := RouteMatrix{

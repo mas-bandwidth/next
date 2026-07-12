@@ -348,6 +348,9 @@ type RouteEntry struct {
 	RouteRelays    [constants.MaxRoutesPerEntry][constants.MaxRouteRelays]int32
 }
 
+// IMPORTANT: Optimize2 below is a near-copy of this function with a destination relay filter.
+// Any fix made here almost certainly needs to be made there too.
+
 func Optimize(numRelays int, numSegments int, cost []uint8, relayPrice []uint8, relayDatacenter []uint64) []RouteEntry {
 
 	// build a matrix of indirect routes from relays i -> j that have lower cost than direct, eg. i -> (x) -> j, where x is every other relay
@@ -374,6 +377,12 @@ func Optimize(numRelays int, numSegments int, cost []uint8, relayPrice []uint8, 
 		go func(startIndex int, endIndex int) {
 
 			defer wg.Done()
+
+			// scratch buffer reused across (i,j) pairs. only working[:numRoutes] is valid for
+			// the current pair -- everything past numRoutes is stale data from previous pairs.
+			// any sort or copy over this buffer must be bounded by numRoutes, or stale entries
+			// with bogus costs leak into the indirect matrix and phase 2 trusts them
+			// (this bug shipped for 2.5 years -- see TestOptimizeRouteCosts)
 
 			working := make([]Indirect, numRelays)
 
@@ -427,6 +436,11 @@ func Optimize(numRelays int, numSegments int, cost []uint8, relayPrice []uint8, 
 	wg.Wait()
 
 	// use the indirect matrix to subdivide routes
+	//
+	// IMPORTANT: costs stored in the indirect matrix are trusted from here on. AddRoute
+	// stores the claimed cost without re-deriving it from the cost matrix, and everything
+	// downstream (route matrix serialization, server backend route selection) believes it.
+	// every indirect entry must be an exact sum of link costs from the cost matrix.
 
 	entryCount := TriMatrixLength(numRelays)
 
@@ -578,6 +592,10 @@ func Optimize2(numRelays int, numSegments int, cost []uint8, relayPrice []uint8,
 
 			defer wg.Done()
 
+			// scratch buffer -- same invariant as in Optimize: only working[:numRoutes]
+			// is valid for the current pair, all sorts and copies must be bounded by it
+			// (see TestOptimize2RouteCosts)
+
 			working := make([]Indirect, numRelays)
 
 			for i := startIndex; i <= endIndex; i++ {
@@ -634,6 +652,11 @@ func Optimize2(numRelays int, numSegments int, cost []uint8, relayPrice []uint8,
 	wg.Wait()
 
 	// use the indirect matrix to subdivide routes
+	//
+	// IMPORTANT: costs stored in the indirect matrix are trusted from here on. AddRoute
+	// stores the claimed cost without re-deriving it from the cost matrix, and everything
+	// downstream (route matrix serialization, server backend route selection) believes it.
+	// every indirect entry must be an exact sum of link costs from the cost matrix.
 
 	entryCount := TriMatrixLength(numRelays)
 

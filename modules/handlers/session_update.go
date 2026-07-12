@@ -610,6 +610,10 @@ func SessionUpdate_BuildNextTokens(state *SessionUpdateState, routeNumRelays int
 
 		relayIndex := routeRelays[i]
 
+		// routeRelays are route matrix indices. indexing Database.Relays with them only
+		// works because this database came through generateRelayData (service.go), which
+		// sorts Relays by name and re-serializes -- the same order the route matrix uses.
+
 		relay := &state.Database.Relays[relayIndex]
 
 		relayPublicAddresses[i] = relay.PublicAddress
@@ -660,6 +664,7 @@ func SessionUpdate_BuildContinueTokens(state *SessionUpdateState, routeNumRelays
 
 	for i := range numRouteRelays {
 		relayIndex := routeRelays[i]
+		// route matrix indices -- valid against Database.Relays, see SessionUpdate_BuildNextTokens
 		relay := &state.Database.Relays[relayIndex]
 		relaySecretKeys[i] = state.Database.RelaySecretKeys[relay.Id]
 	}

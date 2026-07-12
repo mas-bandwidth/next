@@ -465,6 +465,11 @@ func (packet *SDK_SessionUpdateRequestPacket) Serialize(stream encoding.Stream) 
 	return stream.Error()
 }
 
+// IMPORTANT: every field that Serialize touches must be randomized here (respecting the
+// same version gates), otherwise the serialization round-trip test cannot detect a field
+// that Serialize drops -- that is exactly how the out of order packets bug hid (fields
+// existed in the struct, were never serialized, and read back as zero every slice).
+
 func GenerateRandomSessionData() SDK_SessionData {
 
 	sessionData := SDK_SessionData{
