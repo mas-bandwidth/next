@@ -90,6 +90,46 @@ Rules learned the hard way:
   start moves relative to the client, recalibrate fake_packet_loss_start_time (see
   test_next_packet_loss).
 
+## State as of 2026-07-13
+
+Audit + hardening session: commits `b0acdf268` .. `0ff276fc9`, all validated green on
+test-289 .. test-296 (296 needed a `sem rebuild wf` retry -- two artifact jobs died
+mid-module-download on separate VMs, pure CI infra flake, identical commit green on
+rebuild). `AUDIT.md` at the repo root is the full fresh-eyes audit; every defect it
+lists is fixed. What a future session needs:
+
+- **Telemetry sends never block**: all 11 portal/analytics send sites in
+  modules/handlers are non-blocking selects with per-stream drop counters
+  (modules/handlers/dropped_messages.go has the design rationale). The deep
+  CHANNEL_SIZE (10M default) is load-test-derived (10M clients) -- do NOT shrink it;
+  the drop path is only reachable when a channel is completely full.
+- **`core.Log/Error/Warn/Debug` cannot be vet-checked** (printf analyzer only treats
+  names ending in 'f' as formatting). The gate is modules/core/log_format_test.go --
+  it fails on any log call with format verbs but no args.
+- **tools cleanup done**: run.go is table-driven (simpleCommands/specialCommands maps;
+  dead `relay-keygen` command removed -- tools/relay_keygen no longer exists); next.go
+  deduped (apiGet/secretPath/forEachRelayParallel -- the latter FIXED a deadlock where
+  a relay without an SSH address hung start/stop/reboot/load forever);
+  generate_staging_sql seeds via common.SeedRandom (global rand.Seed never affected
+  common.RandomInt -- staging.sql churned every run for years; now byte-stable).
+- **allkeys-lru is now ACTUALLY everywhere** (was missing on staging cluster+instance
+  and dev relay/server_backend instances -- the no-TTL key design OOMs without it).
+- **postgres path hardened**: adminCommitHandler's validate failure now returns
+  (before, an INVALID database was uploaded to the bucket anyway); ExtractDatabase
+  runs in one REPEATABLE READ read-only tx (cross-table-consistent extract) and
+  checks rows.Err everywhere; admin RouteShaderData.SelectionPercent is int.
+- **staging tfvars buckets were gs://next_*** (wrong company). Fixed to sloclap AND
+  `next config` now rewrites bucket names in terraform.tfvars too (staging is the
+  only env sourcing buckets via vars -- that's how it silently diverged).
+- **Headers before body**: service.go + all 43 cmd/api handlers set Content-Type
+  before WriteHeader (net/http silently drops headers set after the first write).
+- **Portal slice JSON**: SliceNumber is `slice_number` (was mislabeled `session_id`).
+- Retry a flaked CI run with `sem rebuild wf <workflow-id>` -- same commit, no new tag.
+- **Parked, operator-gated**: terraform plan against GCP before the next apply
+  (MAGIC_KEY, redis eviction policies, and the staging bucket fixes all land then;
+  ~/secrets/<env>-magic-key.txt already backfilled on this machine); BPF benchmark +
+  soak on a real box before any relay-* release tag; the API auth project (AUDIT.md).
+
 ## State as of 2026-07-11
 
 Big bug-fix + hardening pass this session: commits `4c0672efa` .. `96b112a5b` on main, validated
