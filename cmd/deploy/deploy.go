@@ -38,6 +38,11 @@ func main() {
 		return
 	}
 
+	if args[1] == "watch" {
+		watch(args[2:])
+		return
+	}
+
 	env := args[1]
 
 	if env != "dev" && env != "staging" && env != "prod" && env != "test" && env != "relay" && env != "config" {
@@ -75,5 +80,5 @@ func main() {
 }
 
 func help() {
-	fmt.Printf("\nsyntax:\n\n    deploy [dev|staging|prod|relay|test|config]\n\n")
+	fmt.Printf("\nsyntax:\n\n    deploy [dev|staging|prod|relay|test|config]\n\n    deploy watch (tag)      wait for a CI run to finish. defaults to the latest test tag\n\n")
 }

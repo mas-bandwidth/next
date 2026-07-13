@@ -21,6 +21,15 @@ program on Linux, and as the userspace relay `relay-userspace-debug` everywhere 
 - Monitor CI with the `sem` CLI (org `mas-bandwidth.semaphoreci.com`): `sem get wf -p next`,
   `sem get ppl <id>` (lowercase `state:`/`result:` fields), `sem logs <job-id>`. Per-job results
   are only in `sem get job <id>`.
+- **Wait for a CI run with `./dist/deploy watch [tag]`** (defaults to the latest test tag).
+  Blocks until every pipeline in the tag's workflow is done — including the promoted pipelines
+  that only spawn after Build passes — then prints per-pipeline results. Exit 0 = all passed,
+  1 = something failed, 2 = not found / 90 min timeout. Claude: run it under the Monitor tool
+  (`timeout_ms: 3600000`), NOT background Bash — background Bash is killed at its 10 minute
+  cap, shorter than a CI run, and dies silently; if the Monitor watch times out, re-arm it
+  (`deploy watch` is idempotent). Never hand-roll `sem` polling: `sem get ppl` output is
+  indented yaml, so `grep '^state:'` never matches and the loop spins forever (that exact bug
+  made a watcher sleep through test-289 on 2026-07-12).
 - A Semaphore scheduled task `weekly-functional-tests` runs the functional tests against main
   every Monday 09:00 UTC via `.semaphore/scheduled-functional-tests.yml` (it builds
   relay-userspace-debug and libnext.so, the only two artifacts functional-tests.yml doesn't
