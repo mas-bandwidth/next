@@ -6,9 +6,9 @@
 #include "next_crypto.h"
 
 #ifdef _MSC_VER
-#pragma warning(disable:4996)
-#pragma warning(push)
-#pragma warning(disable:4324)
+#pragma warning( disable : 4996 )
+#pragma warning( push )
+#pragma warning( disable : 4324 )
 #endif // #ifdef _MSC_VER
 
 #include <sodium.h>
@@ -18,7 +18,7 @@
 #endif
 
 #ifdef _MSC_VER
-#pragma warning(pop)
+#pragma warning( pop )
 #endif
 
 int next_crypto_init()
@@ -33,27 +33,27 @@ void next_crypto_random_bytes( uint8_t * buffer, int bytes )
 
 int next_crypto_sign_keypair( unsigned char * pk, unsigned char * sk )
 {
-    return crypto_sign_keypair( pk, sk );    
+    return crypto_sign_keypair( pk, sk );
 }
 
 int next_crypto_sign_init( struct next_crypto_sign_state_t * state )
 {
-    return crypto_sign_init( (crypto_sign_state*) state );
+    return crypto_sign_init( (crypto_sign_state *) state );
 }
 
 int next_crypto_sign_update( struct next_crypto_sign_state_t * state, const unsigned char * m, unsigned long long mlen )
 {
-    return crypto_sign_update( (crypto_sign_state*) state, m, mlen );
+    return crypto_sign_update( (crypto_sign_state *) state, m, mlen );
 }
 
-int next_crypto_sign_final_create( struct next_crypto_sign_state_t * state, unsigned char * sig, unsigned long long * siglen_p, const unsigned char *sk )
+int next_crypto_sign_final_create( struct next_crypto_sign_state_t * state, unsigned char * sig, unsigned long long * siglen_p, const unsigned char * sk )
 {
-    return crypto_sign_final_create( (crypto_sign_state*) state, sig, siglen_p, sk );
+    return crypto_sign_final_create( (crypto_sign_state *) state, sig, siglen_p, sk );
 }
 
 int next_crypto_sign_final_verify( struct next_crypto_sign_state_t * state, const unsigned char * sig, const unsigned char * pk )
 {
-    return crypto_sign_final_verify( (crypto_sign_state*) state, sig, pk );
+    return crypto_sign_final_verify( (crypto_sign_state *) state, sig, pk );
 }
 
 void next_crypto_secretbox_keygen( unsigned char * k )
@@ -78,7 +78,7 @@ void next_crypto_aead_chacha20poly1305_keygen( unsigned char * k )
 
 int next_crypto_aead_chacha20poly1305_encrypt( unsigned char * c, unsigned long long * clen_p, const unsigned char * m, unsigned long long mlen, const unsigned char * ad, unsigned long long adlen, const unsigned char * nsec, const unsigned char * npub, const unsigned char * k )
 {
-    return crypto_aead_chacha20poly1305_encrypt( c, clen_p, m, mlen, ad, adlen, nsec, npub, k );   
+    return crypto_aead_chacha20poly1305_encrypt( c, clen_p, m, mlen, ad, adlen, nsec, npub, k );
 }
 
 int next_crypto_aead_chacha20poly1305_decrypt( unsigned char * m, unsigned long long * mlen_p, unsigned char * nsec, const unsigned char * c, unsigned long long clen, const unsigned char * ad, unsigned long long adlen, const unsigned char * npub, const unsigned char * k )

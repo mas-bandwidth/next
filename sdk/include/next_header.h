@@ -10,7 +10,7 @@
 #include "next_crypto.h"
 #include "next_read_write.h"
 
-#pragma pack(push, 1)
+#pragma pack( push, 1 )
 struct header_data
 {
     uint8_t session_private_key[NEXT_SESSION_PRIVATE_KEY_BYTES];
@@ -19,7 +19,7 @@ struct header_data
     uint64_t session_id;
     uint8_t session_version;
 };
-#pragma pack(pop)
+#pragma pack( pop )
 
 inline int next_write_header( uint8_t packet_type, uint64_t packet_sequence, uint64_t session_id, uint8_t session_version, const uint8_t * private_key, uint8_t * header )
 {
@@ -39,7 +39,7 @@ inline int next_write_header( uint8_t packet_type, uint64_t packet_sequence, uin
     data.session_id = session_id;
     data.session_version = session_version;
 
-    next_crypto_hash_sha256( p, (const unsigned char*) &data, sizeof(struct header_data) );
+    next_crypto_hash_sha256( p, (const unsigned char *) &data, sizeof( struct header_data ) );
 
     return NEXT_OK;
 }
@@ -72,28 +72,28 @@ inline int next_read_header( int packet_type, uint64_t * sequence, uint64_t * se
 
     data.packet_type = packet_type;
 
-    data.packet_sequence  = header[0];
-    data.packet_sequence |= ( ( (uint64_t)( header[1] ) ) << 8  );
-    data.packet_sequence |= ( ( (uint64_t)( header[2] ) ) << 16 );
-    data.packet_sequence |= ( ( (uint64_t)( header[3] ) ) << 24 );
-    data.packet_sequence |= ( ( (uint64_t)( header[4] ) ) << 32 );
-    data.packet_sequence |= ( ( (uint64_t)( header[5] ) ) << 40 );
-    data.packet_sequence |= ( ( (uint64_t)( header[6] ) ) << 48 );
-    data.packet_sequence |= ( ( (uint64_t)( header[7] ) ) << 56 );
+    data.packet_sequence = header[0];
+    data.packet_sequence |= ( ( (uint64_t) ( header[1] ) ) << 8 );
+    data.packet_sequence |= ( ( (uint64_t) ( header[2] ) ) << 16 );
+    data.packet_sequence |= ( ( (uint64_t) ( header[3] ) ) << 24 );
+    data.packet_sequence |= ( ( (uint64_t) ( header[4] ) ) << 32 );
+    data.packet_sequence |= ( ( (uint64_t) ( header[5] ) ) << 40 );
+    data.packet_sequence |= ( ( (uint64_t) ( header[6] ) ) << 48 );
+    data.packet_sequence |= ( ( (uint64_t) ( header[7] ) ) << 56 );
 
-    data.session_id  = header[8];
-    data.session_id |= ( ( (uint64_t)( header[8+1] ) ) << 8  );
-    data.session_id |= ( ( (uint64_t)( header[8+2] ) ) << 16 );
-    data.session_id |= ( ( (uint64_t)( header[8+3] ) ) << 24 );
-    data.session_id |= ( ( (uint64_t)( header[8+4] ) ) << 32 );
-    data.session_id |= ( ( (uint64_t)( header[8+5] ) ) << 40 );
-    data.session_id |= ( ( (uint64_t)( header[8+6] ) ) << 48 );
-    data.session_id |= ( ( (uint64_t)( header[8+7] ) ) << 56 );
+    data.session_id = header[8];
+    data.session_id |= ( ( (uint64_t) ( header[8 + 1] ) ) << 8 );
+    data.session_id |= ( ( (uint64_t) ( header[8 + 2] ) ) << 16 );
+    data.session_id |= ( ( (uint64_t) ( header[8 + 3] ) ) << 24 );
+    data.session_id |= ( ( (uint64_t) ( header[8 + 4] ) ) << 32 );
+    data.session_id |= ( ( (uint64_t) ( header[8 + 5] ) ) << 40 );
+    data.session_id |= ( ( (uint64_t) ( header[8 + 6] ) ) << 48 );
+    data.session_id |= ( ( (uint64_t) ( header[8 + 7] ) ) << 56 );
 
-    data.session_version = header[8+8];
+    data.session_version = header[8 + 8];
 
     uint8_t hash[32];
-    next_crypto_hash_sha256( hash, (const unsigned char*) &data, sizeof(struct header_data) );
+    next_crypto_hash_sha256( hash, (const unsigned char *) &data, sizeof( struct header_data ) );
 
     if ( memcmp( hash, header + 8 + 8 + 1, 8 ) != 0 )
     {

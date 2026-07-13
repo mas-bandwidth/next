@@ -29,10 +29,9 @@ class Allocator
 {
     int64_t num_allocations;
     next_platform_mutex_t mutex;
-    std::map<void*, AllocatorEntry*> entries;
+    std::map<void *, AllocatorEntry *> entries;
 
 public:
-
     Allocator()
     {
         int result = next_platform_mutex_create( &mutex );
@@ -65,7 +64,7 @@ public:
         next_platform_mutex_guard( &mutex );
         next_assert( pointer );
         next_assert( num_allocations > 0 );
-        std::map<void*, AllocatorEntry*>::iterator itor = entries.find( pointer );
+        std::map<void *, AllocatorEntry *>::iterator itor = entries.find( pointer );
         next_assert( itor != entries.end() );
         entries.erase( itor );
         num_allocations--;
@@ -89,7 +88,7 @@ struct ClientContext
 
 void * malloc_function( void * _context, size_t bytes )
 {
-    Context * context = (Context*) _context;
+    Context * context = (Context *) _context;
     next_assert( context );
     next_assert( context->allocator );
     return context->allocator->Alloc( bytes );
@@ -97,7 +96,7 @@ void * malloc_function( void * _context, size_t bytes )
 
 void free_function( void * _context, void * p )
 {
-    Context * context = (Context*) _context;
+    Context * context = (Context *) _context;
     next_assert( context );
     next_assert( context->allocator );
     return context->allocator->Free( p );
@@ -119,7 +118,7 @@ extern const char * log_level_string( int level )
         return "???";
 }
 
-void log_function( int level, const char * format, ... ) 
+void log_function( int level, const char * format, ... )
 {
     va_list args;
     va_start( args, format );
@@ -142,21 +141,21 @@ void assert_function( const char * condition, const char * function, const char 
 {
     next_printf( NEXT_LOG_LEVEL_NONE, "assert failed: ( %s ), function %s, file %s, line %d\n", condition, function, file, line );
     fflush( stdout );
-    #if defined(_MSC_VER)
-        __debugbreak();
-    #elif defined(__ORBIS__)
-        __builtin_trap();
-    #elif defined(__PROSPERO__)
-        __builtin_trap();
-    #elif defined(__clang__)
-        __builtin_debugtrap();
-    #elif defined(__GNUC__)
-        __builtin_trap();
-    #elif defined(linux) || defined(__linux) || defined(__linux__) || defined(__APPLE__)
-        raise(SIGTRAP);
-    #else
-        #error "asserts not supported on this platform!"
-    #endif
+#if defined( _MSC_VER )
+    __debugbreak();
+#elif defined( __ORBIS__ )
+    __builtin_trap();
+#elif defined( __PROSPERO__ )
+    __builtin_trap();
+#elif defined( __clang__ )
+    __builtin_debugtrap();
+#elif defined( __GNUC__ )
+    __builtin_trap();
+#elif defined( linux ) || defined( __linux ) || defined( __linux__ ) || defined( __APPLE__ )
+    raise( SIGTRAP );
+#else
+#error "asserts not supported on this platform!"
+#endif
 }
 
 // -------------------------------------------------------------
@@ -165,7 +164,8 @@ static volatile int quit = 0;
 
 void interrupt_handler( int signal )
 {
-    (void) signal; quit = 1;
+    (void) signal;
+    quit = 1;
 }
 
 void generate_packet( uint8_t * packet_data, int & packet_bytes )
@@ -192,7 +192,7 @@ void client_packet_received( next_client_t * client, void * _context, const next
     (void) client;
     (void) from;
 
-    ClientContext * context = (ClientContext*) _context;
+    ClientContext * context = (ClientContext *) _context;
 
     next_assert( context );
     next_assert( context->allocator != NULL );
@@ -218,7 +218,7 @@ void print_client_stats( next_client_t * client )
         return;
 
     printf( "================================================================\n" );
-    
+
     const next_client_stats_t * stats = next_client_stats( client );
 
     const char * platform = "unknown";
@@ -268,7 +268,7 @@ void print_client_stats( next_client_t * client )
     const char * state_string = "???";
 
     const int state = next_client_state( client );
-    
+
     switch ( state )
     {
         case NEXT_CLIENT_STATE_CLOSED:
@@ -294,7 +294,7 @@ void print_client_stats( next_client_t * client )
     printf( "platform id = %s (%d)\n", platform, (int) stats->platform_id );
 
     const char * connection = "unknown";
-    
+
     switch ( stats->connection_type )
     {
         case NEXT_CONNECTION_TYPE_WIRED:
@@ -362,8 +362,9 @@ void update_client_timeout( ClientContext * context )
 
 int main()
 {
-    signal( SIGINT, interrupt_handler ); signal( SIGTERM, interrupt_handler );
-    
+    signal( SIGINT, interrupt_handler );
+    signal( SIGTERM, interrupt_handler );
+
     next_log_level( NEXT_LOG_LEVEL_INFO );
 
     next_log_function( log_function );
@@ -377,7 +378,7 @@ int main()
 
     next_config_t config;
     next_default_config( &config );
-    strncpy_s( config.buyer_public_key, buyer_public_key, sizeof(config.buyer_public_key) - 1 );
+    strncpy_s( config.buyer_public_key, buyer_public_key, sizeof( config.buyer_public_key ) - 1 );
 
     if ( next_init( &global_context, &config ) != NEXT_OK )
     {
@@ -386,7 +387,7 @@ int main()
     }
 
     Allocator client_allocator;
-    
+
     ClientContext client_context;
     client_context.allocator = &client_allocator;
     client_context.client_data = 0x12345;
@@ -423,14 +424,14 @@ int main()
             break;
         }
 
-        if ( next_client_ready( client ) ) 
+        if ( next_client_ready( client ) )
         {
             int packet_bytes = 0;
             uint8_t packet_data[NEXT_MTU];
             generate_packet( packet_data, packet_bytes );
             next_client_send_packet( client, packet_data, packet_bytes );
         }
-        
+
         if ( next_platform_time() > 60.0 && !reported )
         {
             next_client_report_session( client );
@@ -451,7 +452,7 @@ int main()
     }
 
     next_client_destroy( client );
-    
+
     next_term();
 
     printf( "\n" );

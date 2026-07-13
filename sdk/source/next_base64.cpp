@@ -46,15 +46,15 @@ int next_base64_encode_data( const uint8_t * input, size_t input_length, char * 
     if ( end - in )
     {
         *pos++ = base64_table_encode[in[0] >> 2];
-        if (end - in == 1)
+        if ( end - in == 1 )
         {
-            *pos++ = base64_table_encode[(in[0] & 0x03) << 4];
+            *pos++ = base64_table_encode[( in[0] & 0x03 ) << 4];
             *pos++ = '=';
         }
         else
         {
-            *pos++ = base64_table_encode[((in[0] & 0x03) << 4) | (in[1] >> 4)];
-            *pos++ = base64_table_encode[(in[1] & 0x0f) << 2];
+            *pos++ = base64_table_encode[( ( in[0] & 0x03 ) << 4 ) | ( in[1] >> 4 )];
+            *pos++ = base64_table_encode[( in[1] & 0x0f ) << 2];
         }
         *pos++ = '=';
     }
@@ -65,14 +65,130 @@ int next_base64_encode_data( const uint8_t * input, size_t input_length, char * 
 }
 
 static const int base64_table_decode[256] =
-{
-    0,  0,  0,  0,  0,  0,   0,  0,  0,  0,  0,  0,
-    0,  0,  0,  0,  0,  0,   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-    0,  0,  0,  0,  0,  0,   0,  0,  0,  0,  0, 62, 63, 62, 62, 63, 52, 53, 54, 55,
-    56, 57, 58, 59, 60, 61,  0,  0,  0,  0,  0,  0,  0,  0,  1,  2,  3,  4,  5,  6,
-    7,  8,  9,  10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,  0,
-    0,  0,  0,  63,  0, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
-    41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51,
+    {
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        62,
+        63,
+        62,
+        62,
+        63,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        0,
+        0,
+        0,
+        0,
+        63,
+        0,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
 };
 
 int next_base64_decode_data( const char * input, uint8_t * output, size_t output_size )
@@ -104,7 +220,7 @@ int next_base64_decode_data( const char * input, uint8_t * output, size_t output
         int n = base64_table_decode[int( input[L] )] << 18 | base64_table_decode[int( input[L + 1] )] << 12;
         output[output_length - 1] = uint8_t( n >> 16 );
 
-        if (input_length > L + 2 && input[L + 2] != '=')
+        if ( input_length > L + 2 && input[L + 2] != '=' )
         {
             n |= base64_table_decode[int( input[L + 2] )] << 6;
             output_length += 1;
@@ -125,7 +241,7 @@ int next_base64_encode_string( const char * input, char * output, size_t output_
     next_assert( output );
     next_assert( output_size > 0 );
 
-    return next_base64_encode_data( (const uint8_t *)( input ), strlen( input ), output, output_size );
+    return next_base64_encode_data( (const uint8_t *) ( input ), strlen( input ), output, output_size );
 }
 
 int next_base64_decode_string( const char * input, char * output, size_t output_size )
@@ -134,7 +250,7 @@ int next_base64_decode_string( const char * input, char * output, size_t output_
     next_assert( output );
     next_assert( output_size > 0 );
 
-    int output_length = next_base64_decode_data( input, (uint8_t *)( output ), output_size - 1 );
+    int output_length = next_base64_decode_data( input, (uint8_t *) ( output ), output_size - 1 );
     if ( output_length < 0 )
     {
         return 0;

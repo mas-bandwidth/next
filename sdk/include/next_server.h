@@ -17,7 +17,7 @@ void next_server_initialize_sentinels( next_server_t * server );
 
 void next_server_verify_sentinels( next_server_t * server );
 
-next_server_t * next_server_create( void * context, const char * server_address, const char * bind_address, const char * datacenter, void (*packet_received_callback)( next_server_t * server, void * context, const next_address_t * from, const uint8_t * packet_data, int packet_bytes ) );
+next_server_t * next_server_create( void * context, const char * server_address, const char * bind_address, const char * datacenter, void ( *packet_received_callback )( next_server_t * server, void * context, const next_address_t * from, const uint8_t * packet_data, int packet_bytes ) );
 
 uint16_t next_server_port( next_server_t * server );
 
@@ -49,13 +49,12 @@ void next_server_session_event( struct next_server_t * server, const struct next
 
 void next_server_flush( struct next_server_t * server );
 
-void next_server_set_packet_receive_callback( struct next_server_t * server, void (*callback) ( void * data, next_address_t * from, uint8_t * packet_data, int * begin, int * end ), void * callback_data );
+void next_server_set_packet_receive_callback( struct next_server_t * server, void ( *callback )( void * data, next_address_t * from, uint8_t * packet_data, int * begin, int * end ), void * callback_data );
 
-void next_server_set_send_packet_to_address_callback( struct next_server_t * server, int (*callback) ( void * data, const next_address_t * from, const uint8_t * packet_data, int packet_bytes ), void * callback_data );
+void next_server_set_send_packet_to_address_callback( struct next_server_t * server, int ( *callback )( void * data, const next_address_t * from, const uint8_t * packet_data, int packet_bytes ), void * callback_data );
 
-void next_server_set_payload_receive_callback( struct next_server_t * server, int (*callback) ( void * data, const next_address_t * client_address, const uint8_t * payload_data, int payload_bytes ), void * callback_data );
+void next_server_set_payload_receive_callback( struct next_server_t * server, int ( *callback )( void * data, const next_address_t * client_address, const uint8_t * payload_data, int payload_bytes ), void * callback_data );
 
 bool next_server_direct_only( struct next_server_t * server );
-
 
 #endif // #ifndef NEXT_SERVER_H

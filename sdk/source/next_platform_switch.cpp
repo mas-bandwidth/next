@@ -25,9 +25,9 @@ next_platform_thread_t * next_platform_thread_create( void * context, next_platf
     next_assert( thread );
     thread->context = context;
 #if _WIN32
-    thread->stack = (char *)( _aligned_malloc( STACK_SIZE, nn::os::ThreadStackAlignment ) );
+    thread->stack = (char *) ( _aligned_malloc( STACK_SIZE, nn::os::ThreadStackAlignment ) );
 #else
-    thread->stack = (char *)( aligned_alloc( nn::os::ThreadStackAlignment, STACK_SIZE ) );
+    thread->stack = (char *) ( aligned_alloc( nn::os::ThreadStackAlignment, STACK_SIZE ) );
 #endif
     if ( nn::os::CreateThread( &thread->handle, fn, arg, thread->stack, STACK_SIZE, nn::os::DefaultThreadPriority ).IsFailure() )
     {
@@ -68,8 +68,8 @@ void next_platform_thread_destroy( next_platform_thread_t * thread )
 void next_platform_client_thread_priority( next_platform_thread_t * thread )
 {
     // IMPORTANT: If you are developing on Nintendo Switch, please set thread priority and cpu core mask for the network next client thread here.
-    // This threads need to wake up and process sockets as they arrive, so the measurements of round trip time are not quantized to your game's framerate. 
-    // Due to the way thread scheduling works on the switch, and how relative to other platforms it's somewhat underpowered, it's best that we leave it 
+    // This threads need to wake up and process sockets as they arrive, so the measurements of round trip time are not quantized to your game's framerate.
+    // Due to the way thread scheduling works on the switch, and how relative to other platforms it's somewhat underpowered, it's best that we leave it
     // up to you to decide how you want to prioritize these threads, and which core(s) you want them to run on.
     (void) thread;
 }
@@ -102,7 +102,7 @@ void next_platform_mutex_destroy( next_platform_mutex_t * mutex )
 {
     next_assert( mutex );
     nn::os::FinalizeMutex( &mutex->handle );
-    memset( mutex, 0, sizeof(next_platform_mutex_t) );
+    memset( mutex, 0, sizeof( next_platform_mutex_t ) );
 }
 
 // time
@@ -159,13 +159,13 @@ static int next_randombytes_close()
 }
 
 static randombytes_implementation next_random_implementation =
-{
-    &next_randombytes_implementation_name,
-    &next_randombytes_random,
-    &next_randombytes_stir,
-    &next_randombytes_uniform,
-    &next_randombytes_buf,
-    &next_randombytes_close,
+    {
+        &next_randombytes_implementation_name,
+        &next_randombytes_random,
+        &next_randombytes_stir,
+        &next_randombytes_uniform,
+        &next_randombytes_buf,
+        &next_randombytes_close,
 };
 
 static nn::socket::ConfigDefaultWithMemory socket_config_with_memory;
@@ -230,7 +230,7 @@ uint16_t next_platform_htons( uint16_t in )
 int next_platform_hostname_resolve( const char * hostname, const char * port, next_address_t * address )
 {
     nn::socket::AddrInfo hints;
-    memset( &hints, 0, sizeof(hints) );
+    memset( &hints, 0, sizeof( hints ) );
     nn::socket::AddrInfo * result;
     if ( nn::socket::GetAddrInfo( hostname, port, &hints, &result ) == nn::socket::AiErrno::EAi_Success )
     {
@@ -238,7 +238,7 @@ int next_platform_hostname_resolve( const char * hostname, const char * port, ne
         {
             if ( result->ai_addr->sa_family == nn::socket::Family::Af_Inet )
             {
-                nn::socket::SockAddrIn * addr_ipv4 = (nn::socket::SockAddrIn *)( result->ai_addr );
+                nn::socket::SockAddrIn * addr_ipv4 = (nn::socket::SockAddrIn *) ( result->ai_addr );
                 address->type = NEXT_ADDRESS_IPV4;
                 address->data.ipv4[0] = (uint8_t) ( ( addr_ipv4->sin_addr.S_addr & 0x000000FF ) );
                 address->data.ipv4[1] = (uint8_t) ( ( addr_ipv4->sin_addr.S_addr & 0x0000FF00 ) >> 8 );
@@ -292,7 +292,7 @@ extern bool next_packet_tagging_enabled;
 int next_platform_socket_init( next_platform_socket_t * s, next_address_t * address, int socket_type, float timeout_seconds, int send_buffer_size, int receive_buffer_size )
 {
     // create socket
-    
+
     s->handle = nn::socket::Socket( nn::socket::Family::Af_Inet, nn::socket::Type::Sock_Dgram, nn::socket::Protocol::IpProto_Udp );
 
     s->address = *address;
@@ -309,13 +309,13 @@ int next_platform_socket_init( next_platform_socket_t * s, next_address_t * addr
 
     // increase socket send and receive buffer sizes
 
-    if ( nn::socket::SetSockOpt( s->handle, nn::socket::Level::Sol_Socket, nn::socket::Option::So_SndBuf, (void*)( &send_buffer_size ), nn::socket::SockLenT( sizeof( int ) ) ) != 0 )
+    if ( nn::socket::SetSockOpt( s->handle, nn::socket::Level::Sol_Socket, nn::socket::Option::So_SndBuf, (void *) ( &send_buffer_size ), nn::socket::SockLenT( sizeof( int ) ) ) != 0 )
     {
         next_printf( NEXT_LOG_LEVEL_ERROR, "failed to set socket send buffer size" );
         return NEXT_ERROR;
     }
 
-    if ( nn::socket::SetSockOpt( s->handle, nn::socket::Level::Sol_Socket, nn::socket::Option::So_RcvBuf, (void*)( &receive_buffer_size ), nn::socket::SockLenT( sizeof( int ) ) ) != 0 )
+    if ( nn::socket::SetSockOpt( s->handle, nn::socket::Level::Sol_Socket, nn::socket::Option::So_RcvBuf, (void *) ( &receive_buffer_size ), nn::socket::SockLenT( sizeof( int ) ) ) != 0 )
     {
         next_printf( NEXT_LOG_LEVEL_ERROR, "failed to set socket receive buffer size" );
         return NEXT_ERROR;
@@ -332,13 +332,13 @@ int next_platform_socket_init( next_platform_socket_t * s, next_address_t * addr
     {
         nn::socket::SockAddrIn socket_address = { 0 };
         socket_address.sin_family = nn::socket::Family::Af_Inet;
-        socket_address.sin_addr.S_addr = ( ( (uint32_t) address->data.ipv4[0] ) )        | 
-                                         ( ( (uint32_t) address->data.ipv4[1] ) << 8 )   | 
-                                         ( ( (uint32_t) address->data.ipv4[2] ) << 16 )  | 
+        socket_address.sin_addr.S_addr = ( ( (uint32_t) address->data.ipv4[0] ) ) |
+                                         ( ( (uint32_t) address->data.ipv4[1] ) << 8 ) |
+                                         ( ( (uint32_t) address->data.ipv4[2] ) << 16 ) |
                                          ( ( (uint32_t) address->data.ipv4[3] ) << 24 );
         socket_address.sin_port = next_platform_htons( address->port );
         socket_address.sin_len = sizeof( socket_address );
-        if ( nn::socket::Bind( s->handle, (nn::socket::SockAddr*)( &socket_address ), nn::socket::SockLenT( sizeof( socket_address ) ) ) < 0 )
+        if ( nn::socket::Bind( s->handle, (nn::socket::SockAddr *) ( &socket_address ), nn::socket::SockLenT( sizeof( socket_address ) ) ) < 0 )
         {
             next_printf( NEXT_LOG_LEVEL_ERROR, "failed to bind socket (ipv4): %d", int( nn::socket::GetLastError() ) );
             return NEXT_ERROR;
@@ -351,7 +351,7 @@ int next_platform_socket_init( next_platform_socket_t * s, next_address_t * addr
     {
         nn::socket::SockAddrIn addr;
         nn::socket::SockLenT len = sizeof( addr );
-        if ( nn::socket::GetSockName( s->handle, (nn::socket::SockAddr*)( &addr ), &len ) == -1 )
+        if ( nn::socket::GetSockName( s->handle, (nn::socket::SockAddr *) ( &addr ), &len ) == -1 )
         {
             next_printf( NEXT_LOG_LEVEL_ERROR, "failed to get socket port (ipv4)" );
             return NEXT_ERROR;
@@ -388,14 +388,14 @@ int next_platform_socket_init( next_platform_socket_t * s, next_address_t * addr
     // set do not fragment
 
     int value = 1;
-    nn::socket::SetSockOpt( s->handle, nn::socket::Level::Sol_Ip, nn::socket::Option::Ip_DontFrag, (void*)( &value ), nn::socket::SockLenT( sizeof( int ) ) );
+    nn::socket::SetSockOpt( s->handle, nn::socket::Level::Sol_Ip, nn::socket::Option::Ip_DontFrag, (void *) ( &value ), nn::socket::SockLenT( sizeof( int ) ) );
 
     // enable dscp packet tagging
 
     if ( next_packet_tagging_enabled )
     {
         int value = 46;
-        nn::socket::SetSockOpt( s->handle, nn::socket::Level::Sol_Ip, nn::socket::Option::Ip_Tos, (void*)( &value ), nn::socket::SockLenT( sizeof( int ) ) );
+        nn::socket::SetSockOpt( s->handle, nn::socket::Level::Sol_Ip, nn::socket::Option::Ip_Tos, (void *) ( &value ), nn::socket::SockLenT( sizeof( int ) ) );
     }
 
     return NEXT_OK;
@@ -409,7 +409,7 @@ next_platform_socket_t * next_platform_socket_create( void * context, next_addre
 
     next_platform_socket_t * socket = (next_platform_socket_t *) next_malloc( context, sizeof( next_platform_socket_t ) );
 
-    if ( !socket ) 
+    if ( !socket )
         return NULL;
 
     socket->context = context;
@@ -463,12 +463,12 @@ void next_platform_socket_send_packet( next_platform_socket_t * socket, const ne
         nn::socket::SockAddrIn socket_address;
         memset( &socket_address, 0, sizeof( socket_address ) );
         socket_address.sin_family = nn::socket::Family::Af_Inet;
-        socket_address.sin_addr.S_addr = ( ( (uint32_t) to->data.ipv4[0] ) )        | 
-                                         ( ( (uint32_t) to->data.ipv4[1] ) << 8 )   | 
-                                         ( ( (uint32_t) to->data.ipv4[2] ) << 16 )  | 
+        socket_address.sin_addr.S_addr = ( ( (uint32_t) to->data.ipv4[0] ) ) |
+                                         ( ( (uint32_t) to->data.ipv4[1] ) << 8 ) |
+                                         ( ( (uint32_t) to->data.ipv4[2] ) << 16 ) |
                                          ( ( (uint32_t) to->data.ipv4[3] ) << 24 );
         socket_address.sin_port = next_platform_htons( to->port );
-        int result = int( nn::socket::SendTo( socket->handle, (const void*)( packet_data ), packet_bytes, nn::socket::MsgFlag::Msg_None, (nn::socket::SockAddr*)( &socket_address ), nn::socket::SockLenT( sizeof( socket_address ) ) ) );
+        int result = int( nn::socket::SendTo( socket->handle, (const void *) ( packet_data ), packet_bytes, nn::socket::MsgFlag::Msg_None, (nn::socket::SockAddr *) ( &socket_address ), nn::socket::SockLenT( sizeof( socket_address ) ) ) );
         if ( result < 0 )
         {
             next_printf( NEXT_LOG_LEVEL_DEBUG, "sendto failed: %d", int( nn::socket::GetLastError() ) );
@@ -505,7 +505,7 @@ int next_platform_socket_receive_packet( next_platform_socket_t * socket, next_a
     nn::socket::SockAddrStorage sockaddr_from;
     nn::socket::SockLenT from_length = sizeof( sockaddr_from );
 
-    int result = int( nn::socket::RecvFrom( socket->handle, (void*)( packet_data ), max_packet_size, nn::socket::MsgFlag::Msg_None, (nn::socket::SockAddr*)(  &sockaddr_from ), &from_length ) );
+    int result = int( nn::socket::RecvFrom( socket->handle, (void *) ( packet_data ), max_packet_size, nn::socket::MsgFlag::Msg_None, (nn::socket::SockAddr *) ( &sockaddr_from ), &from_length ) );
 
     if ( result <= 0 )
     {
@@ -515,17 +515,17 @@ int next_platform_socket_receive_packet( next_platform_socket_t * socket, next_a
             return 0;
         }
 
-        if ( err == nn::socket::Errno::ENetDown || err == nn::socket::Errno::EBadf)
+        if ( err == nn::socket::Errno::ENetDown || err == nn::socket::Errno::EBadf )
         {
             next_platform_socket_cleanup( socket );
         }
 
         next_printf( NEXT_LOG_LEVEL_DEBUG, "recvfrom failed with error %d", int( err ) );
-        
+
         return 0;
     }
 
-    nn::socket::SockAddrIn * addr_ipv4 = (nn::socket::SockAddrIn*) &sockaddr_from;
+    nn::socket::SockAddrIn * addr_ipv4 = (nn::socket::SockAddrIn *) &sockaddr_from;
     from->type = NEXT_ADDRESS_IPV4;
     from->data.ipv4[0] = (uint8_t) ( ( addr_ipv4->sin_addr.S_addr & 0x000000FF ) );
     from->data.ipv4[1] = (uint8_t) ( ( addr_ipv4->sin_addr.S_addr & 0x0000FF00 ) >> 8 );

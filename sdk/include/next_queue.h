@@ -11,7 +11,7 @@
 
 struct next_queue_t
 {
-    NEXT_DECLARE_SENTINEL(0)
+    NEXT_DECLARE_SENTINEL( 0 )
 
     void * context;
     int size;
@@ -19,7 +19,7 @@ struct next_queue_t
     int start_index;
     void ** entries;
 
-    NEXT_DECLARE_SENTINEL(1)
+    NEXT_DECLARE_SENTINEL( 1 )
 };
 
 inline void next_queue_initialize_sentinels( next_queue_t * queue )
@@ -42,7 +42,7 @@ inline void next_queue_destroy( next_queue_t * queue );
 
 inline next_queue_t * next_queue_create( void * context, int size )
 {
-    next_queue_t * queue = (next_queue_t*) next_malloc( context, sizeof(next_queue_t) );
+    next_queue_t * queue = (next_queue_t *) next_malloc( context, sizeof( next_queue_t ) );
     next_assert( queue );
     if ( !queue )
         return NULL;
@@ -53,7 +53,7 @@ inline next_queue_t * next_queue_create( void * context, int size )
     queue->size = size;
     queue->num_entries = 0;
     queue->start_index = 0;
-    queue->entries = (void**) next_malloc( context, size * sizeof(void*) );
+    queue->entries = (void **) next_malloc( context, size * sizeof( void * ) );
 
     next_assert( queue->entries );
 
@@ -77,7 +77,7 @@ inline void next_queue_clear( next_queue_t * queue )
 
     for ( int i = 0; i < queue->num_entries; ++i )
     {
-        const int index = (start_index + i ) % queue_size;
+        const int index = ( start_index + i ) % queue_size;
         next_free( queue->context, queue->entries[index] );
         queue->entries[index] = NULL;
     }

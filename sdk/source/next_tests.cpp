@@ -50,23 +50,23 @@ static void next_check_handler( const char * condition,
     printf( "check failed: ( %s ), function %s, file %s, line %d\n", condition, function, file, line );
     fflush( stdout );
 #ifndef NDEBUG
-    #if defined( __GNUC__ )
-        __builtin_trap();
-    #elif defined( _MSC_VER )
-        __debugbreak();
-    #endif
+#if defined( __GNUC__ )
+    __builtin_trap();
+#elif defined( _MSC_VER )
+    __debugbreak();
+#endif
 #endif
     exit( 1 );
 }
 
-#define next_check( condition )                                                                                 \
-do                                                                                                              \
-{                                                                                                               \
-    if ( !(condition) )                                                                                         \
-    {                                                                                                           \
-        next_check_handler( #condition, (const char*) __FUNCTION__, (const char*) __FILE__, __LINE__ );         \
-    }                                                                                                           \
-} while(0)
+#define next_check( condition )                                                                               \
+    do                                                                                                        \
+    {                                                                                                         \
+        if ( !( condition ) )                                                                                 \
+        {                                                                                                     \
+            next_check_handler( #condition, (const char *) __FUNCTION__, (const char *) __FILE__, __LINE__ ); \
+        }                                                                                                     \
+    } while ( 0 )
 
 void test_time()
 {
@@ -104,8 +104,8 @@ void test_base64()
     const char * input = "a test string. let's see if it works properly";
     char encoded[1024];
     char decoded[1024];
-    next_check( next_base64_encode_string( input, encoded, sizeof(encoded) ) > 0 );
-    next_check( next_base64_decode_string( encoded, decoded, sizeof(decoded) ) > 0 );
+    next_check( next_base64_encode_string( input, encoded, sizeof( encoded ) ) > 0 );
+    next_check( next_base64_decode_string( encoded, decoded, sizeof( decoded ) ) > 0 );
     next_check( strcmp( decoded, input ) == 0 );
     next_check( next_base64_decode_string( encoded, decoded, 10 ) == 0 );
 }
@@ -121,25 +121,25 @@ void test_copy_string()
     // copy valid string
     {
         char buffer[256];
-        size_t result = next_copy_string( buffer, "hello", sizeof(buffer) );
+        size_t result = next_copy_string( buffer, "hello", sizeof( buffer ) );
         next_check( result == 5 );
-        next_check( strncmp( buffer, "hello", sizeof(buffer) ) == 0 );
+        next_check( strncmp( buffer, "hello", sizeof( buffer ) ) == 0 );
     }
 
     // copy empty string
     {
         char buffer[256];
-        size_t result = next_copy_string( buffer, "", sizeof(buffer) );
+        size_t result = next_copy_string( buffer, "", sizeof( buffer ) );
         next_check( result == 0 );
-        next_check( strncmp( buffer, "", sizeof(buffer) ) == 0 );
+        next_check( strncmp( buffer, "", sizeof( buffer ) ) == 0 );
     }
 
     // truncated string
     {
         char buffer[4];
-        size_t result = next_copy_string( buffer, "hello my baby, hello my darling", sizeof(buffer) );
+        size_t result = next_copy_string( buffer, "hello my baby, hello my darling", sizeof( buffer ) );
         next_check( result == 3 );
-        next_check( strncmp( buffer, "hel", sizeof(buffer) ) == 0 );
+        next_check( strncmp( buffer, "hel", sizeof( buffer ) ) == 0 );
     }
 }
 
@@ -269,7 +269,7 @@ void test_bitpacker()
 
     next_check( bytesWritten == 10 );
 
-    memset( buffer + bytesWritten, 0, size_t(BufferSize) - bytesWritten );
+    memset( buffer + bytesWritten, 0, size_t( BufferSize ) - bytesWritten );
 
     BitReader reader( buffer, bytesWritten );
 
@@ -305,7 +305,7 @@ struct TestData
         memset( this, 0, sizeof( TestData ) );
     }
 
-    int a,b,c;
+    int a, b, c;
     uint32_t d : 8;
     uint32_t e : 8;
     uint32_t f : 8;
@@ -353,16 +353,17 @@ struct TestObject
 
         strcpy( data.string, "hello world!" );
 
-        memset( &data.address_a, 0, sizeof(next_address_t) );
+        memset( &data.address_a, 0, sizeof( next_address_t ) );
 
         next_address_parse( &data.address_b, "127.0.0.1:50000" );
 
         next_address_parse( &data.address_c, "[::1]:50000" );
     }
 
-    template <typename Stream> bool Serialize( Stream & stream )
+    template <typename Stream>
+    bool Serialize( Stream & stream )
     {
-        const TestContext & context = *(const TestContext*) stream.GetContext();
+        const TestContext & context = *(const TestContext *) stream.GetContext();
 
         serialize_int( stream, data.a, context.min, context.max );
         serialize_int( stream, data.b, context.min, context.max );
@@ -398,14 +399,14 @@ struct TestObject
         return true;
     }
 
-    bool operator == ( const TestObject & other ) const
+    bool operator==( const TestObject & other ) const
     {
         return memcmp( &data, &other.data, sizeof( TestData ) ) == 0;
     }
 
-    bool operator != ( const TestObject & other ) const
+    bool operator!=( const TestObject & other ) const
     {
-        return ! ( *this == other );
+        return !( *this == other );
     }
 };
 
@@ -429,7 +430,7 @@ void test_stream()
 
     const int bytesWritten = writeStream.GetBytesProcessed();
 
-    memset( buffer + bytesWritten, 0, size_t(BufferSize) - bytesWritten );
+    memset( buffer + bytesWritten, 0, size_t( BufferSize ) - bytesWritten );
 
     TestObject readObject;
 
@@ -465,7 +466,7 @@ void test_address()
         next_check( next_address_parse( &address, "[]" ) == NEXT_ERROR );
         next_check( next_address_parse( &address, "[]:" ) == NEXT_ERROR );
         next_check( next_address_parse( &address, ":" ) == NEXT_ERROR );
-#if !defined(WINVER) || WINVER > 0x502 // windows xp sucks
+#if !defined( WINVER ) || WINVER > 0x502 // windows xp sucks
         next_check( next_address_parse( &address, "1" ) == NEXT_ERROR );
         next_check( next_address_parse( &address, "12" ) == NEXT_ERROR );
         next_check( next_address_parse( &address, "123" ) == NEXT_ERROR );
@@ -708,7 +709,7 @@ void test_replay_protection()
 
         // the first time we receive packets, they should not be already received
 
-        #define MAX_SEQUENCE ( NEXT_REPLAY_PROTECTION_BUFFER_SIZE * 4 )
+#define MAX_SEQUENCE ( NEXT_REPLAY_PROTECTION_BUFFER_SIZE * 4 )
 
         uint64_t sequence;
         for ( sequence = 0; sequence < MAX_SEQUENCE; ++sequence )
@@ -743,7 +744,7 @@ void test_replay_protection()
 
 static bool equal_within_tolerance( float a, float b, float tolerance = 0.001f )
 {
-    return fabs(double(a)-double(b)) <= tolerance;
+    return fabs( double( a ) - double( b ) ) <= tolerance;
 }
 
 void test_ping_stats()
@@ -800,7 +801,7 @@ void test_ping_stats()
         next_check( route_stats.packet_loss == 0.0 );
     }
 
-    // add some pings and set them to have a pong response, but leave the last second of pings without response. 
+    // add some pings and set them to have a pong response, but leave the last second of pings without response.
     // packet loss should be zero because ping safety stops us considering packets 1 second young from having PL
     {
         static next_ping_history_t history;
@@ -923,9 +924,9 @@ void test_random_float()
 
 void test_crypto_box()
 {
-    #define CRYPTO_BOX_MESSAGE (const unsigned char *) "test"
-    #define CRYPTO_BOX_MESSAGE_LEN 4
-    #define CRYPTO_BOX_CIPHERTEXT_LEN ( NEXT_CRYPTO_BOX_MACBYTES + CRYPTO_BOX_MESSAGE_LEN )
+#define CRYPTO_BOX_MESSAGE (const unsigned char *) "test"
+#define CRYPTO_BOX_MESSAGE_LEN 4
+#define CRYPTO_BOX_CIPHERTEXT_LEN ( NEXT_CRYPTO_BOX_MACBYTES + CRYPTO_BOX_MESSAGE_LEN )
 
     unsigned char sender_publickey[NEXT_CRYPTO_BOX_PUBLICKEYBYTES];
     unsigned char sender_secretkey[NEXT_CRYPTO_BOX_SECRETKEYBYTES];
@@ -948,9 +949,9 @@ void test_crypto_box()
 
 void test_crypto_secret_box()
 {
-    #define CRYPTO_SECRET_BOX_MESSAGE ((const unsigned char *) "test")
-    #define CRYPTO_SECRET_BOX_MESSAGE_LEN 4
-    #define CRYPTO_SECRET_BOX_CIPHERTEXT_LEN (NEXT_CRYPTO_SECRETBOX_MACBYTES + CRYPTO_SECRET_BOX_MESSAGE_LEN)
+#define CRYPTO_SECRET_BOX_MESSAGE ( (const unsigned char *) "test" )
+#define CRYPTO_SECRET_BOX_MESSAGE_LEN 4
+#define CRYPTO_SECRET_BOX_CIPHERTEXT_LEN ( NEXT_CRYPTO_SECRETBOX_MACBYTES + CRYPTO_SECRET_BOX_MESSAGE_LEN )
 
     unsigned char key[NEXT_CRYPTO_SECRETBOX_KEYBYTES];
     unsigned char nonce[NEXT_CRYPTO_SECRETBOX_NONCEBYTES];
@@ -966,10 +967,10 @@ void test_crypto_secret_box()
 
 void test_crypto_aead()
 {
-    #define CRYPTO_AEAD_MESSAGE (const unsigned char *) "test"
-    #define CRYPTO_AEAD_MESSAGE_LEN 4
-    #define CRYPTO_AEAD_ADDITIONAL_DATA (const unsigned char *) "123456"
-    #define CRYPTO_AEAD_ADDITIONAL_DATA_LEN 6
+#define CRYPTO_AEAD_MESSAGE (const unsigned char *) "test"
+#define CRYPTO_AEAD_MESSAGE_LEN 4
+#define CRYPTO_AEAD_ADDITIONAL_DATA (const unsigned char *) "123456"
+#define CRYPTO_AEAD_ADDITIONAL_DATA_LEN 6
 
     unsigned char nonce[NEXT_CRYPTO_AEAD_CHACHA20POLY1305_NPUBBYTES];
     unsigned char key[NEXT_CRYPTO_AEAD_CHACHA20POLY1305_KEYBYTES];
@@ -977,7 +978,7 @@ void test_crypto_aead()
     unsigned long long ciphertext_len;
 
     next_crypto_aead_chacha20poly1305_keygen( key );
-    next_crypto_random_bytes( nonce, sizeof(nonce) );
+    next_crypto_random_bytes( nonce, sizeof( nonce ) );
 
     next_crypto_aead_chacha20poly1305_encrypt( ciphertext, &ciphertext_len,
                                                CRYPTO_AEAD_MESSAGE, CRYPTO_AEAD_MESSAGE_LEN,
@@ -987,19 +988,19 @@ void test_crypto_aead()
     unsigned char decrypted[CRYPTO_AEAD_MESSAGE_LEN];
     unsigned long long decrypted_len;
     next_check( next_crypto_aead_chacha20poly1305_decrypt( decrypted, &decrypted_len,
-                                                      NULL,
-                                                      ciphertext, ciphertext_len,
-                                                      CRYPTO_AEAD_ADDITIONAL_DATA,
-                                                      CRYPTO_AEAD_ADDITIONAL_DATA_LEN,
-                                                      nonce, key) == 0 );
+                                                           NULL,
+                                                           ciphertext, ciphertext_len,
+                                                           CRYPTO_AEAD_ADDITIONAL_DATA,
+                                                           CRYPTO_AEAD_ADDITIONAL_DATA_LEN,
+                                                           nonce, key ) == 0 );
 }
 
 void test_crypto_aead_ietf()
 {
-    #define CRYPTO_AEAD_IETF_MESSAGE (const unsigned char *) "test"
-    #define CRYPTO_AEAD_IETF_MESSAGE_LEN 4
-    #define CRYPTO_AEAD_IETF_ADDITIONAL_DATA (const unsigned char *) "123456"
-    #define CRYPTO_AEAD_IETF_ADDITIONAL_DATA_LEN 6
+#define CRYPTO_AEAD_IETF_MESSAGE (const unsigned char *) "test"
+#define CRYPTO_AEAD_IETF_MESSAGE_LEN 4
+#define CRYPTO_AEAD_IETF_ADDITIONAL_DATA (const unsigned char *) "123456"
+#define CRYPTO_AEAD_IETF_ADDITIONAL_DATA_LEN 6
 
     unsigned char nonce[NEXT_CRYPTO_AEAD_CHACHA20POLY1305_IETF_NPUBBYTES];
     unsigned char key[NEXT_CRYPTO_AEAD_CHACHA20POLY1305_IETF_KEYBYTES];
@@ -1007,9 +1008,9 @@ void test_crypto_aead_ietf()
     unsigned long long ciphertext_len;
 
     next_crypto_aead_chacha20poly1305_ietf_keygen( key );
-    next_crypto_random_bytes( nonce, sizeof(nonce) );
+    next_crypto_random_bytes( nonce, sizeof( nonce ) );
 
-    next_crypto_aead_chacha20poly1305_ietf_encrypt( ciphertext, &ciphertext_len, CRYPTO_AEAD_IETF_MESSAGE, CRYPTO_AEAD_IETF_MESSAGE_LEN, CRYPTO_AEAD_IETF_ADDITIONAL_DATA, CRYPTO_AEAD_IETF_ADDITIONAL_DATA_LEN, NULL, nonce, key);
+    next_crypto_aead_chacha20poly1305_ietf_encrypt( ciphertext, &ciphertext_len, CRYPTO_AEAD_IETF_MESSAGE, CRYPTO_AEAD_IETF_MESSAGE_LEN, CRYPTO_AEAD_IETF_ADDITIONAL_DATA, CRYPTO_AEAD_IETF_ADDITIONAL_DATA_LEN, NULL, nonce, key );
 
     unsigned char decrypted[CRYPTO_AEAD_IETF_MESSAGE_LEN];
     unsigned long long decrypted_len;
@@ -1018,11 +1019,11 @@ void test_crypto_aead_ietf()
 
 void test_crypto_sign_detached()
 {
-    #define MESSAGE_PART1 ((const unsigned char *) "Arbitrary data to hash")
-    #define MESSAGE_PART1_LEN 22
+#define MESSAGE_PART1 ( (const unsigned char *) "Arbitrary data to hash" )
+#define MESSAGE_PART1_LEN 22
 
-    #define MESSAGE_PART2 ((const unsigned char *) "is longer than expected")
-    #define MESSAGE_PART2_LEN 23
+#define MESSAGE_PART2 ( (const unsigned char *) "is longer than expected" )
+#define MESSAGE_PART2_LEN 23
 
     unsigned char public_key[NEXT_CRYPTO_SIGN_PUBLICKEYBYTES];
     unsigned char private_key[NEXT_CRYPTO_SIGN_SECRETKEYBYTES];
@@ -1076,7 +1077,7 @@ void test_basic_read_and_write()
     next_write_uint64( &p, 105120000000000000LL );
     next_write_float32( &p, 100.0f );
     next_write_float64( &p, 100000000000000.0 );
-    next_write_bytes( &p, (uint8_t*)"hello", 6 );
+    next_write_bytes( &p, (uint8_t *) "hello", 6 );
 
     const uint8_t * q = buffer;
 
@@ -1102,9 +1103,9 @@ void test_address_read_and_write()
 {
     struct next_address_t a, b, c;
 
-    memset( &a, 0, sizeof(a) );
-    memset( &b, 0, sizeof(b) );
-    memset( &c, 0, sizeof(c) );
+    memset( &a, 0, sizeof( a ) );
+    memset( &b, 0, sizeof( b ) );
+    memset( &c, 0, sizeof( c ) );
 
     next_address_parse( &b, "127.0.0.1:50000" );
 
@@ -1160,14 +1161,14 @@ void test_platform_socket()
         next_address_t local_address;
         next_address_parse( &bind_address, "0.0.0.0" );
         next_address_parse( &local_address, "127.0.0.1" );
-        next_platform_socket_t * socket = next_platform_socket_create( NULL, &bind_address, NEXT_PLATFORM_SOCKET_NON_BLOCKING, 0, 64*1024, 64*1024 );
+        next_platform_socket_t * socket = next_platform_socket_create( NULL, &bind_address, NEXT_PLATFORM_SOCKET_NON_BLOCKING, 0, 64 * 1024, 64 * 1024 );
         local_address.port = bind_address.port;
         next_check( socket );
         uint8_t packet[256];
-        memset( packet, 0, sizeof(packet) );
-        next_platform_socket_send_packet( socket, &local_address, packet, sizeof(packet) );
+        memset( packet, 0, sizeof( packet ) );
+        next_platform_socket_send_packet( socket, &local_address, packet, sizeof( packet ) );
         next_address_t from;
-        while ( next_platform_socket_receive_packet( socket, &from, packet, sizeof(packet) ) )
+        while ( next_platform_socket_receive_packet( socket, &from, packet, sizeof( packet ) ) )
         {
             next_check( next_address_equal( &from, &local_address ) );
         }
@@ -1180,14 +1181,14 @@ void test_platform_socket()
         next_address_t local_address;
         next_address_parse( &bind_address, "0.0.0.0" );
         next_address_parse( &local_address, "127.0.0.1" );
-        next_platform_socket_t * socket = next_platform_socket_create( NULL, &bind_address, NEXT_PLATFORM_SOCKET_BLOCKING, 0.01f, 64*1024, 64*1024 );
+        next_platform_socket_t * socket = next_platform_socket_create( NULL, &bind_address, NEXT_PLATFORM_SOCKET_BLOCKING, 0.01f, 64 * 1024, 64 * 1024 );
         local_address.port = bind_address.port;
         next_check( socket );
         uint8_t packet[256];
-        memset( packet, 0, sizeof(packet) );
-        next_platform_socket_send_packet( socket, &local_address, packet, sizeof(packet) );
+        memset( packet, 0, sizeof( packet ) );
+        next_platform_socket_send_packet( socket, &local_address, packet, sizeof( packet ) );
         next_address_t from;
-        while ( next_platform_socket_receive_packet( socket, &from, packet, sizeof(packet) ) )
+        while ( next_platform_socket_receive_packet( socket, &from, packet, sizeof( packet ) ) )
         {
             next_check( next_address_equal( &from, &local_address ) );
         }
@@ -1200,14 +1201,14 @@ void test_platform_socket()
         next_address_t local_address;
         next_address_parse( &bind_address, "0.0.0.0" );
         next_address_parse( &local_address, "127.0.0.1" );
-        next_platform_socket_t * socket = next_platform_socket_create( NULL, &bind_address, NEXT_PLATFORM_SOCKET_BLOCKING, -1.0f, 64*1024, 64*1024 );
+        next_platform_socket_t * socket = next_platform_socket_create( NULL, &bind_address, NEXT_PLATFORM_SOCKET_BLOCKING, -1.0f, 64 * 1024, 64 * 1024 );
         local_address.port = bind_address.port;
         next_check( socket );
         uint8_t packet[256];
-        memset( packet, 0, sizeof(packet) );
-        next_platform_socket_send_packet( socket, &local_address, packet, sizeof(packet) );
+        memset( packet, 0, sizeof( packet ) );
+        next_platform_socket_send_packet( socket, &local_address, packet, sizeof( packet ) );
         next_address_t from;
-        next_platform_socket_receive_packet( socket, &from, packet, sizeof(packet) );
+        next_platform_socket_receive_packet( socket, &from, packet, sizeof( packet ) );
         next_check( next_address_equal( &from, &local_address ) );
         next_platform_socket_destroy( socket );
     }
@@ -1220,14 +1221,14 @@ void test_platform_socket()
         next_address_t local_address;
         next_address_parse( &bind_address, "[::]" );
         next_address_parse( &local_address, "[::1]" );
-        next_platform_socket_t * socket = next_platform_socket_create( NULL, &bind_address, NEXT_PLATFORM_SOCKET_NON_BLOCKING, 0, 64*1024, 64*1024 );
+        next_platform_socket_t * socket = next_platform_socket_create( NULL, &bind_address, NEXT_PLATFORM_SOCKET_NON_BLOCKING, 0, 64 * 1024, 64 * 1024 );
         local_address.port = bind_address.port;
         next_check( socket );
         uint8_t packet[256];
-        memset( packet, 0, sizeof(packet) );
-        next_platform_socket_send_packet( socket, &local_address, packet, sizeof(packet) );
+        memset( packet, 0, sizeof( packet ) );
+        next_platform_socket_send_packet( socket, &local_address, packet, sizeof( packet ) );
         next_address_t from;
-        while ( next_platform_socket_receive_packet( socket, &from, packet, sizeof(packet) ) )
+        while ( next_platform_socket_receive_packet( socket, &from, packet, sizeof( packet ) ) )
         {
             next_check( next_address_equal( &from, &local_address ) );
         }
@@ -1240,14 +1241,14 @@ void test_platform_socket()
         next_address_t local_address;
         next_address_parse( &bind_address, "[::]" );
         next_address_parse( &local_address, "[::1]" );
-        next_platform_socket_t * socket = next_platform_socket_create( NULL, &bind_address, NEXT_PLATFORM_SOCKET_BLOCKING, 0.01f, 64*1024, 64*1024 );
+        next_platform_socket_t * socket = next_platform_socket_create( NULL, &bind_address, NEXT_PLATFORM_SOCKET_BLOCKING, 0.01f, 64 * 1024, 64 * 1024 );
         local_address.port = bind_address.port;
         next_check( socket );
         uint8_t packet[256];
-        memset( packet, 0, sizeof(packet) );
-        next_platform_socket_send_packet( socket, &local_address, packet, sizeof(packet) );
+        memset( packet, 0, sizeof( packet ) );
+        next_platform_socket_send_packet( socket, &local_address, packet, sizeof( packet ) );
         next_address_t from;
-        while ( next_platform_socket_receive_packet( socket, &from, packet, sizeof(packet) ) )
+        while ( next_platform_socket_receive_packet( socket, &from, packet, sizeof( packet ) ) )
         {
             next_check( next_address_equal( &from, &local_address ) );
         }
@@ -1260,14 +1261,14 @@ void test_platform_socket()
         next_address_t local_address;
         next_address_parse( &bind_address, "[::]" );
         next_address_parse( &local_address, "[::1]" );
-        next_platform_socket_t * socket = next_platform_socket_create( NULL, &bind_address, NEXT_PLATFORM_SOCKET_BLOCKING, -1.0f, 64*1024, 64*1024 );
+        next_platform_socket_t * socket = next_platform_socket_create( NULL, &bind_address, NEXT_PLATFORM_SOCKET_BLOCKING, -1.0f, 64 * 1024, 64 * 1024 );
         local_address.port = bind_address.port;
         next_check( socket );
         uint8_t packet[256];
-        memset( packet, 0, sizeof(packet) );
-        next_platform_socket_send_packet( socket, &local_address, packet, sizeof(packet) );
+        memset( packet, 0, sizeof( packet ) );
+        next_platform_socket_send_packet( socket, &local_address, packet, sizeof( packet ) );
         next_address_t from;
-        next_platform_socket_receive_packet( socket, &from, packet, sizeof(packet) );
+        next_platform_socket_receive_packet( socket, &from, packet, sizeof( packet ) );
         next_check( next_address_equal( &from, &local_address ) );
         next_platform_socket_destroy( socket );
     }
@@ -1277,7 +1278,7 @@ void test_platform_socket()
 
 static bool threads_work = false;
 
-static void test_thread_function(void*)
+static void test_thread_function( void * )
 {
     threads_work = true;
 }
@@ -1324,8 +1325,8 @@ void test_client_ipv4()
     next_check( next_client_port( client ) != 0 );
     next_client_open_session( client, "127.0.0.1:12345" );
     uint8_t packet[256];
-    memset( packet, 0, sizeof(packet) );
-    next_client_send_packet( client, packet, sizeof(packet) );
+    memset( packet, 0, sizeof( packet ) );
+    next_client_send_packet( client, packet, sizeof( packet ) );
     next_client_update( client );
     next_client_close_session( client );
     next_client_destroy( client );
@@ -1335,10 +1336,11 @@ void test_client_ipv4()
 
 static int num_server_packets_received = 0;
 
-static void test_server_packet_received_callback(next_server_t* server, void* context, const next_address_t* from, const uint8_t* packet_data, int packet_bytes)
+static void test_server_packet_received_callback( next_server_t * server, void * context, const next_address_t * from, const uint8_t * packet_data, int packet_bytes )
 {
-    (void)server; (void)context;
-    next_server_send_packet(server, from, packet_data, packet_bytes);
+    (void) server;
+    (void) context;
+    next_server_send_packet( server, from, packet_data, packet_bytes );
     num_server_packets_received++;
 }
 
@@ -1349,10 +1351,11 @@ void test_server_ipv4()
     next_check( next_server_port( server ) != 0 );
     next_address_t address;
     next_address_parse( &address, "127.0.0.1" );
-    address.port = next_server_port( server );;
+    address.port = next_server_port( server );
+    ;
     uint8_t packet[256];
-    memset( packet, 0, sizeof(packet) );
-    next_server_send_packet( server, &address, packet, sizeof(packet) );
+    memset( packet, 0, sizeof( packet ) );
+    next_server_send_packet( server, &address, packet, sizeof( packet ) );
     next_server_update( server );
     next_server_flush( server );
     next_server_destroy( server );
@@ -1364,8 +1367,8 @@ void test_upgrade_token()
 {
     NextUpgradeToken in, out;
 
-    next_crypto_random_bytes( (uint8_t*) &in.session_id, 8 );
-    next_crypto_random_bytes( (uint8_t*) &in.expire_timestamp, 8 );
+    next_crypto_random_bytes( (uint8_t *) &in.session_id, 8 );
+    next_crypto_random_bytes( (uint8_t *) &in.expire_timestamp, 8 );
     next_address_parse( &in.client_address, "127.0.0.1:40000" );
     next_address_parse( &in.server_address, "127.0.0.1:50000" );
 
@@ -1378,7 +1381,7 @@ void test_upgrade_token()
 
     next_check( out.Read( buffer, private_key ) == true );
 
-    next_check( memcmp( &in, &out, sizeof(NextUpgradeToken) ) == 0 );
+    next_check( memcmp( &in, &out, sizeof( NextUpgradeToken ) ) == 0 );
 }
 
 void test_header()
@@ -1389,9 +1392,9 @@ void test_header()
     {
         uint64_t send_sequence = i + 1000;
         uint64_t session_id = 0x12345LL;
-        uint8_t session_version = uint8_t(i%256);
+        uint8_t session_version = uint8_t( i % 256 );
         uint8_t private_key[NEXT_SESSION_PRIVATE_KEY_BYTES];
-        next_crypto_random_bytes( private_key, sizeof(private_key) );
+        next_crypto_random_bytes( private_key, sizeof( private_key ) );
 
         next_check( next_write_header( NEXT_CLIENT_TO_SERVER_PACKET, send_sequence, session_id, session_version, private_key, packet_data ) == NEXT_OK );
 
@@ -1410,7 +1413,7 @@ void test_header()
 void test_abi()
 {
     uint8_t output[256];
-    memset( output, 0, sizeof(output) );
+    memset( output, 0, sizeof( output ) );
 
     uint8_t magic[8];
     magic[0] = 1;
@@ -1456,7 +1459,7 @@ void test_abi()
 void test_packet_filter()
 {
     uint8_t output[NEXT_MAX_PACKET_BYTES];
-    memset( output, 0, sizeof(output) );
+    memset( output, 0, sizeof( output ) );
     output[0] = 1;
 
     for ( int i = 0; i < 10000; ++i )
@@ -1469,8 +1472,8 @@ void test_packet_filter()
         next_crypto_random_bytes( from_address, 4 );
         next_crypto_random_bytes( to_address, 4 );
 
-        int packet_length = 18 + ( i % ( sizeof(output) - 18 ) );
-        
+        int packet_length = 18 + ( i % ( sizeof( output ) - 18 ) );
+
         next_generate_pittle( output + 1, from_address, to_address, packet_length );
 
         next_generate_chonkle( output + 3, magic, from_address, to_address, packet_length );
@@ -1486,17 +1489,17 @@ void test_packet_filter()
 void test_basic_packet_filter()
 {
     uint8_t output[256];
-    memset( output, 0, sizeof(output) );
+    memset( output, 0, sizeof( output ) );
     uint64_t pass = 0;
     uint64_t iterations = 100;
     srand( 100 );
-    for ( int i = 0; i < int(iterations); ++i )
+    for ( int i = 0; i < int( iterations ); ++i )
     {
-        for ( int j = 0; j < int(sizeof(output)); ++j )
+        for ( int j = 0; j < int( sizeof( output ) ); ++j )
         {
             output[j] = uint8_t( rand() % 256 );
         }
-        if ( next_basic_packet_filter( output, rand() % sizeof(output) ) )
+        if ( next_basic_packet_filter( output, rand() % sizeof( output ) ) )
         {
             pass++;
         }
@@ -1509,11 +1512,11 @@ void test_basic_packet_filter()
 void test_advanced_packet_filter()
 {
     uint8_t output[256];
-    memset( output, 0, sizeof(output) );
+    memset( output, 0, sizeof( output ) );
     uint64_t pass = 0;
     uint64_t iterations = 100;
     srand( 100 );
-    for ( int i = 0; i < int(iterations); ++i )
+    for ( int i = 0; i < int( iterations ); ++i )
     {
         uint8_t magic[8];
         uint8_t from_address[4];
@@ -1521,8 +1524,8 @@ void test_advanced_packet_filter()
         next_crypto_random_bytes( magic, 8 );
         next_crypto_random_bytes( from_address, 4 );
         next_crypto_random_bytes( to_address, 4 );
-        int packet_length = 18 + ( i % ( sizeof(output) - 18 ) );
-        for ( int j = 0; j < int(sizeof(output)); ++j )
+        int packet_length = 18 + ( i % ( sizeof( output ) - 18 ) );
+        for ( int j = 0; j < int( sizeof( output ) ); ++j )
         {
             output[j] = uint8_t( rand() % 256 );
         }
@@ -1539,14 +1542,14 @@ void test_advanced_packet_filter()
 void test_passthrough()
 {
     uint8_t output[256];
-    memset( output, 0, sizeof(output) );
+    memset( output, 0, sizeof( output ) );
     uint8_t magic[8];
     uint8_t from_address[4];
     uint8_t to_address[4];
     next_crypto_random_bytes( magic, 8 );
     next_crypto_random_bytes( from_address, 4 );
     next_crypto_random_bytes( to_address, 4 );
-    int packet_length = sizeof(output);
+    int packet_length = sizeof( output );
     next_check( next_basic_packet_filter( output, packet_length ) );
 #if NEXT_ADVANCED_PACKET_FILTER
     next_check( next_advanced_packet_filter( output, magic, from_address, to_address, packet_length ) );
@@ -1808,15 +1811,15 @@ void test_jitter_tracker()
     for ( int i = 0; i < 1000; ++i )
     {
         t = i * dt;
-        if ( (i%3) == 0 )
+        if ( ( i % 3 ) == 0 )
         {
             t += 2;
         }
-        if ( (i%5) == 0 )
+        if ( ( i % 5 ) == 0 )
         {
             t += 5;
         }
-        if ( (i%6) == 0 )
+        if ( ( i % 6 ) == 0 )
         {
             t -= 10;
         }
@@ -1833,15 +1836,15 @@ void test_jitter_tracker()
     for ( int i = 0; i < 1000; ++i )
     {
         t = i * dt;
-        if ( (i%3) == 0 )
+        if ( ( i % 3 ) == 0 )
         {
             t += 0.01f;
         }
-        if ( (i%5) == 0 )
+        if ( ( i % 5 ) == 0 )
         {
             t += 0.05;
         }
-        if ( (i%6) == 0 )
+        if ( ( i % 6 ) == 0 )
         {
             t -= 0.1f;
         }
@@ -1871,24 +1874,25 @@ static void context_check_free( void * context, void * p )
 {
     (void) p;
     next_check( context );
-    next_check( *((int *)context) == 23 );
-    next_default_free_function( context, p );;
+    next_check( *( (int *) context ) == 23 );
+    next_default_free_function( context, p );
+    ;
 }
 
 void test_free_retains_context()
 {
-    void * (*current_malloc)( void * context, size_t bytes ) = next_default_malloc_function;
-    void (*current_free)( void * context, void * p ) = next_default_free_function;
+    void * ( *current_malloc )( void * context, size_t bytes ) = next_default_malloc_function;
+    void ( *current_free )( void * context, void * p ) = next_default_free_function;
 
     next_allocator( next_default_malloc_function, context_check_free );
 
     int canary = 23;
-    void * context = (void *)&canary;
-    next_queue_t *q = next_queue_create( context, 1 );
+    void * context = (void *) &canary;
+    next_queue_t * q = next_queue_create( context, 1 );
     next_queue_destroy( q );
 
     next_check( context );
-    next_check( *((int *)context) == 23 );
+    next_check( *( (int *) context ) == 23 );
     next_check( canary == 23 );
 
     next_allocator( current_malloc, current_free );
@@ -1909,50 +1913,50 @@ void test_pending_session_manager()
 
     // test private keys
 
-    uint8_t private_keys[InitialSize*3*NEXT_CRYPTO_SECRETBOX_KEYBYTES];
-    next_crypto_random_bytes( private_keys, sizeof(private_keys) );
+    uint8_t private_keys[InitialSize * 3 * NEXT_CRYPTO_SECRETBOX_KEYBYTES];
+    next_crypto_random_bytes( private_keys, sizeof( private_keys ) );
 
     // test upgrade tokens
 
-    uint8_t upgrade_tokens[InitialSize*3*NEXT_UPGRADE_TOKEN_BYTES];
-    next_crypto_random_bytes( upgrade_tokens, sizeof(upgrade_tokens) );
+    uint8_t upgrade_tokens[InitialSize * 3 * NEXT_UPGRADE_TOKEN_BYTES];
+    next_crypto_random_bytes( upgrade_tokens, sizeof( upgrade_tokens ) );
 
     // add enough entries to make sure we have to expand
 
-    for ( int i = 0; i < InitialSize*3; ++i )
+    for ( int i = 0; i < InitialSize * 3; ++i )
     {
-        next_pending_session_entry_t * entry = next_pending_session_manager_add( pending_session_manager, &address, uint64_t(i)+1000, &private_keys[i*NEXT_CRYPTO_SECRETBOX_KEYBYTES], &upgrade_tokens[i*NEXT_UPGRADE_TOKEN_BYTES], time );
+        next_pending_session_entry_t * entry = next_pending_session_manager_add( pending_session_manager, &address, uint64_t( i ) + 1000, &private_keys[i * NEXT_CRYPTO_SECRETBOX_KEYBYTES], &upgrade_tokens[i * NEXT_UPGRADE_TOKEN_BYTES], time );
         next_check( entry );
-        next_check( entry->session_id == uint64_t(i) + 1000 );
+        next_check( entry->session_id == uint64_t( i ) + 1000 );
         next_check( entry->upgrade_time == time );
         next_check( entry->last_packet_send_time < 0.0 );
         next_check( next_address_equal( &address, &entry->address ) == 1 );
-        next_check( memcmp( entry->private_key, &private_keys[i*NEXT_CRYPTO_SECRETBOX_KEYBYTES], NEXT_CRYPTO_SECRETBOX_KEYBYTES ) == 0 );
-        next_check( memcmp( entry->upgrade_token, &upgrade_tokens[i*NEXT_UPGRADE_TOKEN_BYTES], NEXT_UPGRADE_TOKEN_BYTES ) == 0 );
+        next_check( memcmp( entry->private_key, &private_keys[i * NEXT_CRYPTO_SECRETBOX_KEYBYTES], NEXT_CRYPTO_SECRETBOX_KEYBYTES ) == 0 );
+        next_check( memcmp( entry->upgrade_token, &upgrade_tokens[i * NEXT_UPGRADE_TOKEN_BYTES], NEXT_UPGRADE_TOKEN_BYTES ) == 0 );
         address.port++;
     }
 
     // verify that all entries are there
 
     address.port = 12345;
-    for ( int i = 0; i < InitialSize*3; ++i )
+    for ( int i = 0; i < InitialSize * 3; ++i )
     {
         next_pending_session_entry_t * entry = next_pending_session_manager_find( pending_session_manager, &address );
         next_check( entry );
-        next_check( entry->session_id == uint64_t(i) + 1000 );
+        next_check( entry->session_id == uint64_t( i ) + 1000 );
         next_check( entry->upgrade_time == time );
         next_check( entry->last_packet_send_time < 0.0 );
         next_check( next_address_equal( &address, &entry->address ) == 1 );
         address.port++;
     }
 
-    next_check( next_pending_session_manager_num_entries( pending_session_manager ) == InitialSize*3 );
+    next_check( next_pending_session_manager_num_entries( pending_session_manager ) == InitialSize * 3 );
 
     // remove every second entry
 
-    for ( int i = 0; i < InitialSize*3; ++i )
+    for ( int i = 0; i < InitialSize * 3; ++i )
     {
-        if ( (i%2) == 0 )
+        if ( ( i % 2 ) == 0 )
         {
             next_pending_session_manager_remove_by_address( pending_session_manager, &pending_session_manager->addresses[i] );
         }
@@ -1961,13 +1965,13 @@ void test_pending_session_manager()
     // verify only the entries that remain can be found
 
     address.port = 12345;
-    for ( int i = 0; i < InitialSize*3; ++i )
+    for ( int i = 0; i < InitialSize * 3; ++i )
     {
         next_pending_session_entry_t * entry = next_pending_session_manager_find( pending_session_manager, &address );
-        if ( (i%2) != 0 )
+        if ( ( i % 2 ) != 0 )
         {
             next_check( entry );
-            next_check( entry->session_id == uint64_t(i) + 1000 );
+            next_check( entry->session_id == uint64_t( i ) + 1000 );
             next_check( entry->upgrade_time == time );
             next_check( entry->last_packet_send_time < 0.0 );
             next_check( next_address_equal( &address, &entry->address ) == 1 );
@@ -1990,7 +1994,7 @@ void test_pending_session_manager()
         {
             next_check( next_address_equal( &address, &pending_session_manager->addresses[i] ) == 1 );
             next_pending_session_entry_t * entry = &pending_session_manager->entries[i];
-            next_check( entry->session_id == uint64_t(i)*2+1001 );
+            next_check( entry->session_id == uint64_t( i ) * 2 + 1001 );
             next_check( entry->upgrade_time == time );
             next_check( entry->last_packet_send_time < 0.0 );
             next_check( next_address_equal( &address, &entry->address ) == 1 );
@@ -2028,21 +2032,21 @@ void test_proxy_session_manager()
 
     // test private keys
 
-    uint8_t private_keys[InitialSize*3*NEXT_CRYPTO_SECRETBOX_KEYBYTES];
-    next_crypto_random_bytes( private_keys, sizeof(private_keys) );
+    uint8_t private_keys[InitialSize * 3 * NEXT_CRYPTO_SECRETBOX_KEYBYTES];
+    next_crypto_random_bytes( private_keys, sizeof( private_keys ) );
 
     // test upgrade tokens
 
-    uint8_t upgrade_tokens[InitialSize*3*NEXT_UPGRADE_TOKEN_BYTES];
-    next_crypto_random_bytes( upgrade_tokens, sizeof(upgrade_tokens) );
+    uint8_t upgrade_tokens[InitialSize * 3 * NEXT_UPGRADE_TOKEN_BYTES];
+    next_crypto_random_bytes( upgrade_tokens, sizeof( upgrade_tokens ) );
 
     // add enough entries to make sure we have to expand
 
-    for ( int i = 0; i < InitialSize*3; ++i )
+    for ( int i = 0; i < InitialSize * 3; ++i )
     {
-        next_proxy_session_entry_t * entry = next_proxy_session_manager_add( proxy_session_manager, &address, uint64_t(i)+1000 );
+        next_proxy_session_entry_t * entry = next_proxy_session_manager_add( proxy_session_manager, &address, uint64_t( i ) + 1000 );
         next_check( entry );
-        next_check( entry->session_id == uint64_t(i) + 1000 );
+        next_check( entry->session_id == uint64_t( i ) + 1000 );
         next_check( next_address_equal( &address, &entry->address ) == 1 );
         address.port++;
     }
@@ -2050,22 +2054,22 @@ void test_proxy_session_manager()
     // verify that all entries are there
 
     address.port = 12345;
-    for ( int i = 0; i < InitialSize*3; ++i )
+    for ( int i = 0; i < InitialSize * 3; ++i )
     {
         next_proxy_session_entry_t * entry = next_proxy_session_manager_find( proxy_session_manager, &address );
         next_check( entry );
-        next_check( entry->session_id == uint64_t(i) + 1000 );
+        next_check( entry->session_id == uint64_t( i ) + 1000 );
         next_check( next_address_equal( &address, &entry->address ) == 1 );
         address.port++;
     }
 
-    next_check( next_proxy_session_manager_num_entries( proxy_session_manager ) == InitialSize*3 );
+    next_check( next_proxy_session_manager_num_entries( proxy_session_manager ) == InitialSize * 3 );
 
     // remove every second entry
 
-    for ( int i = 0; i < InitialSize*3; ++i )
+    for ( int i = 0; i < InitialSize * 3; ++i )
     {
-        if ( (i%2) == 0 )
+        if ( ( i % 2 ) == 0 )
         {
             next_proxy_session_manager_remove_by_address( proxy_session_manager, &proxy_session_manager->addresses[i] );
         }
@@ -2074,13 +2078,13 @@ void test_proxy_session_manager()
     // verify only the entries that remain can be found
 
     address.port = 12345;
-    for ( int i = 0; i < InitialSize*3; ++i )
+    for ( int i = 0; i < InitialSize * 3; ++i )
     {
         next_proxy_session_entry_t * entry = next_proxy_session_manager_find( proxy_session_manager, &address );
-        if ( (i%2) != 0 )
+        if ( ( i % 2 ) != 0 )
         {
             next_check( entry );
-            next_check( entry->session_id == uint64_t(i) + 1000 );
+            next_check( entry->session_id == uint64_t( i ) + 1000 );
             next_check( next_address_equal( &address, &entry->address ) == 1 );
         }
         else
@@ -2101,7 +2105,7 @@ void test_proxy_session_manager()
         {
             next_check( next_address_equal( &address, &proxy_session_manager->addresses[i] ) == 1 );
             next_proxy_session_entry_t * entry = &proxy_session_manager->entries[i];
-            next_check( entry->session_id == uint64_t(i)*2+1001 );
+            next_check( entry->session_id == uint64_t( i ) * 2 + 1001 );
             next_check( next_address_equal( &address, &entry->address ) == 1 );
         }
         address.port += 2;
@@ -2137,46 +2141,46 @@ void test_session_manager()
 
     // test private keys
 
-    uint8_t private_keys[InitialSize*3*NEXT_CRYPTO_SECRETBOX_KEYBYTES];
-    next_crypto_random_bytes( private_keys, sizeof(private_keys) );
+    uint8_t private_keys[InitialSize * 3 * NEXT_CRYPTO_SECRETBOX_KEYBYTES];
+    next_crypto_random_bytes( private_keys, sizeof( private_keys ) );
 
     // test upgrade tokens
 
-    uint8_t upgrade_tokens[InitialSize*3*NEXT_UPGRADE_TOKEN_BYTES];
-    next_crypto_random_bytes( upgrade_tokens, sizeof(upgrade_tokens) );
+    uint8_t upgrade_tokens[InitialSize * 3 * NEXT_UPGRADE_TOKEN_BYTES];
+    next_crypto_random_bytes( upgrade_tokens, sizeof( upgrade_tokens ) );
 
     // add enough entries to make sure we have to expand
 
-    for ( int i = 0; i < InitialSize*3; ++i )
+    for ( int i = 0; i < InitialSize * 3; ++i )
     {
-        next_session_entry_t * entry = next_session_manager_add( session_manager, &address, uint64_t(i)+1000, &private_keys[i*NEXT_CRYPTO_SECRETBOX_KEYBYTES], &upgrade_tokens[i*NEXT_UPGRADE_TOKEN_BYTES] );
+        next_session_entry_t * entry = next_session_manager_add( session_manager, &address, uint64_t( i ) + 1000, &private_keys[i * NEXT_CRYPTO_SECRETBOX_KEYBYTES], &upgrade_tokens[i * NEXT_UPGRADE_TOKEN_BYTES] );
         next_check( entry );
-        next_check( entry->session_id == uint64_t(i) + 1000 );
+        next_check( entry->session_id == uint64_t( i ) + 1000 );
         next_check( next_address_equal( &address, &entry->address ) == 1 );
-        next_check( memcmp( entry->ephemeral_private_key, &private_keys[i*NEXT_CRYPTO_SECRETBOX_KEYBYTES], NEXT_CRYPTO_SECRETBOX_KEYBYTES ) == 0 );
-        next_check( memcmp( entry->upgrade_token, &upgrade_tokens[i*NEXT_UPGRADE_TOKEN_BYTES], NEXT_UPGRADE_TOKEN_BYTES ) == 0 );
+        next_check( memcmp( entry->ephemeral_private_key, &private_keys[i * NEXT_CRYPTO_SECRETBOX_KEYBYTES], NEXT_CRYPTO_SECRETBOX_KEYBYTES ) == 0 );
+        next_check( memcmp( entry->upgrade_token, &upgrade_tokens[i * NEXT_UPGRADE_TOKEN_BYTES], NEXT_UPGRADE_TOKEN_BYTES ) == 0 );
         address.port++;
     }
 
     // verify that all entries are there
 
     address.port = 12345;
-    for ( int i = 0; i < InitialSize*3; ++i )
+    for ( int i = 0; i < InitialSize * 3; ++i )
     {
         next_session_entry_t * entry = next_session_manager_find_by_address( session_manager, &address );
         next_check( entry );
-        next_check( entry->session_id == uint64_t(i)+1000 );
+        next_check( entry->session_id == uint64_t( i ) + 1000 );
         next_check( next_address_equal( &address, &entry->address ) == 1 );
         address.port++;
     }
 
-    next_check( next_session_manager_num_entries( session_manager ) == InitialSize*3 );
+    next_check( next_session_manager_num_entries( session_manager ) == InitialSize * 3 );
 
     // remove every second entry
 
-    for ( int i = 0; i < InitialSize*3; ++i )
+    for ( int i = 0; i < InitialSize * 3; ++i )
     {
-        if ( (i%2) == 0 )
+        if ( ( i % 2 ) == 0 )
         {
             next_session_manager_remove_by_address( session_manager, &session_manager->addresses[i] );
         }
@@ -2185,13 +2189,13 @@ void test_session_manager()
     // verify only the entries that remain can be found
 
     address.port = 12345;
-    for ( int i = 0; i < InitialSize*3; ++i )
+    for ( int i = 0; i < InitialSize * 3; ++i )
     {
         next_session_entry_t * entry = next_session_manager_find_by_address( session_manager, &address );
-        if ( (i%2) != 0 )
+        if ( ( i % 2 ) != 0 )
         {
             next_check( entry );
-            next_check( entry->session_id == uint64_t(i)+1000 );
+            next_check( entry->session_id == uint64_t( i ) + 1000 );
             next_check( next_address_equal( &address, &entry->address ) == 1 );
         }
         else
@@ -2212,7 +2216,7 @@ void test_session_manager()
         {
             next_check( next_address_equal( &address, &session_manager->addresses[i] ) == 1 );
             next_session_entry_t * entry = &session_manager->entries[i];
-            next_check( entry->session_id == uint64_t(i)*2+1001 );
+            next_check( entry->session_id == uint64_t( i ) * 2 + 1001 );
             next_check( next_address_equal( &address, &entry->address ) == 1 );
         }
         address.port += 2;
@@ -2242,15 +2246,15 @@ void test_relay_manager()
     uint8_t relay_ping_tokens[NEXT_MAX_CLIENT_RELAYS * NEXT_PING_TOKEN_BYTES];
     uint64_t relay_ping_expire_timestamp = 0x129387193871987LL;
 
-    memset( relay_ids, 0, sizeof(relay_ids) );
-    memset( relay_addresses, 0, sizeof(relay_addresses) );
-    memset( relay_ping_tokens, 0, sizeof(relay_ping_tokens) );
+    memset( relay_ids, 0, sizeof( relay_ids ) );
+    memset( relay_addresses, 0, sizeof( relay_addresses ) );
+    memset( relay_ping_tokens, 0, sizeof( relay_ping_tokens ) );
 
     for ( int i = 0; i < NEXT_MAX_CLIENT_RELAYS; ++i )
     {
         relay_ids[i] = i;
         char address_string[256];
-        snprintf( address_string, sizeof(address_string), "127.0.0.1:%d", 40000 + i );
+        snprintf( address_string, sizeof( address_string ), "127.0.0.1:%d", 40000 + i );
         next_address_parse( &relay_addresses[i], address_string );
     }
 
@@ -2313,7 +2317,7 @@ void test_relay_manager()
         next_check( stats.num_relays == NEXT_MAX_CLIENT_RELAYS );
         for ( int i = 0; i < NEXT_MAX_CLIENT_RELAYS - 4; ++i )
         {
-            next_check( relay_ids[i+4] == stats.relay_ids[i] );
+            next_check( relay_ids[i + 4] == stats.relay_ids[i] );
         }
     }
 
@@ -2347,9 +2351,9 @@ void test_direct_packet()
 
         uint8_t game_packet_data[NEXT_MTU];
         int game_packet_bytes = rand() % NEXT_MTU;
-        for ( int j = 0; j < game_packet_bytes; j++ ) 
-        { 
-            game_packet_data[j] = uint8_t( rand() % 256 ); 
+        for ( int j = 0; j < game_packet_bytes; j++ )
+        {
+            game_packet_data[j] = uint8_t( rand() % 256 );
         }
 
         int packet_bytes = next_write_direct_packet( packet_data, open_session_sequence, send_sequence, game_packet_data, game_packet_bytes, magic, from_address, to_address );
@@ -2392,7 +2396,7 @@ void test_direct_ping_packet()
         next_crypto_random_bytes( to_address, 4 );
 
         uint8_t private_key[NEXT_SESSION_PRIVATE_KEY_BYTES];
-        next_crypto_random_bytes( private_key, sizeof(private_key) );
+        next_crypto_random_bytes( private_key, sizeof( private_key ) );
 
         uint64_t in_sequence = i;
 
@@ -2441,7 +2445,7 @@ void test_direct_pong_packet()
         next_crypto_random_bytes( to_address, 4 );
 
         uint8_t private_key[NEXT_SESSION_PRIVATE_KEY_BYTES];
-        next_crypto_random_bytes( private_key, sizeof(private_key) );
+        next_crypto_random_bytes( private_key, sizeof( private_key ) );
 
         uint64_t in_sequence = i;
 
@@ -2481,7 +2485,7 @@ void test_upgrade_request_packet()
     uint8_t packet_data[NEXT_MAX_PACKET_BYTES];
 
     uint64_t iterations = 100;
-    
+
     for ( uint64_t i = 0; i < iterations; ++i )
     {
         uint8_t magic[8];
@@ -2646,7 +2650,7 @@ void test_route_request_packet()
         next_crypto_random_bytes( to_address, 4 );
 
         uint8_t token_data[1024];
-        int token_bytes = rand() % sizeof(token_data);
+        int token_bytes = rand() % sizeof( token_data );
         for ( int j = 0; j < token_bytes; j++ ) { token_data[j] = uint8_t( rand() % 256 ); }
 
         int packet_bytes = next_write_route_request_packet( packet_data, token_data, token_bytes, magic, from_address, to_address );
@@ -2678,9 +2682,9 @@ void test_route_response_packet()
 
         uint64_t send_sequence = i + 1000;
         uint64_t session_id = 0x12314141LL;
-        uint8_t session_version = uint8_t(i%256);
+        uint8_t session_version = uint8_t( i % 256 );
         uint8_t private_key[NEXT_SESSION_PRIVATE_KEY_BYTES];
-        next_crypto_random_bytes( private_key, sizeof(private_key) );
+        next_crypto_random_bytes( private_key, sizeof( private_key ) );
 
         int packet_bytes = next_write_route_response_packet( packet_data, send_sequence, session_id, session_version, private_key, magic, from_address, to_address );
 
@@ -2724,9 +2728,9 @@ void test_client_to_server_packet()
 
         uint64_t send_sequence = i + 1000;
         uint64_t session_id = 0x12314141LL;
-        uint8_t session_version = uint8_t(i%256);
+        uint8_t session_version = uint8_t( i % 256 );
         uint8_t private_key[NEXT_SESSION_PRIVATE_KEY_BYTES];
-        next_crypto_random_bytes( private_key, sizeof(private_key) );
+        next_crypto_random_bytes( private_key, sizeof( private_key ) );
 
         uint8_t game_packet_data[NEXT_MTU];
         int game_packet_bytes = rand() % NEXT_MTU;
@@ -2774,9 +2778,9 @@ void test_server_to_client_packet()
 
         uint64_t send_sequence = i + 1000;
         uint64_t session_id = 0x12314141LL;
-        uint8_t session_version = uint8_t(i%256);
+        uint8_t session_version = uint8_t( i % 256 );
         uint8_t private_key[NEXT_SESSION_PRIVATE_KEY_BYTES];
-        next_crypto_random_bytes( private_key, sizeof(private_key) );
+        next_crypto_random_bytes( private_key, sizeof( private_key ) );
 
         uint8_t game_packet_data[NEXT_MTU];
         int game_packet_bytes = rand() % NEXT_MTU;
@@ -2826,9 +2830,9 @@ void test_session_ping_packet()
 
         uint64_t send_sequence = i + 1000;
         uint64_t session_id = 0x12314141LL;
-        uint8_t session_version = uint8_t(i%256);
+        uint8_t session_version = uint8_t( i % 256 );
         uint8_t private_key[NEXT_SESSION_PRIVATE_KEY_BYTES];
-        next_crypto_random_bytes( private_key, sizeof(private_key) );
+        next_crypto_random_bytes( private_key, sizeof( private_key ) );
 
         uint64_t ping_sequence = i;
         int packet_bytes = next_write_session_ping_packet( packet_data, send_sequence, session_id, session_version, private_key, ping_sequence, magic, from_address, to_address );
@@ -2873,10 +2877,10 @@ void test_session_pong_packet()
 
         uint64_t send_sequence = i + 1000;
         uint64_t session_id = 0x12314141LL;
-        uint8_t session_version = uint8_t(i%256);
+        uint8_t session_version = uint8_t( i % 256 );
         uint8_t private_key[NEXT_SESSION_PRIVATE_KEY_BYTES];
 
-        next_crypto_random_bytes( private_key, sizeof(private_key) );
+        next_crypto_random_bytes( private_key, sizeof( private_key ) );
 
         uint64_t ping_sequence = i;
         int packet_bytes = next_write_session_pong_packet( packet_data, send_sequence, session_id, session_version, private_key, ping_sequence, magic, from_address, to_address );
@@ -2919,7 +2923,7 @@ void test_continue_request_packet()
         next_crypto_random_bytes( from_address, 4 );
         next_crypto_random_bytes( to_address, 4 );
         uint8_t token_data[256];
-        int token_bytes = rand() % sizeof(token_data);
+        int token_bytes = rand() % sizeof( token_data );
         for ( int j = 0; j < token_bytes; j++ ) { token_data[j] = uint8_t( rand() % 256 ); }
         int packet_bytes = next_write_continue_request_packet( packet_data, token_data, token_bytes, magic, from_address, to_address );
         next_check( packet_bytes >= 0 );
@@ -2947,9 +2951,9 @@ void test_continue_response_packet()
 
         uint64_t send_sequence = i + 1000;
         uint64_t session_id = 0x12314141LL;
-        uint8_t session_version = uint8_t(i%256);
+        uint8_t session_version = uint8_t( i % 256 );
         uint8_t private_key[NEXT_SESSION_PRIVATE_KEY_BYTES];
-        next_crypto_random_bytes( private_key, sizeof(private_key) );
+        next_crypto_random_bytes( private_key, sizeof( private_key ) );
 
         int packet_bytes = next_write_continue_response_packet( packet_data, send_sequence, session_id, session_version, private_key, magic, from_address, to_address );
 
@@ -2984,7 +2988,7 @@ void test_client_stats_packet_with_client_relays()
     for ( uint64_t i = 0; i < iterations; ++i )
     {
         uint8_t private_key[NEXT_SESSION_PRIVATE_KEY_BYTES];
-        next_crypto_random_bytes( private_key, sizeof(private_key) );
+        next_crypto_random_bytes( private_key, sizeof( private_key ) );
 
         uint8_t magic[8];
         uint8_t from_address[4];
@@ -3009,7 +3013,7 @@ void test_client_stats_packet_with_client_relays()
         in.num_client_relays = NEXT_MAX_CLIENT_RELAYS;
         for ( int j = 0; j < NEXT_MAX_CLIENT_RELAYS; ++j )
         {
-            in.client_relay_ids[j] = uint64_t(10000000) + j;
+            in.client_relay_ids[j] = uint64_t( 10000000 ) + j;
             in.client_relay_rtt[j] = 5 * j;
             in.client_relay_jitter[j] = 0.01f * j;
             in.client_relay_packet_loss[j] = j;
@@ -3069,7 +3073,7 @@ void test_client_stats_packet_without_client_relays()
     for ( uint64_t i = 0; i < iterations; ++i )
     {
         uint8_t private_key[NEXT_SESSION_PRIVATE_KEY_BYTES];
-        next_crypto_random_bytes( private_key, sizeof(private_key) );
+        next_crypto_random_bytes( private_key, sizeof( private_key ) );
 
         uint8_t magic[8];
         uint8_t from_address[4];
@@ -3138,7 +3142,7 @@ void test_route_update_packet_direct()
     for ( uint64_t i = 0; i < iterations; ++i )
     {
         uint8_t private_key[NEXT_SESSION_PRIVATE_KEY_BYTES];
-        next_crypto_random_bytes( private_key, sizeof(private_key) );
+        next_crypto_random_bytes( private_key, sizeof( private_key ) );
 
         uint8_t magic[8];
         uint8_t from_address[4];
@@ -3199,7 +3203,7 @@ void test_route_update_packet_new_route()
     for ( uint64_t i = 0; i < iterations; ++i )
     {
         uint8_t private_key[NEXT_SESSION_PRIVATE_KEY_BYTES];
-        next_crypto_random_bytes( private_key, sizeof(private_key) );
+        next_crypto_random_bytes( private_key, sizeof( private_key ) );
 
         uint8_t magic[8];
         uint8_t from_address[4];
@@ -3265,7 +3269,7 @@ void test_route_update_packet_continue_route()
     for ( uint64_t i = 0; i < iterations; ++i )
     {
         uint8_t private_key[NEXT_SESSION_PRIVATE_KEY_BYTES];
-        next_crypto_random_bytes( private_key, sizeof(private_key) );
+        next_crypto_random_bytes( private_key, sizeof( private_key ) );
 
         uint8_t magic[8];
         uint8_t from_address[4];
@@ -3273,7 +3277,7 @@ void test_route_update_packet_continue_route()
         next_crypto_random_bytes( magic, 8 );
         next_crypto_random_bytes( from_address, 4 );
         next_crypto_random_bytes( to_address, 4 );
-        
+
         static NextRouteUpdatePacket in, out;
         in.sequence = 100000;
 
@@ -3322,7 +3326,7 @@ void test_route_ack_packet()
     for ( uint64_t i = 0; i < iterations; ++i )
     {
         uint8_t private_key[NEXT_SESSION_PRIVATE_KEY_BYTES];
-        next_crypto_random_bytes( private_key, sizeof(private_key) );
+        next_crypto_random_bytes( private_key, sizeof( private_key ) );
 
         uint8_t magic[8];
         uint8_t from_address[4];
@@ -3364,7 +3368,7 @@ void test_client_relay_update_packet()
     for ( uint64_t j = 0; j < iterations; ++j )
     {
         uint8_t private_key[NEXT_SESSION_PRIVATE_KEY_BYTES];
-        next_crypto_random_bytes( private_key, sizeof(private_key) );
+        next_crypto_random_bytes( private_key, sizeof( private_key ) );
 
         uint8_t magic[8];
         uint8_t from_address[4];
@@ -3372,7 +3376,7 @@ void test_client_relay_update_packet()
         next_crypto_random_bytes( magic, 8 );
         next_crypto_random_bytes( from_address, 4 );
         next_crypto_random_bytes( to_address, 4 );
-        
+
         static NextClientRelayUpdatePacket in, out;
 
         in.request_id = next_random_uint64();
@@ -3424,7 +3428,7 @@ void test_client_relay_ack_packet()
     for ( uint64_t i = 0; i < iterations; ++i )
     {
         uint8_t private_key[NEXT_SESSION_PRIVATE_KEY_BYTES];
-        next_crypto_random_bytes( private_key, sizeof(private_key) );
+        next_crypto_random_bytes( private_key, sizeof( private_key ) );
 
         uint8_t magic[8];
         uint8_t from_address[4];
@@ -3432,7 +3436,7 @@ void test_client_relay_ack_packet()
         next_crypto_random_bytes( magic, 8 );
         next_crypto_random_bytes( from_address, 4 );
         next_crypto_random_bytes( to_address, 4 );
-        
+
         static NextClientRelayAckPacket in, out;
 
         in.request_id = next_random_uint64();
@@ -3882,11 +3886,11 @@ void test_session_update_request_packet()
         in.session_data_bytes = NEXT_MAX_SESSION_DATA_BYTES;
         for ( int j = 0; j < NEXT_MAX_SESSION_DATA_BYTES; ++j )
         {
-            in.session_data[j] = uint8_t(j);
+            in.session_data[j] = uint8_t( j );
         }
         for ( int j = 0; j < NEXT_CRYPTO_SIGN_BYTES; ++j )
         {
-            in.session_data_signature[j] = uint8_t(j);
+            in.session_data_signature[j] = uint8_t( j );
         }
 
         int packet_bytes = 0;
@@ -4036,7 +4040,7 @@ void test_session_update_response_packet_route()
         in.session_data_bytes = NEXT_MAX_SESSION_DATA_BYTES;
         for ( int j = 0; j < NEXT_MAX_SESSION_DATA_BYTES; ++j )
         {
-            in.session_data[j] = uint8_t(j);
+            in.session_data[j] = uint8_t( j );
         }
 
         int packet_bytes = 0;
@@ -4093,11 +4097,11 @@ void test_session_update_response_packet_continue()
         in.session_data_bytes = NEXT_MAX_SESSION_DATA_BYTES;
         for ( int j = 0; j < NEXT_MAX_SESSION_DATA_BYTES; ++j )
         {
-            in.session_data[j] = uint8_t(j);
+            in.session_data[j] = uint8_t( j );
         }
         for ( int j = 0; j < NEXT_CRYPTO_SIGN_BYTES; ++j )
         {
-            in.session_data_signature[j] = uint8_t(j);
+            in.session_data_signature[j] = uint8_t( j );
         }
 
         int packet_bytes = 0;
@@ -4126,11 +4130,11 @@ void test_session_update_response_packet_continue()
         next_check( in.session_data_bytes == out.session_data_bytes );
         for ( int j = 0; j < NEXT_MAX_SESSION_DATA_BYTES; ++j )
         {
-            next_check( out.session_data[j] == uint8_t(j) );
+            next_check( out.session_data[j] == uint8_t( j ) );
         }
         for ( int j = 0; j < NEXT_CRYPTO_SIGN_BYTES; ++j )
         {
-            next_check( out.session_data_signature[j] == uint8_t(j) );
+            next_check( out.session_data_signature[j] == uint8_t( j ) );
         }
     }
 }
@@ -4400,7 +4404,7 @@ void test_passthrough_packets()
     next_client_open_session( client, next_address_to_string( &address, buffer ) );
 
     uint8_t packet_data[NEXT_MTU];
-    memset( packet_data, 0, sizeof(packet_data) );
+    memset( packet_data, 0, sizeof( packet_data ) );
 
     for ( int i = 0; i < 10000; ++i )
     {
@@ -4478,7 +4482,7 @@ void test_value_tracker()
         next_value_tracker_reset( &tracker );
         for ( int i = 0; i < 100; i++ )
         {
-            next_value_tracker_add_sample( &tracker, float(i%10) );
+            next_value_tracker_add_sample( &tracker, float( i % 10 ) );
         }
         float min_value, max_value, avg_value;
         next_value_tracker_calculate( &tracker, &min_value, &max_value, &avg_value );
@@ -4497,7 +4501,7 @@ void test_value_tracker()
         next_value_tracker_reset( &tracker );
         for ( int i = 0; i < NEXT_VALUE_TRACKER_HISTORY * 2; i++ )
         {
-            next_value_tracker_add_sample( &tracker, float(i%10) );
+            next_value_tracker_add_sample( &tracker, float( i % 10 ) );
         }
         float min_value, max_value, avg_value;
         next_value_tracker_calculate( &tracker, &min_value, &max_value, &avg_value );
@@ -4511,14 +4515,13 @@ void test_value_tracker()
     }
 }
 
-#define RUN_TEST( test_function )                                           \
-    do                                                                      \
-    {                                                                       \
-        next_printf( NEXT_LOG_LEVEL_NONE, "    " #test_function );          \
-        fflush( stdout );                                                   \
-        test_function();                                                    \
-    }                                                                       \
-    while (0)
+#define RUN_TEST( test_function )                                  \
+    do                                                             \
+    {                                                              \
+        next_printf( NEXT_LOG_LEVEL_NONE, "    " #test_function ); \
+        fflush( stdout );                                          \
+        test_function();                                           \
+    } while ( 0 )
 
 void next_run_tests()
 {

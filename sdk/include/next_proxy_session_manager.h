@@ -12,17 +12,17 @@
 
 struct next_proxy_session_entry_t
 {
-    NEXT_DECLARE_SENTINEL(0)
+    NEXT_DECLARE_SENTINEL( 0 )
 
     next_address_t address;
     uint64_t session_id;
     uint64_t user_hash;
 
-    NEXT_DECLARE_SENTINEL(1)
+    NEXT_DECLARE_SENTINEL( 1 )
 
     next_bandwidth_limiter_t send_bandwidth;
 
-    NEXT_DECLARE_SENTINEL(2)
+    NEXT_DECLARE_SENTINEL( 2 )
 };
 
 inline void next_proxy_session_entry_initialize_sentinels( next_proxy_session_entry_t * entry )
@@ -45,7 +45,7 @@ inline void next_proxy_session_entry_verify_sentinels( next_proxy_session_entry_
 
 struct next_proxy_session_manager_t
 {
-    NEXT_DECLARE_SENTINEL(0)
+    NEXT_DECLARE_SENTINEL( 0 )
 
     void * context;
     int size;
@@ -53,7 +53,7 @@ struct next_proxy_session_manager_t
     next_address_t * addresses;
     next_proxy_session_entry_t * entries;
 
-    NEXT_DECLARE_SENTINEL(1)
+    NEXT_DECLARE_SENTINEL( 1 )
 };
 
 inline void next_proxy_session_manager_initialize_sentinels( next_proxy_session_manager_t * session_manager )
@@ -86,21 +86,21 @@ void next_proxy_session_manager_destroy( next_proxy_session_manager_t * session_
 
 inline next_proxy_session_manager_t * next_proxy_session_manager_create( void * context, int initial_size )
 {
-    next_proxy_session_manager_t * session_manager = (next_proxy_session_manager_t*) next_malloc( context, sizeof(next_proxy_session_manager_t) );
+    next_proxy_session_manager_t * session_manager = (next_proxy_session_manager_t *) next_malloc( context, sizeof( next_proxy_session_manager_t ) );
 
     next_assert( session_manager );
 
     if ( !session_manager )
         return NULL;
 
-    memset( session_manager, 0, sizeof(next_proxy_session_manager_t) );
+    memset( session_manager, 0, sizeof( next_proxy_session_manager_t ) );
 
     next_proxy_session_manager_initialize_sentinels( session_manager );
 
     session_manager->context = context;
     session_manager->size = initial_size;
-    session_manager->addresses = (next_address_t*) next_malloc( context, initial_size * sizeof(next_address_t) );
-    session_manager->entries = (next_proxy_session_entry_t*) next_malloc( context, initial_size * sizeof(next_proxy_session_entry_t) );
+    session_manager->addresses = (next_address_t *) next_malloc( context, initial_size * sizeof( next_address_t ) );
+    session_manager->entries = (next_proxy_session_entry_t *) next_malloc( context, initial_size * sizeof( next_proxy_session_entry_t ) );
 
     next_assert( session_manager->addresses );
     next_assert( session_manager->entries );
@@ -111,8 +111,8 @@ inline next_proxy_session_manager_t * next_proxy_session_manager_create( void * 
         return NULL;
     }
 
-    memset( session_manager->addresses, 0, initial_size * sizeof(next_address_t) );
-    memset( session_manager->entries, 0, initial_size * sizeof(next_proxy_session_entry_t) );
+    memset( session_manager->addresses, 0, initial_size * sizeof( next_address_t ) );
+    memset( session_manager->entries, 0, initial_size * sizeof( next_proxy_session_entry_t ) );
 
     for ( int i = 0; i < initial_size; ++i )
         next_proxy_session_entry_initialize_sentinels( &session_manager->entries[i] );
@@ -129,7 +129,7 @@ inline void next_proxy_session_manager_destroy( next_proxy_session_manager_t * s
     next_free( session_manager->context, session_manager->addresses );
     next_free( session_manager->context, session_manager->entries );
 
-    next_clear_and_free( session_manager->context, session_manager, sizeof(next_proxy_session_manager_t) );
+    next_clear_and_free( session_manager->context, session_manager, sizeof( next_proxy_session_manager_t ) );
 }
 
 inline bool next_proxy_session_manager_expand( next_proxy_session_manager_t * session_manager )
@@ -137,8 +137,8 @@ inline bool next_proxy_session_manager_expand( next_proxy_session_manager_t * se
     next_proxy_session_manager_verify_sentinels( session_manager );
 
     int new_size = session_manager->size * 2;
-    next_address_t * new_addresses = (next_address_t*) next_malloc( session_manager->context, new_size * sizeof(next_address_t) );
-    next_proxy_session_entry_t * new_entries = (next_proxy_session_entry_t*) next_malloc( session_manager->context, new_size * sizeof(next_proxy_session_entry_t) );
+    next_address_t * new_addresses = (next_address_t *) next_malloc( session_manager->context, new_size * sizeof( next_address_t ) );
+    next_proxy_session_entry_t * new_entries = (next_proxy_session_entry_t *) next_malloc( session_manager->context, new_size * sizeof( next_proxy_session_entry_t ) );
 
     next_assert( session_manager->addresses );
     next_assert( session_manager->entries );
@@ -150,8 +150,8 @@ inline bool next_proxy_session_manager_expand( next_proxy_session_manager_t * se
         return false;
     }
 
-    memset( new_addresses, 0, new_size * sizeof(next_address_t) );
-    memset( new_entries, 0, new_size * sizeof(next_proxy_session_entry_t) );
+    memset( new_addresses, 0, new_size * sizeof( next_address_t ) );
+    memset( new_entries, 0, new_size * sizeof( next_proxy_session_entry_t ) );
 
     for ( int i = 0; i < new_size; ++i )
         next_proxy_session_entry_initialize_sentinels( &new_entries[i] );
@@ -162,8 +162,8 @@ inline bool next_proxy_session_manager_expand( next_proxy_session_manager_t * se
     {
         if ( session_manager->addresses[i].type != NEXT_ADDRESS_NONE )
         {
-            memcpy( &new_addresses[index], &session_manager->addresses[i], sizeof(next_address_t) );
-            memcpy( &new_entries[index], &session_manager->entries[i], sizeof(next_proxy_session_entry_t) );
+            memcpy( &new_addresses[index], &session_manager->addresses[i], sizeof( next_address_t ) );
+            memcpy( &new_entries[index], &session_manager->entries[i], sizeof( next_proxy_session_entry_t ) );
             index++;
         }
     }

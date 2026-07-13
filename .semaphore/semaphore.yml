@@ -93,6 +93,16 @@ blocks:
     dependencies: []
     task:
       jobs:
+        # the SDK C++ style is locked in by sdk/.clang-format. the version is pinned
+        # (pip wheel) so this check agrees byte-for-byte with local passes -- distro
+        # clang-format versions produce different output. vendored sdk/serialize and
+        # sdk/sodium are exempt (DisableFormat configs).
+        - name: "Format Check"
+          commands:
+            - checkout
+            - pip3 install clang-format==22.1.8
+            - export PATH=$PATH:$HOME/.local/bin
+            - make format-check-sdk
         - name: "Unit Tests"
           commands:
             - sudo DEBIAN_FRONTEND=noninteractive apt-get install -y libsodium-dev

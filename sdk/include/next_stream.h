@@ -14,10 +14,10 @@
 
 namespace next
 {
-    using serialize::BaseStream;
-    using serialize::WriteStream;
-    using serialize::ReadStream;
-    using serialize::MeasureStream;
+using serialize::BaseStream;
+using serialize::MeasureStream;
+using serialize::ReadStream;
+using serialize::WriteStream;
 }
 
 #endif // #ifndef NEXT_STREAM_H

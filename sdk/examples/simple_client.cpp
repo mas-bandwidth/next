@@ -19,19 +19,25 @@ static volatile int quit = 0;
 
 void interrupt_handler( int signal )
 {
-    (void) signal; quit = 1;
+    (void) signal;
+    quit = 1;
 }
 
 void client_packet_received( next_client_t * client, void * context, const next_address_t * from, const uint8_t * packet_data, int packet_bytes )
 {
-    (void) client; (void) context; (void) packet_data; (void) packet_bytes; (void) from;
+    (void) client;
+    (void) context;
+    (void) packet_data;
+    (void) packet_bytes;
+    (void) from;
     next_printf( NEXT_LOG_LEVEL_INFO, "client received packet from server (%d bytes)", packet_bytes );
 }
 
 int main()
 {
-    signal( SIGINT, interrupt_handler ); signal( SIGTERM, interrupt_handler );
-    
+    signal( SIGINT, interrupt_handler );
+    signal( SIGTERM, interrupt_handler );
+
     if ( next_init( NULL, NULL ) != NEXT_OK )
     {
         printf( "error: could not initialize network next\n" );
@@ -56,15 +62,15 @@ int main()
 
         if ( next_client_ready( client ) )
         {
-            next_client_send_packet( client, packet_data, sizeof(packet_data) );
+            next_client_send_packet( client, packet_data, sizeof( packet_data ) );
         }
-        
+
         next_platform_sleep( 0.25 );
     }
 
     next_client_destroy( client );
-    
+
     next_term();
-    
+
     return 0;
 }

@@ -17,8 +17,8 @@ struct NextUpgradeToken
     {
         session_id = 0;
         expire_timestamp = 0;
-        memset( &client_address, 0, sizeof(next_address_t) );
-        memset( &server_address, 0, sizeof(next_address_t) );
+        memset( &client_address, 0, sizeof( next_address_t ) );
+        memset( &server_address, 0, sizeof( next_address_t ) );
     }
 
     int Write( uint8_t * buffer, const uint8_t * private_key )

@@ -17,7 +17,7 @@
 
 struct next_session_entry_t
 {
-    NEXT_DECLARE_SENTINEL(0)
+    NEXT_DECLARE_SENTINEL( 0 )
 
     next_address_t address;
     uint64_t session_id;
@@ -30,7 +30,7 @@ struct next_session_entry_t
     uint64_t current_session_events;
     uint8_t client_open_session_sequence;
 
-    NEXT_DECLARE_SENTINEL(1)
+    NEXT_DECLARE_SENTINEL( 1 )
 
     bool stats_reported;
     bool stats_multipath;
@@ -57,7 +57,7 @@ struct next_session_entry_t
     float stats_game_jitter;
     float stats_game_packet_loss;
 
-    NEXT_DECLARE_SENTINEL(2)
+    NEXT_DECLARE_SENTINEL( 2 )
 
     bool stats_has_client_relay_pings;
     bool stats_client_relay_pings_have_changed;
@@ -69,7 +69,7 @@ struct next_session_entry_t
     uint8_t stats_client_relay_jitter[NEXT_MAX_CLIENT_RELAYS];
     float stats_client_relay_packet_loss[NEXT_MAX_CLIENT_RELAYS];
 
-    NEXT_DECLARE_SENTINEL(3)
+    NEXT_DECLARE_SENTINEL( 3 )
 
     uint64_t stats_packets_sent_client_to_server;
     uint64_t stats_packets_sent_server_to_client;
@@ -87,7 +87,7 @@ struct next_session_entry_t
     double last_client_stats_update;
     double last_upgraded_packet_receive_time;
 
-    NEXT_DECLARE_SENTINEL(4)
+    NEXT_DECLARE_SENTINEL( 4 )
 
     uint64_t update_sequence;
     bool update_dirty;
@@ -98,15 +98,15 @@ struct next_session_entry_t
     int update_num_tokens;
     bool session_update_timed_out;
 
-    NEXT_DECLARE_SENTINEL(5)
+    NEXT_DECLARE_SENTINEL( 5 )
 
-    uint8_t update_tokens[NEXT_MAX_TOKENS*NEXT_ENCRYPTED_ROUTE_TOKEN_BYTES];
+    uint8_t update_tokens[NEXT_MAX_TOKENS * NEXT_ENCRYPTED_ROUTE_TOKEN_BYTES];
 
-    NEXT_DECLARE_SENTINEL(6)
+    NEXT_DECLARE_SENTINEL( 6 )
 
     NextBackendSessionUpdateRequestPacket session_update_request_packet;
 
-    NEXT_DECLARE_SENTINEL(7)
+    NEXT_DECLARE_SENTINEL( 7 )
 
     bool has_pending_route;
     uint8_t pending_route_session_version;
@@ -116,11 +116,11 @@ struct next_session_entry_t
     int pending_route_kbps_down;
     next_address_t pending_route_send_address;
 
-    NEXT_DECLARE_SENTINEL(8)
+    NEXT_DECLARE_SENTINEL( 8 )
 
     uint8_t pending_route_private_key[NEXT_CRYPTO_BOX_SECRETKEYBYTES];
 
-    NEXT_DECLARE_SENTINEL(9)
+    NEXT_DECLARE_SENTINEL( 9 )
 
     bool has_current_route;
     uint8_t current_route_session_version;
@@ -130,43 +130,43 @@ struct next_session_entry_t
     int current_route_kbps_down;
     next_address_t current_route_send_address;
 
-    NEXT_DECLARE_SENTINEL(10)
+    NEXT_DECLARE_SENTINEL( 10 )
 
     uint8_t current_route_private_key[NEXT_CRYPTO_BOX_SECRETKEYBYTES];
 
-    NEXT_DECLARE_SENTINEL(11)
+    NEXT_DECLARE_SENTINEL( 11 )
 
     bool has_previous_route;
     next_address_t previous_route_send_address;
 
-    NEXT_DECLARE_SENTINEL(12)
+    NEXT_DECLARE_SENTINEL( 12 )
 
     uint8_t previous_route_private_key[NEXT_CRYPTO_BOX_SECRETKEYBYTES];
 
-    NEXT_DECLARE_SENTINEL(13)
+    NEXT_DECLARE_SENTINEL( 13 )
 
     uint8_t ephemeral_private_key[NEXT_CRYPTO_SECRETBOX_KEYBYTES];
     uint8_t send_key[NEXT_CRYPTO_KX_SESSIONKEYBYTES];
     uint8_t receive_key[NEXT_CRYPTO_KX_SESSIONKEYBYTES];
     uint8_t client_route_public_key[NEXT_CRYPTO_BOX_PUBLICKEYBYTES];
 
-    NEXT_DECLARE_SENTINEL(14)
+    NEXT_DECLARE_SENTINEL( 14 )
 
     uint8_t upgrade_token[NEXT_UPGRADE_TOKEN_BYTES];
 
-    NEXT_DECLARE_SENTINEL(15)
+    NEXT_DECLARE_SENTINEL( 15 )
 
     next_replay_protection_t payload_replay_protection;
     next_replay_protection_t special_replay_protection;
     next_replay_protection_t internal_replay_protection;
 
-    NEXT_DECLARE_SENTINEL(16)
+    NEXT_DECLARE_SENTINEL( 16 )
 
     next_packet_loss_tracker_t packet_loss_tracker;
     next_out_of_order_tracker_t out_of_order_tracker;
     next_jitter_tracker_t jitter_tracker;
 
-    NEXT_DECLARE_SENTINEL(17)
+    NEXT_DECLARE_SENTINEL( 17 )
 
     bool mutex_multipath;
     int mutex_envelope_kbps_up;
@@ -177,29 +177,29 @@ struct next_session_entry_t
     bool mutex_send_over_network_next;
     next_address_t mutex_send_address;
 
-    NEXT_DECLARE_SENTINEL(18)
+    NEXT_DECLARE_SENTINEL( 18 )
 
     uint8_t mutex_private_key[NEXT_CRYPTO_BOX_SECRETKEYBYTES];
 
-    NEXT_DECLARE_SENTINEL(19)
+    NEXT_DECLARE_SENTINEL( 19 )
 
     int session_data_bytes;
     uint8_t session_data[NEXT_MAX_SESSION_DATA_BYTES];
     uint8_t session_data_signature[NEXT_CRYPTO_SIGN_BYTES];
 
-    NEXT_DECLARE_SENTINEL(20)
+    NEXT_DECLARE_SENTINEL( 20 )
 
     bool client_ping_timed_out;
     double last_client_direct_ping;
     double last_client_next_ping;
 
-    NEXT_DECLARE_SENTINEL(21)
+    NEXT_DECLARE_SENTINEL( 21 )
 
     uint32_t session_flush_update_sequence;
     bool session_update_flush;
     bool session_update_flush_finished;
 
-    NEXT_DECLARE_SENTINEL(22)
+    NEXT_DECLARE_SENTINEL( 22 )
 
     bool requesting_client_relays;
     double next_client_relay_request_time;
@@ -208,19 +208,19 @@ struct next_session_entry_t
     NextBackendClientRelayRequestPacket client_relay_request_packet;
     NextBackendClientRelayResponsePacket client_relay_response_packet;
 
-    NEXT_DECLARE_SENTINEL(23)
+    NEXT_DECLARE_SENTINEL( 23 )
 
     bool sending_client_relay_update_down_to_client;
     double next_client_relay_update_packet_send_time;
     double client_relay_update_timeout_time;
     NextClientRelayUpdatePacket client_relay_update_packet;
 
-    NEXT_DECLARE_SENTINEL(24)
+    NEXT_DECLARE_SENTINEL( 24 )
 
     float latitude;
     float longitude;
 
-    NEXT_DECLARE_SENTINEL(25)
+    NEXT_DECLARE_SENTINEL( 25 )
 };
 
 inline void next_session_entry_initialize_sentinels( next_session_entry_t * entry )
@@ -301,7 +301,7 @@ inline void next_session_entry_verify_sentinels( next_session_entry_t * entry )
 
 struct next_session_manager_t
 {
-    NEXT_DECLARE_SENTINEL(0)
+    NEXT_DECLARE_SENTINEL( 0 )
 
     void * context;
     int size;
@@ -310,7 +310,7 @@ struct next_session_manager_t
     next_address_t * addresses;
     next_session_entry_t * entries;
 
-    NEXT_DECLARE_SENTINEL(1)
+    NEXT_DECLARE_SENTINEL( 1 )
 };
 
 inline void next_session_manager_initialize_sentinels( next_session_manager_t * session_manager )
@@ -343,21 +343,21 @@ void next_session_manager_destroy( next_session_manager_t * session_manager );
 
 inline next_session_manager_t * next_session_manager_create( void * context, int initial_size )
 {
-    next_session_manager_t * session_manager = (next_session_manager_t*) next_malloc( context, sizeof(next_session_manager_t) );
+    next_session_manager_t * session_manager = (next_session_manager_t *) next_malloc( context, sizeof( next_session_manager_t ) );
 
     next_assert( session_manager );
     if ( !session_manager )
         return NULL;
 
-    memset( (char*) session_manager, 0, sizeof(next_session_manager_t) );
+    memset( (char *) session_manager, 0, sizeof( next_session_manager_t ) );
 
     next_session_manager_initialize_sentinels( session_manager );
 
     session_manager->context = context;
     session_manager->size = initial_size;
-    session_manager->session_ids = (uint64_t*) next_malloc( context, size_t(initial_size) * 8 );
-    session_manager->addresses = (next_address_t*) next_malloc( context, size_t(initial_size) * sizeof(next_address_t) );
-    session_manager->entries = (next_session_entry_t*) next_malloc( context, size_t(initial_size) * sizeof(next_session_entry_t) );
+    session_manager->session_ids = (uint64_t *) next_malloc( context, size_t( initial_size ) * 8 );
+    session_manager->addresses = (next_address_t *) next_malloc( context, size_t( initial_size ) * sizeof( next_address_t ) );
+    session_manager->entries = (next_session_entry_t *) next_malloc( context, size_t( initial_size ) * sizeof( next_session_entry_t ) );
 
     next_assert( session_manager->session_ids );
     next_assert( session_manager->addresses );
@@ -369,9 +369,9 @@ inline next_session_manager_t * next_session_manager_create( void * context, int
         return NULL;
     }
 
-    memset( (char*) session_manager->session_ids, 0, size_t(initial_size) * 8 );
-    memset( (char*) session_manager->addresses, 0, size_t(initial_size) * sizeof(next_address_t) );
-    memset( (char*) session_manager->entries, 0, size_t(initial_size) * sizeof(next_session_entry_t) );
+    memset( (char *) session_manager->session_ids, 0, size_t( initial_size ) * 8 );
+    memset( (char *) session_manager->addresses, 0, size_t( initial_size ) * sizeof( next_address_t ) );
+    memset( (char *) session_manager->entries, 0, size_t( initial_size ) * sizeof( next_session_entry_t ) );
 
     next_session_manager_verify_sentinels( session_manager );
 
@@ -386,7 +386,7 @@ inline void next_session_manager_destroy( next_session_manager_t * session_manag
     next_free( session_manager->context, session_manager->addresses );
     next_free( session_manager->context, session_manager->entries );
 
-    next_clear_and_free( session_manager->context, session_manager, sizeof(next_session_manager_t) );
+    next_clear_and_free( session_manager->context, session_manager, sizeof( next_session_manager_t ) );
 }
 
 inline bool next_session_manager_expand( next_session_manager_t * session_manager )
@@ -397,9 +397,9 @@ inline bool next_session_manager_expand( next_session_manager_t * session_manage
 
     int new_size = session_manager->size * 2;
 
-    uint64_t * new_session_ids = (uint64_t*) next_malloc( session_manager->context, size_t(new_size) * 8 );
-    next_address_t * new_addresses = (next_address_t*) next_malloc( session_manager->context, size_t(new_size) * sizeof(next_address_t) );
-    next_session_entry_t * new_entries = (next_session_entry_t*) next_malloc( session_manager->context, size_t(new_size) * sizeof(next_session_entry_t) );
+    uint64_t * new_session_ids = (uint64_t *) next_malloc( session_manager->context, size_t( new_size ) * 8 );
+    next_address_t * new_addresses = (next_address_t *) next_malloc( session_manager->context, size_t( new_size ) * sizeof( next_address_t ) );
+    next_session_entry_t * new_entries = (next_session_entry_t *) next_malloc( session_manager->context, size_t( new_size ) * sizeof( next_session_entry_t ) );
 
     next_assert( new_session_ids );
     next_assert( new_addresses );
@@ -413,9 +413,9 @@ inline bool next_session_manager_expand( next_session_manager_t * session_manage
         return false;
     }
 
-    memset( (char*) new_session_ids, 0, size_t(new_size) * 8 );
-    memset( (char*) new_addresses, 0, size_t(new_size) * sizeof(next_address_t) );
-    memset( (char*) new_entries, 0, size_t(new_size) * sizeof(next_session_entry_t) );
+    memset( (char *) new_session_ids, 0, size_t( new_size ) * 8 );
+    memset( (char *) new_addresses, 0, size_t( new_size ) * sizeof( next_address_t ) );
+    memset( (char *) new_entries, 0, size_t( new_size ) * sizeof( next_session_entry_t ) );
 
     int index = 0;
     const int current_size = session_manager->size;
@@ -424,8 +424,8 @@ inline bool next_session_manager_expand( next_session_manager_t * session_manage
         if ( session_manager->session_ids[i] != 0 )
         {
             memcpy( &new_session_ids[index], &session_manager->session_ids[i], 8 );
-            memcpy( &new_addresses[index], &session_manager->addresses[i], sizeof(next_address_t) );
-            memcpy( &new_entries[index], &session_manager->entries[i], sizeof(next_session_entry_t) );
+            memcpy( &new_addresses[index], &session_manager->addresses[i], sizeof( next_address_t ) );
+            memcpy( &new_entries[index], &session_manager->entries[i], sizeof( next_session_entry_t ) );
             index++;
         }
     }
@@ -445,7 +445,7 @@ inline bool next_session_manager_expand( next_session_manager_t * session_manage
 
 inline void next_clear_session_entry( next_session_entry_t * entry, const next_address_t * address, uint64_t session_id )
 {
-    memset( (char*) entry, 0, sizeof(next_session_entry_t) );
+    memset( (char *) entry, 0, sizeof( next_session_entry_t ) );
 
     next_session_entry_initialize_sentinels( entry );
 

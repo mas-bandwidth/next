@@ -25,7 +25,7 @@
 
 // -------------------------------------
 
-#pragma warning(disable:4996)
+#pragma warning( disable : 4996 )
 
 #if _WIN64
 typedef uint64_t next_platform_socket_handle_t;

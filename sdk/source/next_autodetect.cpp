@@ -14,7 +14,7 @@
 #include <string.h>
 #include <time.h>
 
-#if defined(_WIN32) || defined(_WIN64)
+#if defined( _WIN32 ) || defined( _WIN64 )
 #define strtok_r strtok_s
 #endif
 
@@ -30,11 +30,11 @@ bool next_default_http_request_function( const char * url, const char * header, 
     char command_line[1024];
     if ( header[0] != '\0' )
     {
-        snprintf( command_line, sizeof(command_line), "curl -s \"%s\" -H \"%s\" --max-time %d -s 2>/dev/null", url, header, timeout_seconds );
+        snprintf( command_line, sizeof( command_line ), "curl -s \"%s\" -H \"%s\" --max-time %d -s 2>/dev/null", url, header, timeout_seconds );
     }
     else
     {
-        snprintf( command_line, sizeof(command_line), "curl -s \"%s\" --max-time %d -s 2>/dev/null", url, timeout_seconds );
+        snprintf( command_line, sizeof( command_line ), "curl -s \"%s\" --max-time %d -s 2>/dev/null", url, timeout_seconds );
     }
 
     next_printf( NEXT_LOG_LEVEL_SPAM, "command line: '%s'", command_line );
@@ -53,13 +53,13 @@ bool next_default_http_request_function( const char * url, const char * header, 
     next_printf( NEXT_LOG_LEVEL_SPAM, "---------------------------" );
 
     char line[1024];
-    while ( fgets( line, sizeof(line), file ) != NULL )
+    while ( fgets( line, sizeof( line ), file ) != NULL )
     {
         int bytes_copied = next_copy_string( p, line, output_size - ( p - output ) );
         p += bytes_copied;
         num_lines++;
 
-        for ( size_t i = 0; i < sizeof(line); i++ )
+        for ( size_t i = 0; i < sizeof( line ); i++ )
         {
             if ( line[i] == '\0' )
                 break;
@@ -88,9 +88,9 @@ bool next_default_http_request_function( const char * url, const char * header, 
 #endif // #if NEXT_PLATFORM == NEXT_PLATFORM_LINUX || NEXT_PLATFORM == NEXT_PLATFORM_MAC
 }
 
-static bool (*next_http_request)( const char * url, const char * header, int timeout_seconds, char * output, size_t output_size ) = next_default_http_request_function;
+static bool ( *next_http_request )( const char * url, const char * header, int timeout_seconds, char * output, size_t output_size ) = next_default_http_request_function;
 
-void next_autodetect_http_request_function( bool (*function)( const char * url, const char * header, int timeout_seconds, char * output, size_t output_size ) )
+void next_autodetect_http_request_function( bool ( *function )( const char * url, const char * header, int timeout_seconds, char * output, size_t output_size ) )
 {
     if ( function != NULL )
     {
@@ -106,10 +106,10 @@ bool next_autodetect_google( char * datacenter, size_t datacenter_size )
 {
     // if we are in google cloud, we can hit the metadata server and ask it what google cloud zone we are in
 
-    char buffer[32*1024];
-    memset( buffer, 0, sizeof(buffer) );
+    char buffer[32 * 1024];
+    memset( buffer, 0, sizeof( buffer ) );
 
-    if ( !next_http_request( "http://metadata.google.internal/computeMetadata/v1/instance/zone", "Metadata-Flavor: Google", 2, buffer, sizeof(buffer) ) )
+    if ( !next_http_request( "http://metadata.google.internal/computeMetadata/v1/instance/zone", "Metadata-Flavor: Google", 2, buffer, sizeof( buffer ) ) )
     {
         next_printf( NEXT_LOG_LEVEL_INFO, "server autodetect datacenter: not in google cloud" );
         return false;
@@ -134,15 +134,15 @@ bool next_autodetect_google( char * datacenter, size_t datacenter_size )
     // we are in google cloud
 
     char zone[256];
-    next_copy_string( zone, q + 6, sizeof(zone) );
+    next_copy_string( zone, q + 6, sizeof( zone ) );
     next_printf( NEXT_LOG_LEVEL_INFO, "server autodetect datacenter: google cloud zone is '%s'", zone );
 
     // download "google.txt" from google cloud storage. it contains lines mapping from google cloud zone to network next datacenter
 
     char url[1024];
-    snprintf( url, sizeof(url), "https://storage.googleapis.com/%s/google.txt?ts=%x", NEXT_CONFIG_BUCKET_NAME, uint32_t(time(NULL)) );
-    memset( buffer, 0, sizeof(buffer) );
-    if ( !next_http_request( url, "", 5, buffer, sizeof(buffer) ) )
+    snprintf( url, sizeof( url ), "https://storage.googleapis.com/%s/google.txt?ts=%x", NEXT_CONFIG_BUCKET_NAME, uint32_t( time( NULL ) ) );
+    memset( buffer, 0, sizeof( buffer ) );
+    if ( !next_http_request( url, "", 5, buffer, sizeof( buffer ) ) )
     {
         next_printf( NEXT_LOG_LEVEL_WARN, "server autodetect datacenter: could not download google.txt file" );
         return false;
@@ -152,7 +152,7 @@ bool next_autodetect_google( char * datacenter, size_t datacenter_size )
 
     p = buffer;
 
-    char * end = buffer + sizeof(buffer);
+    char * end = buffer + sizeof( buffer );
 
     int line = 0;
     while ( p < end && *p != '\0' )
@@ -193,21 +193,21 @@ bool next_autodetect_google( char * datacenter, size_t datacenter_size )
 
 bool next_autodetect_amazon( char * datacenter, size_t datacenter_size )
 {
-    char buffer[32*1024];
-    memset( buffer, 0, sizeof(buffer) );
+    char buffer[32 * 1024];
+    memset( buffer, 0, sizeof( buffer ) );
 
     // Get the AZID from instance metadata
     // This is necessary because only AZ IDs are the same across different AWS accounts
     // See https://docs.aws.amazon.com/ram/latest/userguide/working-with-az-ids.html for details
 
-    if ( !next_http_request( "http://169.254.169.254/latest/meta-data/placement/availability-zone-id", "", 2, buffer, sizeof(buffer) ) || strstr( buffer, "-az" ) == NULL )
+    if ( !next_http_request( "http://169.254.169.254/latest/meta-data/placement/availability-zone-id", "", 2, buffer, sizeof( buffer ) ) || strstr( buffer, "-az" ) == NULL )
     {
         next_printf( NEXT_LOG_LEVEL_INFO, "server autodetect datacenter: not in amazon cloud" );
         return false;
     }
 
     char azid[256];
-    next_copy_string( azid, buffer, sizeof(azid) );
+    next_copy_string( azid, buffer, sizeof( azid ) );
 
     size_t azid_length = strlen( azid );
     size_t index = azid_length - 1;
@@ -222,9 +222,9 @@ bool next_autodetect_amazon( char * datacenter, size_t datacenter_size )
     // download "amazon.txt" from google cloud storage. it contains lines mapping from AZID to network next datacenter
 
     char url[1024];
-    snprintf( url, sizeof(url), "https://storage.googleapis.com/%s/amazon.txt?ts=%x", NEXT_CONFIG_BUCKET_NAME, uint32_t(time(NULL)) );
-    memset( buffer, 0, sizeof(buffer) );
-    if ( !next_http_request( url, "", 5, buffer, sizeof(buffer) ) )
+    snprintf( url, sizeof( url ), "https://storage.googleapis.com/%s/amazon.txt?ts=%x", NEXT_CONFIG_BUCKET_NAME, uint32_t( time( NULL ) ) );
+    memset( buffer, 0, sizeof( buffer ) );
+    if ( !next_http_request( url, "", 5, buffer, sizeof( buffer ) ) )
     {
         next_printf( NEXT_LOG_LEVEL_WARN, "server autodetect datacenter: could not download amazon.txt file" );
         return false;
@@ -234,7 +234,7 @@ bool next_autodetect_amazon( char * datacenter, size_t datacenter_size )
 
     char * p = buffer;
 
-    char * end = buffer + sizeof(buffer);
+    char * end = buffer + sizeof( buffer );
 
     while ( p < end && *p != '\0' )
     {
@@ -283,10 +283,10 @@ bool next_autodetect_unity( const char * input_datacenter, const char * public_a
     }
 
     char url[1024];
-    snprintf( url, sizeof(url), "%s/%s/%s", NEXT_AUTODETECT_URL, input_datacenter, public_address );
+    snprintf( url, sizeof( url ), "%s/%s/%s", NEXT_AUTODETECT_URL, input_datacenter, public_address );
     char unity_data[1024];
-    memset( unity_data, 0, sizeof(unity_data) );
-    if ( !next_http_request( url, "", 10, unity_data, sizeof(unity_data) ) )
+    memset( unity_data, 0, sizeof( unity_data ) );
+    if ( !next_http_request( url, "", 10, unity_data, sizeof( unity_data ) ) )
     {
         next_printf( NEXT_LOG_LEVEL_WARN, "server autodetect datacenter: no match found" );
         return false;
@@ -306,7 +306,7 @@ bool next_autodetect_datacenter( const char * input_datacenter, const char * pub
     next_assert( output_datacenter );
     next_assert( output_datacenter_size > 0 );
 
-    if ( input_datacenter[0] == 'c' && 
+    if ( input_datacenter[0] == 'c' &&
          input_datacenter[1] == 'l' &&
          input_datacenter[2] == 'o' &&
          input_datacenter[3] == 'u' &&
@@ -328,7 +328,7 @@ bool next_autodetect_datacenter( const char * input_datacenter, const char * pub
 
 #else // #if NEXT_PLATFORM == NEXT_PLATFORM_LINUX || NEXT_PLATFORM == NEXT_PLATFORM_MAC || NEXT_PLATFORM == NEXT_PLATFORM_WINDOWS
 
-void next_autodetect_http_request_function( bool (*function)( const char * url, const char * header, char * output, size_t output_size ) )
+void next_autodetect_http_request_function( bool ( *function )( const char * url, const char * header, char * output, size_t output_size ) )
 {
     (void) function;
 }
@@ -346,7 +346,7 @@ bool next_autodetect_amazon( char * output_datacenter, size_t output_datacenter_
     next_printf( NEXT_LOG_LEVEL_WARN, "autodetect amazon datacenter is not available on this platform" );
     (void) output_datacenter;
     (void) output_datacenter_size;
-    return false;   
+    return false;
 }
 
 bool next_autodetect_unity( const char * input_datacenter, const char * public_address, char * output_datacenter, size_t output_datacenter_size )

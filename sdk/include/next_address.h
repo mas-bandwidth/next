@@ -14,11 +14,16 @@
 #define NEXT_ADDRESS_ALREADY_DEFINED
 struct next_address_t
 {
-    union { uint32_t ip; uint8_t ipv4[4]; uint16_t ipv6[8]; } data;
+    union
+    {
+        uint32_t ip;
+        uint8_t ipv4[4];
+        uint16_t ipv6[8];
+    } data;
     uint16_t port;
     uint8_t type;
 };
-#endif 
+#endif
 
 NEXT_EXPORT_FUNC int next_address_parse( struct next_address_t * address, const char * address_string );
 

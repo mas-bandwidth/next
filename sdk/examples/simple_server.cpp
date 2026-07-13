@@ -20,7 +20,8 @@ static volatile int quit = 0;
 
 void interrupt_handler( int signal )
 {
-    (void) signal; quit = 1;
+    (void) signal;
+    quit = 1;
 }
 
 void server_packet_received( next_server_t * server, void * context, const next_address_t * from, const uint8_t * packet_data, int packet_bytes )
@@ -32,7 +33,8 @@ void server_packet_received( next_server_t * server, void * context, const next_
 
 int main()
 {
-    signal( SIGINT, interrupt_handler ); signal( SIGTERM, interrupt_handler );
+    signal( SIGINT, interrupt_handler );
+    signal( SIGTERM, interrupt_handler );
 
     if ( next_init( NULL, NULL ) != NEXT_OK )
     {
@@ -46,7 +48,7 @@ int main()
         printf( "error: failed to create server\n" );
         return 1;
     }
-    
+
     while ( !quit )
     {
         next_server_update( server );
@@ -55,9 +57,9 @@ int main()
     }
 
     next_server_flush( server );
-    
+
     next_server_destroy( server );
-    
+
     next_term();
 
     return 0;

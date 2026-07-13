@@ -65,7 +65,7 @@ inline bool next_bandwidth_limiter_add_packet( next_bandwidth_limiter_t * bandwi
     {
         if ( new_period )
         {
-            const double kbps = bandwidth_limiter->bits_sent / ( current_time - bandwidth_limiter->last_check_time) / 1000.0;
+            const double kbps = bandwidth_limiter->bits_sent / ( current_time - bandwidth_limiter->last_check_time ) / 1000.0;
             next_bandwidth_limiter_add_sample( bandwidth_limiter, kbps );
         }
         bandwidth_limiter->bits_sent = 0;
@@ -74,7 +74,7 @@ inline bool next_bandwidth_limiter_add_packet( next_bandwidth_limiter_t * bandwi
 
     bandwidth_limiter->bits_sent += packet_bits;
 
-    return bandwidth_limiter->bits_sent > uint64_t(kbps_allowed) * 1000 * NEXT_BANDWIDTH_LIMITER_INTERVAL;
+    return bandwidth_limiter->bits_sent > uint64_t( kbps_allowed ) * 1000 * NEXT_BANDWIDTH_LIMITER_INTERVAL;
 }
 
 inline double next_bandwidth_limiter_usage_kbps( next_bandwidth_limiter_t * bandwidth_limiter )

@@ -8,16 +8,16 @@
 
 struct next_packet_loss_tracker_t
 {
-    NEXT_DECLARE_SENTINEL(0)
+    NEXT_DECLARE_SENTINEL( 0 )
 
     uint64_t last_packet_processed;
     uint64_t most_recent_packet_received;
 
-    NEXT_DECLARE_SENTINEL(1)
+    NEXT_DECLARE_SENTINEL( 1 )
 
     uint64_t received_packets[NEXT_PACKET_LOSS_TRACKER_HISTORY];
 
-    NEXT_DECLARE_SENTINEL(2)
+    NEXT_DECLARE_SENTINEL( 2 )
 };
 
 inline void next_packet_loss_tracker_initialize_sentinels( next_packet_loss_tracker_t * tracker )

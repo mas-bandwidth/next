@@ -29,7 +29,7 @@ int next_address_parse( next_address_t * address, const char * address_string_in
     // 1. if the first character is '[' then it's probably an ipv6 in form "[addr6]:portnum"
     // 2. otherwise try to parse as an IPv6 address using inet_pton
 
-    char buffer[NEXT_MAX_ADDRESS_STRING_LENGTH + NEXT_ADDRESS_BUFFER_SAFETY*2];
+    char buffer[NEXT_MAX_ADDRESS_STRING_LENGTH + NEXT_ADDRESS_BUFFER_SAFETY * 2];
 
     char * address_string = buffer + NEXT_ADDRESS_BUFFER_SAFETY;
     next_copy_string( address_string, address_string_in, NEXT_MAX_ADDRESS_STRING_LENGTH );
@@ -51,7 +51,7 @@ int next_address_parse( next_address_t * address, const char * address_string_in
             if ( address_string[index] == ':' )
             {
                 address->port = (uint16_t) ( atoi( &address_string[index + 1] ) );
-                address_string[index-1] = '\0';
+                address_string[index - 1] = '\0';
                 break;
             }
             else if ( address_string[index] == ']' )
@@ -89,7 +89,7 @@ int next_address_parse( next_address_t * address, const char * address_string_in
             break;
         if ( address_string[index] == ':' )
         {
-            address->port = (uint16_t)( atoi( &address_string[index + 1] ) );
+            address->port = (uint16_t) ( atoi( &address_string[index + 1] ) );
             address_string[index] = '\0';
         }
     }
@@ -100,8 +100,8 @@ int next_address_parse( next_address_t * address, const char * address_string_in
         address->type = NEXT_ADDRESS_IPV4;
         address->data.ipv4[3] = (uint8_t) ( ( addr4 & 0xFF000000 ) >> 24 );
         address->data.ipv4[2] = (uint8_t) ( ( addr4 & 0x00FF0000 ) >> 16 );
-        address->data.ipv4[1] = (uint8_t) ( ( addr4 & 0x0000FF00 ) >> 8  );
-        address->data.ipv4[0] = (uint8_t) ( ( addr4 & 0x000000FF )     );
+        address->data.ipv4[1] = (uint8_t) ( ( addr4 & 0x0000FF00 ) >> 8 );
+        address->data.ipv4[0] = (uint8_t) ( ( addr4 & 0x000000FF ) );
         return NEXT_OK;
     }
 
@@ -114,7 +114,7 @@ const char * next_address_to_string( const next_address_t * address, char * buff
 
     if ( address->type == NEXT_ADDRESS_IPV6 )
     {
-#if defined(WINVER) && WINVER <= 0x0502
+#if defined( WINVER ) && WINVER <= 0x0502
         // ipv6 not supported
         buffer[0] = '\0';
         return buffer;
@@ -177,7 +177,7 @@ const char * next_address_to_string_without_port( const next_address_t * address
 
     if ( address->type == NEXT_ADDRESS_IPV6 )
     {
-#if defined(WINVER) && WINVER <= 0x0502
+#if defined( WINVER ) && WINVER <= 0x0502
         // ipv6 not supported
         buffer[0] = '\0';
         return buffer;
@@ -301,8 +301,8 @@ void next_address_convert_ipv4_to_ipv6( struct next_address_t * address )
     address->data.ipv6[3] = 0x0000;
     address->data.ipv6[4] = 0x0000;
     address->data.ipv6[5] = 0xFFFF;
-    address->data.ipv6[6] = ( uint16_t(a) << 8 ) | uint16_t(b);
-    address->data.ipv6[7] = ( uint16_t(c) << 8 ) | uint16_t(d);
+    address->data.ipv6[6] = ( uint16_t( a ) << 8 ) | uint16_t( b );
+    address->data.ipv6[7] = ( uint16_t( c ) << 8 ) | uint16_t( d );
 }
 
 void next_address_convert_ipv6_to_ipv4( struct next_address_t * address )

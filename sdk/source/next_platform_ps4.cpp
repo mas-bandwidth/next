@@ -19,7 +19,7 @@
 #include <string.h>
 #include "sodium.h"
 
-#define HEAP_SIZE_NET (16 * 1024)
+#define HEAP_SIZE_NET ( 16 * 1024 )
 
 static int handle_net;
 
@@ -34,17 +34,17 @@ static void next_randombytes_stir()
 {
 }
 
-static void next_randombytes_buf(void* const buf, const size_t size_const)
+static void next_randombytes_buf( void * const buf, const size_t size_const )
 {
     // IMPORTANT: sceRandomGetRandomNumber can only do max of SCE_RANDOM_MAX_SIZE bytes at a time. why god why.
-    uint8_t* start = (uint8_t*)buf;
-    uint8_t* finish = start + size_const;
-    uint8_t* p = start;
-    while (p < finish)
+    uint8_t * start = (uint8_t *) buf;
+    uint8_t * finish = start + size_const;
+    uint8_t * p = start;
+    while ( p < finish )
     {
         size_t remaining = size_t( finish - p );
-        size_t size = (remaining >= SCE_RANDOM_MAX_SIZE) ? SCE_RANDOM_MAX_SIZE : remaining;
-        sceRandomGetRandomNumber(p, size);
+        size_t size = ( remaining >= SCE_RANDOM_MAX_SIZE ) ? SCE_RANDOM_MAX_SIZE : remaining;
+        sceRandomGetRandomNumber( p, size );
         p += size;
     }
 }
@@ -52,11 +52,11 @@ static void next_randombytes_buf(void* const buf, const size_t size_const)
 static uint32_t next_randombytes_random()
 {
     uint32_t random;
-    next_randombytes_buf(&random, sizeof(random));
+    next_randombytes_buf( &random, sizeof( random ) );
     return random;
 }
 
-static uint32_t next_randombytes_uniform(const uint32_t upper_bound)
+static uint32_t next_randombytes_uniform( const uint32_t upper_bound )
 {
     uint32_t mask = upper_bound - 1;
 
@@ -69,7 +69,7 @@ static uint32_t next_randombytes_uniform(const uint32_t upper_bound)
     do
     {
         result = mask & next_randombytes_random();  // 16-bit random number
-    } while (result >= upper_bound);
+    } while ( result >= upper_bound );
     return result;
 }
 
@@ -79,18 +79,18 @@ static int next_randombytes_close()
 }
 
 static randombytes_implementation next_random_implementation =
-{
-    &next_randombytes_implementation_name,
-    &next_randombytes_random,
-    &next_randombytes_stir,
-    &next_randombytes_uniform,
-    &next_randombytes_buf,
-    &next_randombytes_close,
+    {
+        &next_randombytes_implementation_name,
+        &next_randombytes_random,
+        &next_randombytes_stir,
+        &next_randombytes_uniform,
+        &next_randombytes_buf,
+        &next_randombytes_close,
 };
 
 int next_platform_init()
 {
-    if ( sceSysmoduleLoadModule( SCE_SYSMODULE_RANDOM ) != SCE_OK ) 
+    if ( sceSysmoduleLoadModule( SCE_SYSMODULE_RANDOM ) != SCE_OK )
     {
         next_printf( NEXT_LOG_LEVEL_ERROR, "failed to load random sysmodule" );
         return NEXT_ERROR;
@@ -102,7 +102,7 @@ int next_platform_init()
         return NEXT_ERROR;
     }
 
-    if ( ( handle_net = sceNetPoolCreate("net", HEAP_SIZE_NET, 0 ) ) < 0 )
+    if ( ( handle_net = sceNetPoolCreate( "net", HEAP_SIZE_NET, 0 ) ) < 0 )
     {
         next_printf( NEXT_LOG_LEVEL_ERROR, "failed to init network pool" );
         return NEXT_ERROR;
@@ -162,10 +162,10 @@ struct thread_shim_data_t
     next_platform_thread_func_t real_thread_function;
 };
 
-static void* thread_function_shim( void * data )
+static void * thread_function_shim( void * data )
 {
     next_assert( data );
-    thread_shim_data_t * shim_data = (thread_shim_data_t*) data;
+    thread_shim_data_t * shim_data = (thread_shim_data_t *) data;
     void * context = shim_data->context;
     void * real_thread_data = shim_data->real_thread_data;
     next_platform_thread_func_t real_thread_function = shim_data->real_thread_function;
@@ -180,7 +180,7 @@ next_platform_thread_t * next_platform_thread_create( void * context, next_platf
     next_assert( thread );
     thread->context = context;
 
-    thread_shim_data_t * shim_data = (thread_shim_data_t*) next_malloc( context, sizeof(thread_shim_data_t) );
+    thread_shim_data_t * shim_data = (thread_shim_data_t *) next_malloc( context, sizeof( thread_shim_data_t ) );
     next_assert( shim_data );
     if ( !shim_data )
     {
@@ -229,14 +229,14 @@ int next_platform_mutex_create( next_platform_mutex_t * mutex )
 {
     next_assert( mutex );
 
-    memset( mutex, 0, sizeof( next_platform_mutex_t) );
+    memset( mutex, 0, sizeof( next_platform_mutex_t ) );
 
     ScePthreadMutexattr attr;
-    scePthreadMutexattrInit(&attr);
+    scePthreadMutexattrInit( &attr );
     scePthreadMutexattrSettype( &attr, SCE_PTHREAD_MUTEX_RECURSIVE );
     bool success = scePthreadMutexInit( &mutex->handle, &attr, "next" ) == SCE_OK;
     scePthreadMutexattrDestroy( &attr );
-    
+
     if ( !success )
     {
         return NEXT_ERROR;
@@ -267,7 +267,7 @@ void next_platform_mutex_destroy( next_platform_mutex_t * mutex )
     if ( mutex->ok )
     {
         scePthreadMutexDestroy( &mutex->handle );
-        memset( mutex, 0, sizeof(next_platform_mutex_t) );
+        memset( mutex, 0, sizeof( next_platform_mutex_t ) );
     }
 }
 
@@ -287,12 +287,12 @@ double next_platform_time()
 
 uint16_t next_platform_ntohs( uint16_t in )
 {
-    return (uint16_t)( ( ( in << 8 ) & 0xFF00 ) | ( ( in >> 8 ) & 0x00FF ) );
+    return (uint16_t) ( ( ( in << 8 ) & 0xFF00 ) | ( ( in >> 8 ) & 0x00FF ) );
 }
 
 uint16_t next_platform_htons( uint16_t in )
 {
-    return (uint16_t)( ( ( in << 8 ) & 0xFF00 ) | ( ( in >> 8 ) & 0x00FF ) );
+    return (uint16_t) ( ( ( in << 8 ) & 0xFF00 ) | ( ( in >> 8 ) & 0x00FF ) );
 }
 
 int next_platform_hostname_resolve( const char * hostname, const char * port, next_address_t * address )
@@ -302,8 +302,8 @@ int next_platform_hostname_resolve( const char * hostname, const char * port, ne
         return NEXT_ERROR;
 
     SceNetSockaddrIn addr;
-    memset( &addr, 0, sizeof(addr) );
-    addr.sin_len = sizeof(addr);
+    memset( &addr, 0, sizeof( addr ) );
+    addr.sin_len = sizeof( addr );
     addr.sin_family = SCE_NET_AF_INET;
     int result = sceNetResolverStartNtoa( resolver, hostname, &addr.sin_addr, 0, 0, 0 );
     sceNetResolverDestroy( resolver );
@@ -315,10 +315,10 @@ int next_platform_hostname_resolve( const char * hostname, const char * port, ne
         return NEXT_ERROR;
 
     address->type = NEXT_ADDRESS_IPV4;
-    address->data.ipv4[0] = (uint8_t)((addr.sin_addr.s_addr & 0x000000FF));
-    address->data.ipv4[1] = (uint8_t)((addr.sin_addr.s_addr & 0x0000FF00) >> 8);
-    address->data.ipv4[2] = (uint8_t)((addr.sin_addr.s_addr & 0x00FF0000) >> 16);
-    address->data.ipv4[3] = (uint8_t)((addr.sin_addr.s_addr & 0xFF000000) >> 24);
+    address->data.ipv4[0] = (uint8_t) ( ( addr.sin_addr.s_addr & 0x000000FF ) );
+    address->data.ipv4[1] = (uint8_t) ( ( addr.sin_addr.s_addr & 0x0000FF00 ) >> 8 );
+    address->data.ipv4[2] = (uint8_t) ( ( addr.sin_addr.s_addr & 0x00FF0000 ) >> 16 );
+    address->data.ipv4[3] = (uint8_t) ( ( addr.sin_addr.s_addr & 0xFF000000 ) >> 24 );
     address->port = uint16_t( atoi( port ) );
     return NEXT_OK;
 }
@@ -377,14 +377,14 @@ next_platform_socket_t * next_platform_socket_create( void * context, next_addre
 
     // increase socket send and receive buffer sizes
 
-    if ( sceNetSetsockopt( s->handle, SCE_NET_SOL_SOCKET, SCE_NET_SO_SNDBUF, (char*)( &send_buffer_size ), sizeof( int ) ) != 0 )
+    if ( sceNetSetsockopt( s->handle, SCE_NET_SOL_SOCKET, SCE_NET_SO_SNDBUF, (char *) ( &send_buffer_size ), sizeof( int ) ) != 0 )
     {
         next_printf( NEXT_LOG_LEVEL_ERROR, "failed to set socket send buffer size" );
         next_platform_socket_destroy( s );
         return NULL;
     }
 
-    if ( sceNetSetsockopt( s->handle, SCE_NET_SOL_SOCKET, SCE_NET_SO_RCVBUF, (char*)( &receive_buffer_size ), sizeof( int ) ) != 0 )
+    if ( sceNetSetsockopt( s->handle, SCE_NET_SOL_SOCKET, SCE_NET_SO_RCVBUF, (char *) ( &receive_buffer_size ), sizeof( int ) ) != 0 )
     {
         next_printf( NEXT_LOG_LEVEL_ERROR, "failed to set socket receive buffer size" );
         next_platform_socket_destroy( s );
@@ -397,13 +397,13 @@ next_platform_socket_t * next_platform_socket_create( void * context, next_addre
         SceNetSockaddrIn socket_address;
         memset( &socket_address, 0, sizeof( socket_address ) );
         socket_address.sin_family = SCE_NET_AF_INET;
-        socket_address.sin_addr.s_addr = ( ( (uint32_t) address->data.ipv4[0] ) )      | 
-                                         ( ( (uint32_t) address->data.ipv4[1] ) << 8 )  | 
-                                         ( ( (uint32_t) address->data.ipv4[2] ) << 16 ) | 
+        socket_address.sin_addr.s_addr = ( ( (uint32_t) address->data.ipv4[0] ) ) |
+                                         ( ( (uint32_t) address->data.ipv4[1] ) << 8 ) |
+                                         ( ( (uint32_t) address->data.ipv4[2] ) << 16 ) |
                                          ( ( (uint32_t) address->data.ipv4[3] ) << 24 );
         socket_address.sin_port = next_platform_htons( address->port );
 
-        if ( sceNetBind( s->handle, (SceNetSockaddr*) &socket_address, sizeof( socket_address ) ) < 0 )
+        if ( sceNetBind( s->handle, (SceNetSockaddr *) &socket_address, sizeof( socket_address ) ) < 0 )
         {
             next_printf( NEXT_LOG_LEVEL_ERROR, "failed to bind socket (ipv4)" );
             next_platform_socket_destroy( s );
@@ -417,7 +417,7 @@ next_platform_socket_t * next_platform_socket_create( void * context, next_addre
     {
         SceNetSockaddrIn sin;
         SceNetSocklen_t len = sizeof( sin );
-        if ( sceNetGetsockname( s->handle, (SceNetSockaddr*)( &sin ), &len ) == -1 )
+        if ( sceNetGetsockname( s->handle, (SceNetSockaddr *) ( &sin ), &len ) == -1 )
         {
             next_printf( NEXT_LOG_LEVEL_ERROR, "failed to get socket port (ipv4)" );
             next_platform_socket_destroy( s );
@@ -497,12 +497,12 @@ void next_platform_socket_send_packet( next_platform_socket_t * socket, const ne
         SceNetSockaddrIn socket_address;
         memset( &socket_address, 0, sizeof( socket_address ) );
         socket_address.sin_family = SCE_NET_AF_INET;
-        socket_address.sin_addr.s_addr = ( ( (uint32_t) to->data.ipv4[0] ) )        | 
-                                         ( ( (uint32_t) to->data.ipv4[1] ) << 8 )   | 
-                                         ( ( (uint32_t) to->data.ipv4[2] ) << 16 )  | 
+        socket_address.sin_addr.s_addr = ( ( (uint32_t) to->data.ipv4[0] ) ) |
+                                         ( ( (uint32_t) to->data.ipv4[1] ) << 8 ) |
+                                         ( ( (uint32_t) to->data.ipv4[2] ) << 16 ) |
                                          ( ( (uint32_t) to->data.ipv4[3] ) << 24 );
         socket_address.sin_port = next_platform_htons( to->port );
-        int result = sceNetSendto( socket->handle, (const char*)( packet_data ), packet_bytes, 0, (SceNetSockaddr*)( &socket_address ), sizeof( SceNetSockaddrIn ) );
+        int result = sceNetSendto( socket->handle, (const char *) ( packet_data ), packet_bytes, 0, (SceNetSockaddr *) ( &socket_address ), sizeof( SceNetSockaddrIn ) );
         if ( result < 0 )
         {
             char address_string[NEXT_MAX_ADDRESS_STRING_LENGTH];
@@ -526,7 +526,7 @@ int next_platform_socket_receive_packet( next_platform_socket_t * socket, next_a
     SceNetSockaddrIn sockaddr_from;
     SceNetSocklen_t from_length = sizeof( sockaddr_from );
 
-    int result = sceNetRecvfrom( socket->handle, (char*) packet_data, max_packet_size, socket->timeout_seconds == 0.0f && socket->type == NEXT_PLATFORM_SOCKET_NON_BLOCKING ? SCE_NET_MSG_DONTWAIT : 0, (SceNetSockaddr*) &sockaddr_from, &from_length );
+    int result = sceNetRecvfrom( socket->handle, (char *) packet_data, max_packet_size, socket->timeout_seconds == 0.0f && socket->type == NEXT_PLATFORM_SOCKET_NON_BLOCKING ? SCE_NET_MSG_DONTWAIT : 0, (SceNetSockaddr *) &sockaddr_from, &from_length );
 
     if ( result <= 0 )
     {
@@ -536,7 +536,7 @@ int next_platform_socket_receive_packet( next_platform_socket_t * socket, next_a
         }
 
         next_printf( NEXT_LOG_LEVEL_DEBUG, "recvfrom failed with error %d", sce_net_errno );
-        
+
         return 0;
     }
 
@@ -554,11 +554,10 @@ int next_platform_socket_receive_packet( next_platform_socket_t * socket, next_a
         next_assert( 0 );
         return 0;
     }
-  
+
     next_assert( result >= 0 );
 
     return result;
-
 }
 
 int next_platform_id()

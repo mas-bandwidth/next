@@ -1,0 +1,4 @@
+# sdk/serialize is the CANONICAL upstream serialize library (mas-bandwidth/serialize),
+# vendored VERBATIM -- never hand-edited, never reformatted. See sdk/serialize/README.md.
+DisableFormat: true
+SortIncludes: Never

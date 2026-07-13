@@ -12,12 +12,12 @@
 
 struct next_replay_protection_t
 {
-    NEXT_DECLARE_SENTINEL(0)
+    NEXT_DECLARE_SENTINEL( 0 )
 
     uint64_t most_recent_sequence;
     uint64_t received_packet[NEXT_REPLAY_PROTECTION_BUFFER_SIZE];
 
-    NEXT_DECLARE_SENTINEL(1)
+    NEXT_DECLARE_SENTINEL( 1 )
 };
 
 inline void next_replay_protection_initialize_sentinels( next_replay_protection_t * replay_protection )

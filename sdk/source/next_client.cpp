@@ -26,11 +26,13 @@
 
 // ---------------------------------------------------------------
 
+// clang-format off
 #define NEXT_CLIENT_COMMAND_OPEN_SESSION            0
 #define NEXT_CLIENT_COMMAND_CLOSE_SESSION           1
 #define NEXT_CLIENT_COMMAND_UPDATE                  2
 #define NEXT_CLIENT_COMMAND_DESTROY                 3
 #define NEXT_CLIENT_COMMAND_REPORT_SESSION          4
+// clang-format on
 
 struct next_client_command_t
 {
@@ -67,11 +69,13 @@ struct next_client_command_report_session_t : public next_client_command_t
 
 // ---------------------------------------------------------------
 
+// clang-format off
 #define NEXT_CLIENT_NOTIFY_PACKET_RECEIVED          0
 #define NEXT_CLIENT_NOTIFY_UPGRADED                 1
 #define NEXT_CLIENT_NOTIFY_STATS_UPDATED            2
 #define NEXT_CLIENT_NOTIFY_MAGIC_UPDATED            3
 #define NEXT_CLIENT_NOTIFY_READY                    4
+// clang-format on
 
 struct next_client_notify_t
 {
@@ -83,7 +87,7 @@ struct next_client_notify_packet_received_t : public next_client_notify_t
     bool direct;
     bool already_received;
     int payload_bytes;
-    uint8_t payload_data[NEXT_MAX_PACKET_BYTES-1];
+    uint8_t payload_data[NEXT_MAX_PACKET_BYTES - 1];
 };
 
 struct next_client_notify_upgraded_t : public next_client_notify_t
@@ -138,7 +142,6 @@ void next_client_internal_update_direct_pings( next_client_internal_t * client )
 
 void next_client_internal_update_next_pings( next_client_internal_t * client );
 
-
 void next_client_internal_update_fallback_to_direct( next_client_internal_t * client );
 
 void next_client_internal_update_route_manager( next_client_internal_t * client );
@@ -159,7 +162,7 @@ extern int next_encrypted_packets[256];
 
 struct next_client_internal_t
 {
-    NEXT_DECLARE_SENTINEL(0)
+    NEXT_DECLARE_SENTINEL( 0 )
 
     void * context;
     next_queue_t * command_queue;
@@ -193,22 +196,22 @@ struct next_client_internal_t
     uint8_t current_magic[8];
     uint8_t previous_magic[8];
 
-    NEXT_DECLARE_SENTINEL(1)
+    NEXT_DECLARE_SENTINEL( 1 )
 
     std::atomic<uint64_t> packets_sent;
 
-    NEXT_DECLARE_SENTINEL(2)
+    NEXT_DECLARE_SENTINEL( 2 )
 
     next_route_manager_t * route_manager;
     next_platform_mutex_t route_manager_mutex;
 
-    NEXT_DECLARE_SENTINEL(3)
+    NEXT_DECLARE_SENTINEL( 3 )
 
     next_packet_loss_tracker_t packet_loss_tracker;
     next_out_of_order_tracker_t out_of_order_tracker;
     next_jitter_tracker_t jitter_tracker;
 
-    NEXT_DECLARE_SENTINEL(4)
+    NEXT_DECLARE_SENTINEL( 4 )
 
     uint8_t buyer_public_key[NEXT_CRYPTO_SIGN_PUBLICKEYBYTES];
     uint8_t client_kx_public_key[NEXT_CRYPTO_KX_PUBLICKEYBYTES];
@@ -219,28 +222,28 @@ struct next_client_internal_t
     uint8_t client_route_private_key[NEXT_CRYPTO_BOX_SECRETKEYBYTES];
     uint8_t client_secret_key[NEXT_SECRET_KEY_BYTES];
 
-    NEXT_DECLARE_SENTINEL(5)
+    NEXT_DECLARE_SENTINEL( 5 )
 
     next_client_stats_t client_stats;
 
-    NEXT_DECLARE_SENTINEL(6)
+    NEXT_DECLARE_SENTINEL( 6 )
 
     next_ping_history_t next_ping_history;
     next_ping_history_t direct_ping_history;
 
-    NEXT_DECLARE_SENTINEL(7)
+    NEXT_DECLARE_SENTINEL( 7 )
 
     next_replay_protection_t payload_replay_protection;
     next_replay_protection_t special_replay_protection;
     next_replay_protection_t internal_replay_protection;
 
-    NEXT_DECLARE_SENTINEL(8)
+    NEXT_DECLARE_SENTINEL( 8 )
 
     next_platform_mutex_t bandwidth_mutex;
     float bandwidth_kbps_up;
     float bandwidth_kbps_down;
 
-    NEXT_DECLARE_SENTINEL(9)
+    NEXT_DECLARE_SENTINEL( 9 )
 
     bool sending_upgrade_response;
     double upgrade_response_start_time;
@@ -248,14 +251,14 @@ struct next_client_internal_t
     int upgrade_response_packet_bytes;
     uint8_t upgrade_response_packet_data[NEXT_MAX_PACKET_BYTES];
 
-    NEXT_DECLARE_SENTINEL(10)
+    NEXT_DECLARE_SENTINEL( 10 )
 
     bool sending_client_relay_pings;
     double client_relay_ping_stop_time;
     NextClientRelayUpdatePacket client_relay_update_packet;
     next_relay_manager_t * client_relay_manager;
 
-    NEXT_DECLARE_SENTINEL(11)
+    NEXT_DECLARE_SENTINEL( 11 )
 
     bool has_client_ping_stats;
     int num_client_relays;
@@ -264,14 +267,14 @@ struct next_client_internal_t
     uint8_t client_relay_jitter[NEXT_MAX_CLIENT_RELAYS];
     float client_relay_packet_loss[NEXT_MAX_CLIENT_RELAYS];
 
-    NEXT_DECLARE_SENTINEL(12)
+    NEXT_DECLARE_SENTINEL( 12 )
 
     next_value_tracker_t delta_time_tracker;
     next_value_tracker_t game_rtt_tracker;
     next_value_tracker_t game_jitter_tracker;
     next_value_tracker_t game_packet_loss_tracker;
 
-    NEXT_DECLARE_SENTINEL(13)
+    NEXT_DECLARE_SENTINEL( 13 )
 
     float delta_time_min;
     float delta_time_max;
@@ -289,11 +292,11 @@ struct next_client_internal_t
     float game_packet_loss_max;
     float game_packet_loss_avg;
 
-    NEXT_DECLARE_SENTINEL(14)
+    NEXT_DECLARE_SENTINEL( 14 )
 
     std::atomic<uint64_t> counters[NEXT_CLIENT_COUNTER_MAX];
 
-    NEXT_DECLARE_SENTINEL(15)
+    NEXT_DECLARE_SENTINEL( 15 )
 };
 
 void next_client_internal_initialize_sentinels( next_client_internal_t * client )
@@ -381,15 +384,15 @@ next_client_internal_t * next_client_internal_create( void * context, const char
         return NULL;
     }
 
-    next_client_internal_t * client = (next_client_internal_t*) next_malloc( context, sizeof(next_client_internal_t) );
+    next_client_internal_t * client = (next_client_internal_t *) next_malloc( context, sizeof( next_client_internal_t ) );
     if ( !client )
     {
         next_printf( NEXT_LOG_LEVEL_ERROR, "could not create internal client" );
         return NULL;
     }
 
-    char * just_clear_it_and_dont_complain = (char*) client;
-    memset( just_clear_it_and_dont_complain, 0, sizeof(next_client_internal_t) );
+    char * just_clear_it_and_dont_complain = (char *) client;
+    memset( just_clear_it_and_dont_complain, 0, sizeof( next_client_internal_t ) );
 
     next_client_internal_initialize_sentinels( client );
 
@@ -426,7 +429,7 @@ next_client_internal_t * next_client_internal_create( void * context, const char
     {
         next_printf( NEXT_LOG_LEVEL_INFO, "client socket is dual stack ipv4 and ipv6" );
         bind_address.type = NEXT_ADDRESS_IPV6;
-        memset( bind_address.data.ipv6, 0, sizeof(bind_address.data.ipv6) );
+        memset( bind_address.data.ipv6, 0, sizeof( bind_address.data.ipv6 ) );
     }
 
     // IMPORTANT: some platforms (GDK) have a preferred port that we must use to access packet tagging
@@ -555,7 +558,7 @@ void next_client_internal_destroy( next_client_internal_t * client )
     next_platform_mutex_destroy( &client->route_manager_mutex );
     next_platform_mutex_destroy( &client->bandwidth_mutex );
 
-    next_clear_and_free( client->context, client, sizeof(next_client_internal_t) );
+    next_clear_and_free( client->context, client, sizeof( next_client_internal_t ) );
 }
 
 int next_client_internal_send_packet_to_server( next_client_internal_t * client, uint8_t packet_id, void * packet_object )
@@ -588,7 +591,7 @@ int next_client_internal_send_packet_to_server( next_client_internal_t * client,
     }
 
 #if NEXT_ADVANCED_PACKET_FILTER
-    next_assert( next_basic_packet_filter( buffer, sizeof(buffer) ) );
+    next_assert( next_basic_packet_filter( buffer, sizeof( buffer ) ) );
     next_assert( next_advanced_packet_filter( buffer, client->current_magic, from_address_data, to_address_data, packet_bytes ) );
 #endif // #if NEXT_ADVANCED_PACKET_FILTER
 
@@ -664,8 +667,8 @@ void next_client_internal_process_network_next_packet( next_client_internal_t * 
         else
         {
             uint8_t magic[8];
-            memset( magic, 0, sizeof(magic) );
-            memset( to_address_data, 0, sizeof(to_address_data) );
+            memset( magic, 0, sizeof( magic ) );
+            memset( to_address_data, 0, sizeof( to_address_data ) );
             if ( !next_advanced_packet_filter( packet_data, magic, from_address_data, to_address_data, packet_bytes ) )
             {
                 next_printf( NEXT_LOG_LEVEL_DEBUG, "client advanced packet filter dropped packet (upgrade request)" );
@@ -720,30 +723,30 @@ void next_client_internal_process_network_next_packet( next_client_internal_t * 
         next_printf( NEXT_LOG_LEVEL_DEBUG, "client received upgrade request packet from server" );
 
         next_printf( NEXT_LOG_LEVEL_DEBUG, "client initial magic: %02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x | %02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x | %02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x",
-            packet.upcoming_magic[0],
-            packet.upcoming_magic[1],
-            packet.upcoming_magic[2],
-            packet.upcoming_magic[3],
-            packet.upcoming_magic[4],
-            packet.upcoming_magic[5],
-            packet.upcoming_magic[6],
-            packet.upcoming_magic[7],
-            packet.current_magic[0],
-            packet.current_magic[1],
-            packet.current_magic[2],
-            packet.current_magic[3],
-            packet.current_magic[4],
-            packet.current_magic[5],
-            packet.current_magic[6],
-            packet.current_magic[7],
-            packet.previous_magic[0],
-            packet.previous_magic[1],
-            packet.previous_magic[2],
-            packet.previous_magic[3],
-            packet.previous_magic[4],
-            packet.previous_magic[5],
-            packet.previous_magic[6],
-            packet.previous_magic[7] );
+                     packet.upcoming_magic[0],
+                     packet.upcoming_magic[1],
+                     packet.upcoming_magic[2],
+                     packet.upcoming_magic[3],
+                     packet.upcoming_magic[4],
+                     packet.upcoming_magic[5],
+                     packet.upcoming_magic[6],
+                     packet.upcoming_magic[7],
+                     packet.current_magic[0],
+                     packet.current_magic[1],
+                     packet.current_magic[2],
+                     packet.current_magic[3],
+                     packet.current_magic[4],
+                     packet.current_magic[5],
+                     packet.current_magic[6],
+                     packet.current_magic[7],
+                     packet.previous_magic[0],
+                     packet.previous_magic[1],
+                     packet.previous_magic[2],
+                     packet.previous_magic[3],
+                     packet.previous_magic[4],
+                     packet.previous_magic[5],
+                     packet.previous_magic[6],
+                     packet.previous_magic[7] );
 
         memcpy( client->upcoming_magic, packet.upcoming_magic, 8 );
         memcpy( client->current_magic, packet.current_magic, 8 );
@@ -878,7 +881,7 @@ void next_client_internal_process_network_next_packet( next_client_internal_t * 
         memcpy( client->client_send_key, client_send_key, NEXT_CRYPTO_KX_SESSIONKEYBYTES );
         memcpy( client->client_receive_key, client_receive_key, NEXT_CRYPTO_KX_SESSIONKEYBYTES );
 
-        next_client_notify_upgraded_t * notify = (next_client_notify_upgraded_t*) next_malloc( client->context, sizeof(next_client_notify_upgraded_t) );
+        next_client_notify_upgraded_t * notify = (next_client_notify_upgraded_t *) next_malloc( client->context, sizeof( next_client_notify_upgraded_t ) );
         next_assert( notify );
         notify->type = NEXT_CLIENT_NOTIFY_UPGRADED;
         notify->session_id = client->session_id;
@@ -947,13 +950,13 @@ void next_client_internal_process_network_next_packet( next_client_internal_t * 
             next_jitter_tracker_packet_received( &client->jitter_tracker, packet_sequence, packet_receive_time );
         }
 
-        next_client_notify_packet_received_t * notify = (next_client_notify_packet_received_t*) next_malloc( client->context, sizeof( next_client_notify_packet_received_t ) );
+        next_client_notify_packet_received_t * notify = (next_client_notify_packet_received_t *) next_malloc( client->context, sizeof( next_client_notify_packet_received_t ) );
         notify->type = NEXT_CLIENT_NOTIFY_PACKET_RECEIVED;
         notify->direct = true;
         notify->already_received = already_received;
         notify->payload_bytes = packet_bytes - 9;
         next_assert( notify->payload_bytes > 0 );
-        memcpy( notify->payload_data, packet_data + 9, size_t(notify->payload_bytes) );
+        memcpy( notify->payload_data, packet_data + 9, size_t( notify->payload_bytes ) );
         {
 #if NEXT_SPIKE_TRACKING
             next_printf( NEXT_LOG_LEVEL_SPAM, "client internal thread queues up NEXT_CLIENT_NOTIFY_PACKET_RECEIVED at %s:%d", __FILE__, __LINE__ );
@@ -1005,7 +1008,7 @@ void next_client_internal_process_network_next_packet( next_client_internal_t * 
 
             next_relay_manager_reset( client->client_relay_manager );
 
-            next_relay_manager_update( client->client_relay_manager, packet.num_client_relays, packet.client_relay_ids, packet.client_relay_addresses, (const uint8_t*)packet.client_relay_ping_tokens, packet.expire_timestamp );
+            next_relay_manager_update( client->client_relay_manager, packet.num_client_relays, packet.client_relay_ids, packet.client_relay_addresses, (const uint8_t *) packet.client_relay_ping_tokens, packet.expire_timestamp );
 
             client->client_relay_ping_stop_time = next_platform_time() + NEXT_CLIENT_RELAY_PING_TIME;
         }
@@ -1091,7 +1094,7 @@ void next_client_internal_process_network_next_packet( next_client_internal_t * 
 
         next_printf( NEXT_LOG_LEVEL_DEBUG, "client received route response from relay" );
 
-        int route_kbps_up = 0; 
+        int route_kbps_up = 0;
         int route_kbps_down = 0;
 
         next_route_manager_confirm_pending_route( client->route_manager, &route_kbps_up, &route_kbps_down );
@@ -1226,12 +1229,12 @@ void next_client_internal_process_network_next_packet( next_client_internal_t * 
             next_jitter_tracker_packet_received( &client->jitter_tracker, payload_sequence, next_platform_time() );
         }
 
-        next_client_notify_packet_received_t * notify = (next_client_notify_packet_received_t*) next_malloc( client->context, sizeof( next_client_notify_packet_received_t ) );
+        next_client_notify_packet_received_t * notify = (next_client_notify_packet_received_t *) next_malloc( client->context, sizeof( next_client_notify_packet_received_t ) );
         notify->type = NEXT_CLIENT_NOTIFY_PACKET_RECEIVED;
         notify->direct = false;
         notify->already_received = already_received;
         notify->payload_bytes = packet_bytes - NEXT_HEADER_BYTES;
-        memcpy( notify->payload_data, packet_data + NEXT_HEADER_BYTES, size_t(packet_bytes) - NEXT_HEADER_BYTES );
+        memcpy( notify->payload_data, packet_data + NEXT_HEADER_BYTES, size_t( packet_bytes ) - NEXT_HEADER_BYTES );
         {
 #if NEXT_SPIKE_TRACKING
             next_printf( NEXT_LOG_LEVEL_SPAM, "client internal thread queues up NEXT_CLIENT_NOTIFY_PACKET_RECEIVED at %s:%d", __FILE__, __LINE__ );
@@ -1437,38 +1440,38 @@ void next_client_internal_process_network_next_packet( next_client_internal_t * 
                 if ( memcmp( client->upcoming_magic, packet.upcoming_magic, 8 ) != 0 )
                 {
                     next_printf( NEXT_LOG_LEVEL_DEBUG, "client updated magic: %x,%x,%x,%x,%x,%x,%x,%x | %x,%x,%x,%x,%x,%x,%x,%x | %x,%x,%x,%x,%x,%x,%x,%x",
-                        packet.upcoming_magic[0],
-                        packet.upcoming_magic[1],
-                        packet.upcoming_magic[2],
-                        packet.upcoming_magic[3],
-                        packet.upcoming_magic[4],
-                        packet.upcoming_magic[5],
-                        packet.upcoming_magic[6],
-                        packet.upcoming_magic[7],
+                                 packet.upcoming_magic[0],
+                                 packet.upcoming_magic[1],
+                                 packet.upcoming_magic[2],
+                                 packet.upcoming_magic[3],
+                                 packet.upcoming_magic[4],
+                                 packet.upcoming_magic[5],
+                                 packet.upcoming_magic[6],
+                                 packet.upcoming_magic[7],
 
-                        packet.current_magic[0],
-                        packet.current_magic[1],
-                        packet.current_magic[2],
-                        packet.current_magic[3],
-                        packet.current_magic[4],
-                        packet.current_magic[5],
-                        packet.current_magic[6],
-                        packet.current_magic[7],
+                                 packet.current_magic[0],
+                                 packet.current_magic[1],
+                                 packet.current_magic[2],
+                                 packet.current_magic[3],
+                                 packet.current_magic[4],
+                                 packet.current_magic[5],
+                                 packet.current_magic[6],
+                                 packet.current_magic[7],
 
-                        packet.previous_magic[0],
-                        packet.previous_magic[1],
-                        packet.previous_magic[2],
-                        packet.previous_magic[3],
-                        packet.previous_magic[4],
-                        packet.previous_magic[5],
-                        packet.previous_magic[6],
-                        packet.previous_magic[7] );
+                                 packet.previous_magic[0],
+                                 packet.previous_magic[1],
+                                 packet.previous_magic[2],
+                                 packet.previous_magic[3],
+                                 packet.previous_magic[4],
+                                 packet.previous_magic[5],
+                                 packet.previous_magic[6],
+                                 packet.previous_magic[7] );
 
                     memcpy( client->upcoming_magic, packet.upcoming_magic, 8 );
                     memcpy( client->current_magic, packet.current_magic, 8 );
                     memcpy( client->previous_magic, packet.previous_magic, 8 );
 
-                    next_client_notify_magic_updated_t * notify = (next_client_notify_magic_updated_t*) next_malloc( client->context, sizeof(next_client_notify_magic_updated_t) );
+                    next_client_notify_magic_updated_t * notify = (next_client_notify_magic_updated_t *) next_malloc( client->context, sizeof( next_client_notify_magic_updated_t ) );
                     next_assert( notify );
                     notify->type = NEXT_CLIENT_NOTIFY_MAGIC_UPDATED;
                     memcpy( notify->current_magic, client->current_magic, 8 );
@@ -1520,14 +1523,14 @@ void next_client_internal_process_passthrough_packet( next_client_internal_t * c
 
     if ( packet_bytes <= NEXT_MAX_PACKET_BYTES - 1 && from_server_address )
     {
-        next_client_notify_packet_received_t * notify = (next_client_notify_packet_received_t*) next_malloc( client->context, sizeof( next_client_notify_packet_received_t ) );
+        next_client_notify_packet_received_t * notify = (next_client_notify_packet_received_t *) next_malloc( client->context, sizeof( next_client_notify_packet_received_t ) );
         notify->type = NEXT_CLIENT_NOTIFY_PACKET_RECEIVED;
         notify->direct = true;
         notify->payload_bytes = packet_bytes;
         notify->already_received = false;
         next_assert( notify->payload_bytes >= 0 );
         next_assert( notify->payload_bytes <= NEXT_MAX_PACKET_BYTES - 1 );
-        memcpy( notify->payload_data, packet_data, size_t(packet_bytes) );
+        memcpy( notify->payload_data, packet_data, size_t( packet_bytes ) );
         {
 #if NEXT_SPIKE_TRACKING
             next_printf( NEXT_LOG_LEVEL_SPAM, "client internal thread queues up NEXT_CLIENT_NOTIFY_PACKET_RECEIVED at %s:%d", __FILE__, __LINE__ );
@@ -1549,7 +1552,7 @@ void next_client_internal_block_and_receive_packet( next_client_internal_t * cli
 
     uint8_t packet_data[NEXT_MAX_PACKET_BYTES];
 
-    next_assert( ( size_t(packet_data) % 4 ) == 0 );
+    next_assert( ( size_t( packet_data ) % 4 ) == 0 );
 
     next_address_t from;
 
@@ -1570,7 +1573,7 @@ void next_client_internal_block_and_receive_packet( next_client_internal_t * cli
 
     if ( packet_bytes <= 1 )
         return;
-    
+
 #if NEXT_DEVELOPMENT
     if ( next_packet_loss && ( rand() % 10 ) == 0 )
         return;
@@ -1607,7 +1610,7 @@ bool next_client_internal_pump_commands( next_client_internal_t * client )
         if ( entry == NULL )
             break;
 
-        next_client_command_t * command = (next_client_command_t*) entry;
+        next_client_command_t * command = (next_client_command_t *) entry;
 
         switch ( command->type )
         {
@@ -1617,7 +1620,7 @@ bool next_client_internal_pump_commands( next_client_internal_t * client )
                 next_printf( NEXT_LOG_LEVEL_SPAM, "client internal thread received NEXT_CLIENT_COMMAND_OPEN_SESSION" );
 #endif // #if NEXT_SPIKE_TRACKING
 
-                next_client_command_open_session_t * open_session_command = (next_client_command_open_session_t*) entry;
+                next_client_command_open_session_t * open_session_command = (next_client_command_open_session_t *) entry;
                 client->server_address = open_session_command->server_address;
                 client->session_open = true;
                 client->open_session_sequence++;
@@ -1637,7 +1640,7 @@ bool next_client_internal_pump_commands( next_client_internal_t * client )
                 }
 
                 // IMPORTANT: Fire back ready when the client is ready to start sending packets and we're all dialed in for this session
-                next_client_notify_ready_t * notify = (next_client_notify_ready_t*) next_malloc( client->context, sizeof(next_client_notify_ready_t) );
+                next_client_notify_ready_t * notify = (next_client_notify_ready_t *) next_malloc( client->context, sizeof( next_client_notify_ready_t ) );
                 next_assert( notify );
                 notify->type = NEXT_CLIENT_NOTIFY_READY;
                 {
@@ -1665,8 +1668,8 @@ bool next_client_internal_pump_commands( next_client_internal_t * client )
                 memset( client->upcoming_magic, 0, 8 );
                 memset( client->current_magic, 0, 8 );
                 memset( client->previous_magic, 0, 8 );
-                memset( &client->server_address, 0, sizeof(next_address_t) );
-                memset( &client->client_external_address, 0, sizeof(next_address_t) );
+                memset( &client->server_address, 0, sizeof( next_address_t ) );
+                memset( &client->client_external_address, 0, sizeof( next_address_t ) );
 
                 client->session_open = false;
                 client->upgraded = false;
@@ -1687,13 +1690,13 @@ bool next_client_internal_pump_commands( next_client_internal_t * client )
                 client->route_update_sequence = 0;
                 client->sending_upgrade_response = false;
                 client->upgrade_response_packet_bytes = 0;
-                memset( client->upgrade_response_packet_data, 0, sizeof(client->upgrade_response_packet_data) );
+                memset( client->upgrade_response_packet_data, 0, sizeof( client->upgrade_response_packet_data ) );
                 client->upgrade_response_start_time = 0.0;
                 client->last_upgrade_response_send_time = 0.0;
 
                 client->packets_sent = 0;
 
-                memset( &client->client_stats, 0, sizeof(next_client_stats_t) );
+                memset( &client->client_stats, 0, sizeof( next_client_stats_t ) );
 
                 next_relay_manager_reset( client->client_relay_manager );
 
@@ -1741,7 +1744,7 @@ bool next_client_internal_pump_commands( next_client_internal_t * client )
                 next_printf( NEXT_LOG_LEVEL_SPAM, "client internal thread received NEXT_CLIENT_COMMAND_UPDATE" );
 #endif // #if NEXT_SPIKE_TRACKING
 
-                next_client_command_update_t * update_command = (next_client_command_update_t*) entry;
+                next_client_command_update_t * update_command = (next_client_command_update_t *) entry;
                 next_value_tracker_add_sample( &client->delta_time_tracker, update_command->delta_time );
                 next_value_tracker_add_sample( &client->game_rtt_tracker, update_command->game_rtt );
                 next_value_tracker_add_sample( &client->game_jitter_tracker, update_command->game_jitter );
@@ -1809,7 +1812,7 @@ void next_client_internal_update_stats( next_client_internal_t * client )
             fallback_to_direct = next_route_manager_get_fallback_to_direct( client->route_manager );
             flags = next_route_manager_get_flags( client->route_manager );
         }
-        
+
         client->client_stats.next = network_next;
         client->client_stats.upgraded = client->upgraded;
         client->client_stats.reported = client->reported;
@@ -1873,7 +1876,7 @@ void next_client_internal_update_stats( next_client_internal_t * client )
         client->client_stats.direct_packet_loss += next_fake_direct_packet_loss;
         client->client_stats.next_rtt += next_fake_next_rtt;
         client->client_stats.next_packet_loss += next_fake_next_packet_loss;
- #endif // #if NEXT_DEVELOPMENT
+#endif // #if NEXT_DEVELOPMENT
 
         client->client_stats.delta_time_min = client->delta_time_min;
         client->client_stats.delta_time_max = client->delta_time_max;
@@ -1897,7 +1900,7 @@ void next_client_internal_update_stats( next_client_internal_t * client )
 
         client->client_stats.packets_sent_client_to_server = client->packets_sent;
 
-        next_client_notify_stats_updated_t * notify = (next_client_notify_stats_updated_t*) next_malloc( client->context, sizeof( next_client_notify_stats_updated_t ) );
+        next_client_notify_stats_updated_t * notify = (next_client_notify_stats_updated_t *) next_malloc( client->context, sizeof( next_client_notify_stats_updated_t ) );
         notify->type = NEXT_CLIENT_NOTIFY_STATS_UPDATED;
         notify->stats = client->client_stats;
         notify->fallback_to_direct = fallback_to_direct;
@@ -2167,12 +2170,11 @@ void next_client_internal_update_client_relays( next_client_internal_t * client 
                 client->client_relay_packet_loss[i] = packet_loss;
 
                 char relay_address_buffer[NEXT_MAX_ADDRESS_STRING_LENGTH];
-                next_printf( NEXT_LOG_LEVEL_DEBUG, "client relay %s | rtt = %d, jitter = %d, packet loss = %.1f", 
-                    next_address_to_string( &client->client_relay_manager->relay_addresses[i], relay_address_buffer ), 
-                    client->client_relay_rtt[i], 
-                    client->client_relay_jitter[i],
-                    client->client_relay_packet_loss[i] 
-                );
+                next_printf( NEXT_LOG_LEVEL_DEBUG, "client relay %s | rtt = %d, jitter = %d, packet loss = %.1f",
+                             next_address_to_string( &client->client_relay_manager->relay_addresses[i], relay_address_buffer ),
+                             client->client_relay_rtt[i],
+                             client->client_relay_jitter[i],
+                             client->client_relay_packet_loss[i] );
             }
             next_printf( NEXT_LOG_LEVEL_DEBUG, "------------------------------------------------------------------------------" );
 
@@ -2346,7 +2348,7 @@ void next_client_internal_update( next_client_internal_t * client )
 {
     if ( next_global_config.disable_network_next )
         return;
-  
+
 #if NEXT_SPIKE_TRACKING
     double start_time = next_platform_time();
 #endif // #if NEXT_SPIKE_TRACKING
@@ -2379,7 +2381,7 @@ void next_client_internal_update( next_client_internal_t * client )
 
 static void next_client_internal_thread_function( void * context )
 {
-    next_client_internal_t * client = (next_client_internal_t*) context;
+    next_client_internal_t * client = (next_client_internal_t *) context;
 
     next_assert( client );
 
@@ -2406,7 +2408,7 @@ static void next_client_internal_thread_function( void * context )
 
 struct next_client_t
 {
-    NEXT_DECLARE_SENTINEL(0)
+    NEXT_DECLARE_SENTINEL( 0 )
 
     void * context;
     int state;
@@ -2426,22 +2428,22 @@ struct next_client_t
     next_address_t client_external_address;
     next_client_internal_t * internal;
     next_platform_thread_t * thread;
-    void (*packet_received_callback)( next_client_t * client, void * context, const struct next_address_t * from, const uint8_t * packet_data, int packet_bytes );
+    void ( *packet_received_callback )( next_client_t * client, void * context, const struct next_address_t * from, const uint8_t * packet_data, int packet_bytes );
 
-    NEXT_DECLARE_SENTINEL(1)
+    NEXT_DECLARE_SENTINEL( 1 )
 
     next_client_stats_t client_stats;
 
-    NEXT_DECLARE_SENTINEL(2)
+    NEXT_DECLARE_SENTINEL( 2 )
 
     next_bandwidth_limiter_t send_bandwidth;
     next_bandwidth_limiter_t receive_bandwidth;
 
-    NEXT_DECLARE_SENTINEL(3)
+    NEXT_DECLARE_SENTINEL( 3 )
 
     uint64_t counters[NEXT_CLIENT_COUNTER_MAX];
 
-    NEXT_DECLARE_SENTINEL(4)
+    NEXT_DECLARE_SENTINEL( 4 )
 };
 
 void next_client_initialize_sentinels( next_client_t * client )
@@ -2468,16 +2470,16 @@ void next_client_verify_sentinels( next_client_t * client )
 
 void next_client_destroy( next_client_t * client );
 
-next_client_t * next_client_create( void * context, const char * bind_address, void (*packet_received_callback)( next_client_t * client, void * context, const struct next_address_t * from, const uint8_t * packet_data, int packet_bytes ) )
+next_client_t * next_client_create( void * context, const char * bind_address, void ( *packet_received_callback )( next_client_t * client, void * context, const struct next_address_t * from, const uint8_t * packet_data, int packet_bytes ) )
 {
     next_assert( bind_address );
     next_assert( packet_received_callback );
 
-    next_client_t * client = (next_client_t*) next_malloc( context, sizeof(next_client_t) );
+    next_client_t * client = (next_client_t *) next_malloc( context, sizeof( next_client_t ) );
     if ( !client )
         return NULL;
 
-    memset( client, 0, sizeof( next_client_t) );
+    memset( client, 0, sizeof( next_client_t ) );
 
     next_client_initialize_sentinels( client );
 
@@ -2528,7 +2530,7 @@ void next_client_destroy( next_client_t * client )
     {
         if ( client->thread )
         {
-            next_client_command_destroy_t * command = (next_client_command_destroy_t*) next_malloc( client->context, sizeof( next_client_command_destroy_t ) );
+            next_client_command_destroy_t * command = (next_client_command_destroy_t *) next_malloc( client->context, sizeof( next_client_command_destroy_t ) );
             if ( !command )
             {
                 next_printf( NEXT_LOG_LEVEL_ERROR, "client destroy failed. could not create destroy command" );
@@ -2550,7 +2552,7 @@ void next_client_destroy( next_client_t * client )
         next_client_internal_destroy( client->internal );
     }
 
-    next_clear_and_free( client->context, client, sizeof(next_client_t) );
+    next_clear_and_free( client->context, client, sizeof( next_client_t ) );
 }
 
 void next_client_open_session( next_client_t * client, const char * server_address_string )
@@ -2569,7 +2571,7 @@ void next_client_open_session( next_client_t * client, const char * server_addre
         return;
     }
 
-    next_client_command_open_session_t * command = (next_client_command_open_session_t*) next_malloc( client->context, sizeof( next_client_command_open_session_t ) );
+    next_client_command_open_session_t * command = (next_client_command_open_session_t *) next_malloc( client->context, sizeof( next_client_command_open_session_t ) );
     if ( !command )
     {
         next_printf( NEXT_LOG_LEVEL_ERROR, "client open session failed. could not create open session command" );
@@ -2614,7 +2616,7 @@ void next_client_close_session( next_client_t * client )
 
     next_assert( client->internal );
 
-    next_client_command_close_session_t * command = (next_client_command_close_session_t*) next_malloc( client->context, sizeof( next_client_command_close_session_t ) );
+    next_client_command_close_session_t * command = (next_client_command_close_session_t *) next_malloc( client->context, sizeof( next_client_command_close_session_t ) );
     if ( !command )
     {
         next_printf( NEXT_LOG_LEVEL_ERROR, "client close session failed. could not create close session command" );
@@ -2635,16 +2637,16 @@ void next_client_close_session( next_client_t * client )
     client->upgraded = false;
     client->fallback_to_direct = false;
     client->session_id = 0;
-    memset( &client->client_stats, 0, sizeof(next_client_stats_t ) );
-    memset( &client->server_address, 0, sizeof(next_address_t) );
-    memset( &client->client_external_address, 0, sizeof(next_address_t) );
+    memset( &client->client_stats, 0, sizeof( next_client_stats_t ) );
+    memset( &client->server_address, 0, sizeof( next_address_t ) );
+    memset( &client->client_external_address, 0, sizeof( next_address_t ) );
     next_bandwidth_limiter_reset( &client->send_bandwidth );
     next_bandwidth_limiter_reset( &client->receive_bandwidth );
     client->state = NEXT_CLIENT_STATE_CLOSED;
-    memset( client->current_magic, 0, sizeof(client->current_magic) );
+    memset( client->current_magic, 0, sizeof( client->current_magic ) );
     client->game_rtt = 0.0f;
     client->game_jitter = 0.0f;
-    client->game_packet_loss = 0.0f;    
+    client->game_packet_loss = 0.0f;
 }
 
 void next_client_update( next_client_t * client )
@@ -2655,7 +2657,7 @@ void next_client_update( next_client_t * client )
     next_printf( NEXT_LOG_LEVEL_SPAM, "next_client_update" );
 #endif // #if NEXT_SPIKE_TRACKING
 
-    next_client_command_update_t * command = (next_client_command_update_t*) next_malloc( client->context, sizeof( next_client_command_update_t ) );
+    next_client_command_update_t * command = (next_client_command_update_t *) next_malloc( client->context, sizeof( next_client_command_update_t ) );
     if ( command )
     {
         command->type = NEXT_CLIENT_COMMAND_UPDATE;
@@ -2666,7 +2668,7 @@ void next_client_update( next_client_t * client )
             client->previous_update_time = current_time;
         }
         else
-        {   
+        {
             command->delta_time = 0.0f;
             client->previous_update_time = next_platform_time();
         }
@@ -2693,7 +2695,7 @@ void next_client_update( next_client_t * client )
         if ( entry == NULL )
             break;
 
-        next_client_notify_t * notify = (next_client_notify_t*) entry;
+        next_client_notify_t * notify = (next_client_notify_t *) entry;
 
         switch ( notify->type )
         {
@@ -2703,7 +2705,7 @@ void next_client_update( next_client_t * client )
                 next_printf( NEXT_LOG_LEVEL_SPAM, "NEXT_CLIENT_NOTIFY_STATS_UPGRADED" );
 #endif // #if NEXT_SPIKE_TRACKING
 
-                next_client_notify_packet_received_t * packet_received = (next_client_notify_packet_received_t*) notify;
+                next_client_notify_packet_received_t * packet_received = (next_client_notify_packet_received_t *) notify;
 
 #if NEXT_SPIKE_TRACKING
                 char address_buffer[NEXT_MAX_ADDRESS_STRING_LENGTH];
@@ -2734,7 +2736,7 @@ void next_client_update( next_client_t * client )
 #if NEXT_SPIKE_TRACKING
                 next_printf( NEXT_LOG_LEVEL_SPAM, "NEXT_CLIENT_NOTIFY_STATS_UPGRADED" );
 #endif // #if NEXT_SPIKE_TRACKING
-                next_client_notify_upgraded_t * upgraded = (next_client_notify_upgraded_t*) notify;
+                next_client_notify_upgraded_t * upgraded = (next_client_notify_upgraded_t *) notify;
                 client->upgraded = true;
                 client->session_id = upgraded->session_id;
                 client->client_external_address = upgraded->client_external_address;
@@ -2748,7 +2750,7 @@ void next_client_update( next_client_t * client )
 #if NEXT_SPIKE_TRACKING
                 next_printf( NEXT_LOG_LEVEL_SPAM, "NEXT_CLIENT_NOTIFY_STATS_UPDATED" );
 #endif // #if NEXT_SPIKE_TRACKING
-                next_client_notify_stats_updated_t * stats_updated = (next_client_notify_stats_updated_t*) notify;
+                next_client_notify_stats_updated_t * stats_updated = (next_client_notify_stats_updated_t *) notify;
                 client->client_stats = stats_updated->stats;
                 client->fallback_to_direct = stats_updated->fallback_to_direct;
             }
@@ -2759,7 +2761,7 @@ void next_client_update( next_client_t * client )
 #if NEXT_SPIKE_TRACKING
                 next_printf( NEXT_LOG_LEVEL_SPAM, "NEXT_CLIENT_NOTIFY_MAGIC_UPDATED" );
 #endif // #if NEXT_SPIKE_TRACKING
-                next_client_notify_magic_updated_t * magic_updated = (next_client_notify_magic_updated_t*) notify;
+                next_client_notify_magic_updated_t * magic_updated = (next_client_notify_magic_updated_t *) notify;
                 memcpy( client->current_magic, magic_updated->current_magic, 8 );
             }
             break;
@@ -2915,7 +2917,7 @@ void next_client_send_packet( next_client_t * client, const uint8_t * packet_dat
             (void) direct_packet_data;
             (void) direct_packet_bytes;
 
-#if NEXT_SPIKE_TRACKING 
+#if NEXT_SPIKE_TRACKING
             double start_time = next_platform_time();
 #endif // #if NEXT_SPIKE_TRACKING
 
@@ -3019,7 +3021,7 @@ void next_client_report_session( next_client_t * client )
 {
     next_client_verify_sentinels( client );
 
-    next_client_command_report_session_t * command = (next_client_command_report_session_t*) next_malloc( client->context, sizeof( next_client_command_report_session_t ) );
+    next_client_command_report_session_t * command = (next_client_command_report_session_t *) next_malloc( client->context, sizeof( next_client_command_report_session_t ) );
 
     if ( !command )
     {
@@ -3060,7 +3062,7 @@ const next_address_t * next_client_server_address( next_client_t * client )
 void next_client_counters( next_client_t * client, uint64_t * counters )
 {
     next_client_verify_sentinels( client );
-    memcpy( counters, client->counters, sizeof(uint64_t) * NEXT_CLIENT_COUNTER_MAX );
+    memcpy( counters, client->counters, sizeof( uint64_t ) * NEXT_CLIENT_COUNTER_MAX );
     for ( int i = 0; i < NEXT_CLIENT_COUNTER_MAX; ++i )
         counters[i] += client->internal->counters[i];
 }

@@ -11,7 +11,7 @@
 
 struct next_pending_session_entry_t
 {
-    NEXT_DECLARE_SENTINEL(0)
+    NEXT_DECLARE_SENTINEL( 0 )
 
     next_address_t address;
     uint64_t session_id;
@@ -21,7 +21,7 @@ struct next_pending_session_entry_t
     uint8_t private_key[NEXT_CRYPTO_SECRETBOX_KEYBYTES];
     uint8_t upgrade_token[NEXT_UPGRADE_TOKEN_BYTES];
 
-    NEXT_DECLARE_SENTINEL(1)
+    NEXT_DECLARE_SENTINEL( 1 )
 };
 
 inline void next_pending_session_entry_initialize_sentinels( next_pending_session_entry_t * entry )
@@ -42,7 +42,7 @@ inline void next_pending_session_entry_verify_sentinels( next_pending_session_en
 
 struct next_pending_session_manager_t
 {
-    NEXT_DECLARE_SENTINEL(0)
+    NEXT_DECLARE_SENTINEL( 0 )
 
     void * context;
     int size;
@@ -50,7 +50,7 @@ struct next_pending_session_manager_t
     next_address_t * addresses;
     next_pending_session_entry_t * entries;
 
-    NEXT_DECLARE_SENTINEL(1)
+    NEXT_DECLARE_SENTINEL( 1 )
 };
 
 inline void next_pending_session_manager_initialize_sentinels( next_pending_session_manager_t * session_manager )
@@ -83,20 +83,20 @@ void next_pending_session_manager_destroy( next_pending_session_manager_t * pend
 
 inline next_pending_session_manager_t * next_pending_session_manager_create( void * context, int initial_size )
 {
-    next_pending_session_manager_t * pending_session_manager = (next_pending_session_manager_t*) next_malloc( context, sizeof(next_pending_session_manager_t) );
+    next_pending_session_manager_t * pending_session_manager = (next_pending_session_manager_t *) next_malloc( context, sizeof( next_pending_session_manager_t ) );
 
     next_assert( pending_session_manager );
     if ( !pending_session_manager )
         return NULL;
 
-    memset( pending_session_manager, 0, sizeof(next_pending_session_manager_t) );
+    memset( pending_session_manager, 0, sizeof( next_pending_session_manager_t ) );
 
     next_pending_session_manager_initialize_sentinels( pending_session_manager );
 
     pending_session_manager->context = context;
     pending_session_manager->size = initial_size;
-    pending_session_manager->addresses = (next_address_t*) next_malloc( context, initial_size * sizeof(next_address_t) );
-    pending_session_manager->entries = (next_pending_session_entry_t*) next_malloc( context, initial_size * sizeof(next_pending_session_entry_t) );
+    pending_session_manager->addresses = (next_address_t *) next_malloc( context, initial_size * sizeof( next_address_t ) );
+    pending_session_manager->entries = (next_pending_session_entry_t *) next_malloc( context, initial_size * sizeof( next_pending_session_entry_t ) );
 
     next_assert( pending_session_manager->addresses );
     next_assert( pending_session_manager->entries );
@@ -107,8 +107,8 @@ inline next_pending_session_manager_t * next_pending_session_manager_create( voi
         return NULL;
     }
 
-    memset( pending_session_manager->addresses, 0, initial_size * sizeof(next_address_t) );
-    memset( pending_session_manager->entries, 0, initial_size * sizeof(next_pending_session_entry_t) );
+    memset( pending_session_manager->addresses, 0, initial_size * sizeof( next_address_t ) );
+    memset( pending_session_manager->entries, 0, initial_size * sizeof( next_pending_session_entry_t ) );
 
     for ( int i = 0; i < initial_size; i++ )
         next_pending_session_entry_initialize_sentinels( &pending_session_manager->entries[i] );
@@ -125,7 +125,7 @@ inline void next_pending_session_manager_destroy( next_pending_session_manager_t
     next_free( pending_session_manager->context, pending_session_manager->addresses );
     next_free( pending_session_manager->context, pending_session_manager->entries );
 
-    next_clear_and_free( pending_session_manager->context, pending_session_manager, sizeof(next_pending_session_manager_t) );
+    next_clear_and_free( pending_session_manager->context, pending_session_manager, sizeof( next_pending_session_manager_t ) );
 }
 
 inline bool next_pending_session_manager_expand( next_pending_session_manager_t * pending_session_manager )
@@ -134,9 +134,9 @@ inline bool next_pending_session_manager_expand( next_pending_session_manager_t 
 
     int new_size = pending_session_manager->size * 2;
 
-    next_address_t * new_addresses = (next_address_t*) next_malloc( pending_session_manager->context, new_size * sizeof(next_address_t) );
+    next_address_t * new_addresses = (next_address_t *) next_malloc( pending_session_manager->context, new_size * sizeof( next_address_t ) );
 
-    next_pending_session_entry_t * new_entries = (next_pending_session_entry_t*) next_malloc( pending_session_manager->context, new_size * sizeof(next_pending_session_entry_t) );
+    next_pending_session_entry_t * new_entries = (next_pending_session_entry_t *) next_malloc( pending_session_manager->context, new_size * sizeof( next_pending_session_entry_t ) );
 
     next_assert( pending_session_manager->addresses );
     next_assert( pending_session_manager->entries );
@@ -148,8 +148,8 @@ inline bool next_pending_session_manager_expand( next_pending_session_manager_t 
         return false;
     }
 
-    memset( new_addresses, 0, new_size * sizeof(next_address_t) );
-    memset( new_entries, 0, new_size * sizeof(next_pending_session_entry_t) );
+    memset( new_addresses, 0, new_size * sizeof( next_address_t ) );
+    memset( new_entries, 0, new_size * sizeof( next_pending_session_entry_t ) );
 
     for ( int i = 0; i < new_size; ++i )
         next_pending_session_entry_initialize_sentinels( &new_entries[i] );
@@ -160,8 +160,8 @@ inline bool next_pending_session_manager_expand( next_pending_session_manager_t 
     {
         if ( pending_session_manager->addresses[i].type != NEXT_ADDRESS_NONE )
         {
-            memcpy( &new_addresses[index], &pending_session_manager->addresses[i], sizeof(next_address_t) );
-            memcpy( &new_entries[index], &pending_session_manager->entries[i], sizeof(next_pending_session_entry_t) );
+            memcpy( &new_addresses[index], &pending_session_manager->addresses[i], sizeof( next_address_t ) );
+            memcpy( &new_entries[index], &pending_session_manager->entries[i], sizeof( next_pending_session_entry_t ) );
             index++;
         }
     }

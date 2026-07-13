@@ -8,6 +8,7 @@
 
 #include "next.h"
 
+// clang-format off
 #define NEXT_SERVER_BACKEND_PORT                                  "40000"
 #define NEXT_SERVER_READY_TIMEOUT                                    20.0
 #define NEXT_SERVER_INIT_TIMEOUT                                     15.0
@@ -140,5 +141,6 @@
 #define NEXT_CLIENT_RELAY_PING_TIME                                     6
 
 #define NEXT_VALUE_TRACKER_HISTORY                                   1024
+// clang-format on
 
 #endif // #ifndef NEXT_CONSTANTS_H

@@ -14,7 +14,7 @@ void next_client_initialize_sentinels( next_client_t * client );
 
 void next_client_verify_sentinels( next_client_t * client );
 
-next_client_t * next_client_create( void * context, const char * bind_address, void (*packet_received_callback)( next_client_t * client, void * context, const struct next_address_t * from, const uint8_t * packet_data, int packet_bytes ) );
+next_client_t * next_client_create( void * context, const char * bind_address, void ( *packet_received_callback )( next_client_t * client, void * context, const struct next_address_t * from, const uint8_t * packet_data, int packet_bytes ) );
 
 void next_client_destroy( next_client_t * client );
 
@@ -41,7 +41,6 @@ void next_client_send_packet_raw( next_client_t * client, const next_address_t *
 uint16_t next_client_port( next_client_t * client );
 
 uint64_t next_client_session_id( next_client_t * client );
-
 
 void next_client_report_session( next_client_t * client );
 

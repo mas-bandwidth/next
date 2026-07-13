@@ -337,7 +337,11 @@ was only skimmed.
   predict the shape of every other. Zero TODO/FIXME/HACK comments in the Go code. `go vet` is
   clean except unkeyed `SDKVersion` struct literals; `gofmt -l` is clean repo-wide as of
   2026-07-12 (`ac6fafa6b` formatted the two long-unformatted files admin.go and crypto.go —
-  keep it clean).
+  keep it clean). The SDK C++ style is locked in by `sdk/.clang-format` (pinned
+  clang-format 22.1.8 via pip; `make format` applies it, `make format-check-sdk` is a CI
+  gate in the Build SDK block). Vendored `sdk/serialize` and `sdk/sodium` are exempt via
+  DisableFormat configs; the hand-aligned constant tables and the next.h export ladder
+  are fenced with `// clang-format off`.
 - **Test culture.** 86 unit tests in core alone, ~155 parallel functional-test CI jobs, soak
   tests, load-test harnesses, seeded/reproducible functional tests with watchdogs. The
   functional-test hardening (see above) shows real maintenance discipline.

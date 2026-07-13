@@ -6,10 +6,12 @@
 #ifndef NEXT_PLATFORM_H
 #define NEXT_PLATFORM_H
 
+// clang-format off
 #define NEXT_PLATFORM_SOCKET_NON_BLOCKING       0
 #define NEXT_PLATFORM_SOCKET_BLOCKING           1
 
 #define NEXT_MUTEX_BYTES                      256
+// clang-format on
 
 struct next_address_t;
 
@@ -21,7 +23,7 @@ struct next_address_t;
 #include "next_platform_gdk.h"
 #include "next_platform_switch.h"
 
-typedef void (*next_platform_thread_func_t)(void*);
+typedef void ( *next_platform_thread_func_t )( void * );
 
 // ----------------------------------------------------------------
 
@@ -112,9 +114,9 @@ struct next_platform_mutex_helper_t
 #endif // #if NEXT_SPIKE_TRACKING
 
 #if NEXT_SPIKE_TRACKING
-inline next_platform_mutex_helper_t::next_platform_mutex_helper_t( next_platform_mutex_t * mutex, const char * file, int line ) : mutex(mutex), file(file), line(line), start_time(next_platform_time())
+inline next_platform_mutex_helper_t::next_platform_mutex_helper_t( next_platform_mutex_t * mutex, const char * file, int line ) : mutex( mutex ), file( file ), line( line ), start_time( next_platform_time() )
 #else // #if NEXT_SPIKE_TRACKING
-inline next_platform_mutex_helper_t::next_platform_mutex_helper_t( next_platform_mutex_t * mutex ) : mutex(mutex)
+inline next_platform_mutex_helper_t::next_platform_mutex_helper_t( next_platform_mutex_t * mutex ) : mutex( mutex )
 #endif // #if NEXT_SPIKE_TRACKING
 {
     next_assert( mutex );

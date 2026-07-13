@@ -18,8 +18,10 @@
 #include <time.h>
 #include <map>
 
+// clang-format off
 #define NEXT_PLATFORM_SOCKET_NON_BLOCKING                               0
 #define NEXT_PLATFORM_SOCKET_BLOCKING                                   1
+// clang-format on
 
 const int MaxServers = 10;
 const int MaxClients = 1000;
@@ -50,10 +52,9 @@ class Allocator
 {
     int64_t num_allocations;
     next_platform_mutex_t mutex;
-    std::map<void*, AllocatorEntry*> entries;
+    std::map<void *, AllocatorEntry *> entries;
 
 public:
-
     Allocator()
     {
         int result = next_platform_mutex_create( &mutex );
@@ -87,7 +88,7 @@ public:
         next_platform_mutex_guard( &mutex );
         next_assert( pointer );
         next_assert( num_allocations > 0 );
-        std::map<void*, AllocatorEntry*>::iterator itor = entries.find( pointer );
+        std::map<void *, AllocatorEntry *>::iterator itor = entries.find( pointer );
         next_assert( itor != entries.end() );
         /*
         printf( "free %d bytes\n", (int)itor->second->bytes );
@@ -101,7 +102,7 @@ public:
 void * malloc_function( void * context, size_t bytes )
 {
     next_assert( context );
-    Allocator * allocator = (Allocator*) context;
+    Allocator * allocator = (Allocator *) context;
     /*
     printf( "allocated %d bytes\n", (int)bytes ); fflush( stdout );
     */
@@ -112,7 +113,7 @@ void free_function( void * context, void * p )
 {
     next_assert( context );
 
-    Allocator * allocator = (Allocator*) context;
+    Allocator * allocator = (Allocator *) context;
     return allocator->Free( p );
 }
 
@@ -130,7 +131,8 @@ static volatile int quit = 0;
 
 void interrupt_handler( int signal )
 {
-    (void) signal; quit = 1;
+    (void) signal;
+    quit = 1;
 }
 
 void generate_packet( uint8_t * packet_data, int & packet_bytes )
@@ -161,7 +163,9 @@ void verify_packet( const uint8_t * packet_data, int packet_bytes )
 
 void client_packet_received( next_client_t * client, void * context, const next_address_t * from, const uint8_t * packet_data, int packet_bytes )
 {
-    (void) client; (void) context; (void) from;
+    (void) client;
+    (void) context;
+    (void) from;
     verify_packet( packet_data, packet_bytes );
 }
 
@@ -182,20 +186,21 @@ int main( int argc, char ** argv )
 {
     srand( (unsigned int) time( NULL ) );
 
-    signal( SIGINT, interrupt_handler ); signal( SIGTERM, interrupt_handler );
-    
+    signal( SIGINT, interrupt_handler );
+    signal( SIGTERM, interrupt_handler );
+
     next_config_t config;
     next_default_config( &config );
-    strncpy( config.server_backend_hostname, server_backend_hostname, sizeof(config.server_backend_hostname) - 1 );
-    strncpy( config.buyer_public_key, buyer_public_key, sizeof(config.buyer_public_key) - 1 );
-    strncpy( config.buyer_private_key, buyer_private_key, sizeof(config.buyer_private_key) - 1 );
+    strncpy( config.server_backend_hostname, server_backend_hostname, sizeof( config.server_backend_hostname ) - 1 );
+    strncpy( config.buyer_public_key, buyer_public_key, sizeof( config.buyer_public_key ) - 1 );
+    strncpy( config.buyer_private_key, buyer_private_key, sizeof( config.buyer_private_key ) - 1 );
 
     next_allocator( malloc_function, free_function );
 
     next_init( &global_allocator, &config );
-    
+
     int duration_seconds = 0;
-    if ( argc == 2 ) 
+    if ( argc == 2 )
     {
         duration_seconds = atoi( argv[1] );
     }
@@ -203,13 +208,13 @@ int main( int argc, char ** argv )
 #if FUZZ_TEST
     Allocator fuzz_allocator;
     next_address_t fuzz_address;
-    memset( &fuzz_address, 0, sizeof(fuzz_address) );
+    memset( &fuzz_address, 0, sizeof( fuzz_address ) );
     fuzz_address.type = NEXT_ADDRESS_IPV4;
-    next_platform_socket_t * fuzz_socket = next_platform_socket_create( &fuzz_allocator, &fuzz_address, NEXT_PLATFORM_SOCKET_BLOCKING, -1.0f, 1024*1024, 1024*1024 );
+    next_platform_socket_t * fuzz_socket = next_platform_socket_create( &fuzz_allocator, &fuzz_address, NEXT_PLATFORM_SOCKET_BLOCKING, -1.0f, 1024 * 1024, 1024 * 1024 );
     if ( !fuzz_socket )
     {
         printf( "error: could not create fuzz socket\n" );
-        exit(1);
+        exit( 1 );
     }
 #endif // FUZZ_TEST
 
@@ -244,13 +249,13 @@ int main( int argc, char ** argv )
             if ( clients[i] && ( rand() % 15000 ) == 0 )
             {
                 next_assert( client_allocator[i] != NULL );
-                
+
                 next_client_destroy( clients[i] );
 
                 delete client_allocator[i];
                 client_allocator[i] = NULL;
                 clients[i] = NULL;
-                
+
                 next_printf( NEXT_LOG_LEVEL_INFO, "destroyed client %d", i );
             }
         }
@@ -267,8 +272,8 @@ int main( int argc, char ** argv )
             if ( ( client_state == NEXT_CLIENT_STATE_CLOSED || client_state == NEXT_CLIENT_STATE_ERROR ) && ( rand() % 100 ) == 0 )
             {
                 int j = rand() % MaxServers;
-                char server_address_string[256]; 
-                snprintf( server_address_string, sizeof(server_address_string), "127.0.0.1:%d", 20000 + j );
+                char server_address_string[256];
+                snprintf( server_address_string, sizeof( server_address_string ), "127.0.0.1:%d", 20000 + j );
                 next_client_open_session( clients[i], server_address_string );
             }
         }
@@ -292,10 +297,10 @@ int main( int argc, char ** argv )
                 next_assert( server_allocator[i] == NULL );
                 server_allocator[i] = new Allocator();
                 next_assert( server_allocator[i] );
-                char server_address_string[256]; 
+                char server_address_string[256];
                 char bind_address_string[256];
-                snprintf( server_address_string, sizeof(server_address_string), "127.0.0.1:%d", 20000 + i );
-                snprintf( bind_address_string, sizeof(server_address_string), "0.0.0.0:%d", 20000 + i );
+                snprintf( server_address_string, sizeof( server_address_string ), "127.0.0.1:%d", 20000 + i );
+                snprintf( bind_address_string, sizeof( server_address_string ), "0.0.0.0:%d", 20000 + i );
                 servers[i] = next_server_create( server_allocator[i], server_address_string, bind_address_string, "local", server_packet_received );
                 if ( servers[i] )
                 {
@@ -398,7 +403,6 @@ int main( int argc, char ** argv )
 
                 next_client_send_packet_raw( clients[i], server_address, packet_data, packet_bytes );
             }
-
         }
 
         // fuzz server -> clients
@@ -501,7 +505,7 @@ int main( int argc, char ** argv )
 #endif // #if FUZZ_TEST
 
     next_printf( NEXT_LOG_LEVEL_INFO, "done." );
-    
+
     next_term();
 
     return 0;

@@ -48,41 +48,41 @@
 #include <atomic>
 
 #if defined( _MSC_VER )
-#pragma warning(push)
-#pragma warning(disable:4996)
-#pragma warning(disable:4127)
-#pragma warning(disable:4244)
-#pragma warning(disable:4668)
+#pragma warning( push )
+#pragma warning( disable : 4996 )
+#pragma warning( disable : 4127 )
+#pragma warning( disable : 4244 )
+#pragma warning( disable : 4668 )
 #endif
 
 // -------------------------------------------------
 
-void next_printf( const char * format, ... ) NEXT_PRINTF_FORMAT(1,2);
+void next_printf( const char * format, ... ) NEXT_PRINTF_FORMAT( 1, 2 );
 
 static void default_assert_function( const char * condition, const char * function, const char * file, int line )
 {
     next_printf( NEXT_LOG_LEVEL_ERROR, "assert failed: ( %s ), function %s, file %s, line %d\n", condition, function, file, line );
     fflush( stdout );
-    #if defined(_MSC_VER)
-        __debugbreak();
-    #elif defined(__ORBIS__)
-        __builtin_trap();
-    #elif defined(__PROSPERO__)
-        __builtin_trap();
-    #elif defined(__clang__)
-        __builtin_debugtrap();
-    #elif defined(__GNUC__)
-        __builtin_trap();
-    #elif defined(linux) || defined(__linux) || defined(__linux__) || defined(__APPLE__)
-        raise(SIGTRAP);
-    #else
-        #error "asserts not supported on this platform!"
-    #endif
+#if defined( _MSC_VER )
+    __debugbreak();
+#elif defined( __ORBIS__ )
+    __builtin_trap();
+#elif defined( __PROSPERO__ )
+    __builtin_trap();
+#elif defined( __clang__ )
+    __builtin_debugtrap();
+#elif defined( __GNUC__ )
+    __builtin_trap();
+#elif defined( linux ) || defined( __linux ) || defined( __linux__ ) || defined( __APPLE__ )
+    raise( SIGTRAP );
+#else
+#error "asserts not supported on this platform!"
+#endif
 }
 
-void (*next_assert_function_pointer)( const char * condition, const char * function, const char * file, int line ) = default_assert_function;
+void ( *next_assert_function_pointer )( const char * condition, const char * function, const char * file, int line ) = default_assert_function;
 
-void next_assert_function( void (*function)( const char * condition, const char * function, const char * file, int line ) )
+void next_assert_function( void ( *function )( const char * condition, const char * function, const char * file, int line ) )
 {
     if ( function )
     {
@@ -150,9 +150,9 @@ static void default_log_function( int level, const char * format, ... )
 #endif // #if !NETWORK_NEXT_UNREAL_ENGINE
 }
 
-static void (*log_function)( int level, const char * format, ... ) = default_log_function;
+static void ( *log_function )( int level, const char * format, ... ) = default_log_function;
 
-void next_log_function( void (*function)( int level, const char * format, ... ) )
+void next_log_function( void ( *function )( int level, const char * format, ... ) )
 {
     if ( function )
     {
@@ -190,10 +190,10 @@ void next_default_free_function( void * context, void * p )
     free( p );
 }
 
-static void * (*next_malloc_function)( void * context, size_t bytes ) = next_default_malloc_function;
-static void (*next_free_function)( void * context, void * p ) = next_default_free_function;
+static void * ( *next_malloc_function )( void * context, size_t bytes ) = next_default_malloc_function;
+static void ( *next_free_function )( void * context, void * p ) = next_default_free_function;
 
-void next_allocator( void * (*malloc_function)( void * context, size_t bytes ), void (*free_function)( void * context, void * p ) )
+void next_allocator( void * ( *malloc_function )( void * context, size_t bytes ), void ( *free_function )( void * context, void * p ) )
 {
     next_assert( malloc_function );
     next_assert( free_function );
@@ -230,8 +230,8 @@ const char * next_user_id_string( uint64_t user_id, char * buffer, size_t buffer
 uint64_t next_protocol_version()
 {
 #if !NEXT_DEVELOPMENT
-    #define VERSION_STRING(major,minor) #major #minor
-    return next_hash_string( VERSION_STRING(NEXT_VERSION_MAJOR_INT, NEXT_VERSION_MINOR_INT) );
+#define VERSION_STRING( major, minor ) #major #minor
+    return next_hash_string( VERSION_STRING( NEXT_VERSION_MAJOR_INT, NEXT_VERSION_MINOR_INT ) );
 #else // #if !NEXT_DEVELOPMENT
     return 0;
 #endif // #if !NEXT_DEVELOPMENT
@@ -240,16 +240,16 @@ uint64_t next_protocol_version()
 float next_random_float()
 {
     uint32_t uint32_value;
-    next_crypto_random_bytes( (uint8_t*)&uint32_value, sizeof(uint32_value) );
-    uint64_t uint64_value = uint64_t(uint32_value);
-    double double_value = double(uint64_value) / 0xFFFFFFFF;
-    return float(double_value);
+    next_crypto_random_bytes( (uint8_t *) &uint32_value, sizeof( uint32_value ) );
+    uint64_t uint64_value = uint64_t( uint32_value );
+    double double_value = double( uint64_value ) / 0xFFFFFFFF;
+    return float( double_value );
 }
 
 uint64_t next_random_uint64()
 {
     uint64_t value;
-    next_crypto_random_bytes( (uint8_t*)&value, sizeof(value) );
+    next_crypto_random_bytes( (uint8_t *) &value, sizeof( value ) );
     return value;
 }
 
@@ -284,9 +284,9 @@ next_internal_config_t next_global_config;
 void next_default_config( next_config_t * config )
 {
     next_assert( config );
-    memset( config, 0, sizeof(next_config_t) );
-    next_copy_string( config->server_backend_hostname, NEXT_SERVER_BACKEND_HOSTNAME, sizeof(config->server_backend_hostname) );
-    config->server_backend_hostname[sizeof(config->server_backend_hostname)-1] = '\0';
+    memset( config, 0, sizeof( next_config_t ) );
+    next_copy_string( config->server_backend_hostname, NEXT_SERVER_BACKEND_HOSTNAME, sizeof( config->server_backend_hostname ) );
+    config->server_backend_hostname[sizeof( config->server_backend_hostname ) - 1] = '\0';
     config->socket_send_buffer_size = NEXT_DEFAULT_SOCKET_SEND_BUFFER_SIZE;
     config->socket_receive_buffer_size = NEXT_DEFAULT_SOCKET_RECEIVE_BUFFER_SIZE;
 }
@@ -295,14 +295,14 @@ const char * next_platform_string( int platform_id )
 {
     switch ( platform_id )
     {
-        case NEXT_PLATFORM_WINDOWS:       return "windows";
-        case NEXT_PLATFORM_MAC:           return "mac";
-        case NEXT_PLATFORM_LINUX:         return "linux";
-        case NEXT_PLATFORM_SWITCH:        return "switch";
-        case NEXT_PLATFORM_PS4:           return "ps4";
-        case NEXT_PLATFORM_PS5:           return "ps5";
-        case NEXT_PLATFORM_IOS:           return "ios";
-        case NEXT_PLATFORM_XBOX_ONE:      return "xboxone";
+        case NEXT_PLATFORM_WINDOWS: return "windows";
+        case NEXT_PLATFORM_MAC: return "mac";
+        case NEXT_PLATFORM_LINUX: return "linux";
+        case NEXT_PLATFORM_SWITCH: return "switch";
+        case NEXT_PLATFORM_PS4: return "ps4";
+        case NEXT_PLATFORM_PS5: return "ps5";
+        case NEXT_PLATFORM_IOS: return "ios";
+        case NEXT_PLATFORM_XBOX_ONE: return "xboxone";
         case NEXT_PLATFORM_XBOX_SERIES_X: return "seriesx";
         default:
             break;
@@ -314,8 +314,8 @@ const char * next_connection_string( int connection_type )
 {
     switch ( connection_type )
     {
-        case NEXT_CONNECTION_TYPE_WIRED:    return "wired";
-        case NEXT_CONNECTION_TYPE_WIFI:     return "wi-fi";
+        case NEXT_CONNECTION_TYPE_WIRED: return "wired";
+        case NEXT_CONNECTION_TYPE_WIFI: return "wi-fi";
         case NEXT_CONNECTION_TYPE_CELLULAR: return "cellular";
         default:
             break;
@@ -360,7 +360,7 @@ int next_init( void * context, next_config_t * config_in )
 
     next_internal_config_t config;
 
-    memset( &config, 0, sizeof(next_internal_config_t) );
+    memset( &config, 0, sizeof( next_internal_config_t ) );
 
     config.socket_send_buffer_size = NEXT_DEFAULT_SOCKET_SEND_BUFFER_SIZE;
     config.socket_receive_buffer_size = NEXT_DEFAULT_SOCKET_RECEIVE_BUFFER_SIZE;
@@ -375,8 +375,8 @@ int next_init( void * context, next_config_t * config_in )
     if ( buyer_public_key )
     {
         next_printf( NEXT_LOG_LEVEL_DEBUG, "buyer public key is '%s'", buyer_public_key );
-        uint8_t decode_buffer[8+NEXT_CRYPTO_SIGN_PUBLICKEYBYTES];
-        if ( next_base64_decode_data( buyer_public_key, decode_buffer, sizeof(decode_buffer) ) == sizeof(decode_buffer) )
+        uint8_t decode_buffer[8 + NEXT_CRYPTO_SIGN_PUBLICKEYBYTES];
+        if ( next_base64_decode_data( buyer_public_key, decode_buffer, sizeof( decode_buffer ) ) == sizeof( decode_buffer ) )
         {
             const uint8_t * p = decode_buffer;
             config.client_buyer_id = next_read_uint64( &p );
@@ -402,8 +402,8 @@ int next_init( void * context, next_config_t * config_in )
     const char * buyer_private_key = buyer_private_key_env ? buyer_private_key_env : ( config_in ? config_in->buyer_private_key : "" );
     if ( buyer_private_key )
     {
-        uint8_t decode_buffer[8+NEXT_CRYPTO_SIGN_SECRETKEYBYTES];
-        if ( buyer_private_key && next_base64_decode_data( buyer_private_key, decode_buffer, sizeof(decode_buffer) ) == sizeof(decode_buffer) )
+        uint8_t decode_buffer[8 + NEXT_CRYPTO_SIGN_SECRETKEYBYTES];
+        if ( buyer_private_key && next_base64_decode_data( buyer_private_key, decode_buffer, sizeof( decode_buffer ) ) == sizeof( decode_buffer ) )
         {
             const uint8_t * p = decode_buffer;
             config.server_buyer_id = next_read_uint64( &p );
@@ -425,11 +425,11 @@ int next_init( void * context, next_config_t * config_in )
         next_printf( NEXT_LOG_LEVEL_ERROR, "mismatch between client and server buyer id. please check the private and public keys are part of the same keypair!" );
         config.valid_buyer_public_key = false;
         config.valid_buyer_private_key = false;
-        memset( config.buyer_public_key, 0, sizeof(config.buyer_public_key) );
-        memset( config.buyer_private_key, 0, sizeof(config.buyer_private_key) );
+        memset( config.buyer_public_key, 0, sizeof( config.buyer_public_key ) );
+        memset( config.buyer_private_key, 0, sizeof( config.buyer_private_key ) );
     }
 
-    next_copy_string( config.server_backend_hostname, config_in ? config_in->server_backend_hostname : NEXT_SERVER_BACKEND_HOSTNAME, sizeof(config.server_backend_hostname) );
+    next_copy_string( config.server_backend_hostname, config_in ? config_in->server_backend_hostname : NEXT_SERVER_BACKEND_HOSTNAME, sizeof( config.server_backend_hostname ) );
 
     if ( config_in )
     {
@@ -502,7 +502,7 @@ int next_init( void * context, next_config_t * config_in )
     if ( next_server_backend_hostname_override )
     {
         next_printf( NEXT_LOG_LEVEL_INFO, "override server backend hostname: '%s'", next_server_backend_hostname_override );
-        next_copy_string( config.server_backend_hostname, next_server_backend_hostname_override, sizeof(config.server_backend_hostname) );
+        next_copy_string( config.server_backend_hostname, next_server_backend_hostname_override, sizeof( config.server_backend_hostname ) );
     }
 
     const char * server_backend_public_key_env = next_platform_getenv( "NEXT_SERVER_BACKEND_PUBLIC_KEY" );
@@ -610,5 +610,5 @@ void next_disable_packet_tagging()
 // ---------------------------------------------------------------
 
 #ifdef _MSC_VER
-#pragma warning(pop)
+#pragma warning( pop )
 #endif

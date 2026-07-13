@@ -27,15 +27,15 @@ struct next_ping_history_entry_t
 
 struct next_ping_history_t
 {
-    NEXT_DECLARE_SENTINEL(0)
+    NEXT_DECLARE_SENTINEL( 0 )
 
     uint64_t sequence;
 
-    NEXT_DECLARE_SENTINEL(1)
+    NEXT_DECLARE_SENTINEL( 1 )
 
     next_ping_history_entry_t entries[NEXT_PING_HISTORY_ENTRY_COUNT];
 
-    NEXT_DECLARE_SENTINEL(2)
+    NEXT_DECLARE_SENTINEL( 2 )
 };
 
 inline void next_ping_history_initialize_sentinels( next_ping_history_t * history )

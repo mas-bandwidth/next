@@ -19,7 +19,7 @@
 
 struct next_route_data_t
 {
-    NEXT_DECLARE_SENTINEL(0)
+    NEXT_DECLARE_SENTINEL( 0 )
 
     bool current_route;
     double current_route_expire_time;
@@ -29,21 +29,21 @@ struct next_route_data_t
     int current_route_kbps_down;
     next_address_t current_route_next_address;
 
-    NEXT_DECLARE_SENTINEL(1)
+    NEXT_DECLARE_SENTINEL( 1 )
 
     uint8_t current_route_private_key[NEXT_CRYPTO_BOX_SECRETKEYBYTES];
 
-    NEXT_DECLARE_SENTINEL(2)
+    NEXT_DECLARE_SENTINEL( 2 )
 
     bool previous_route;
     uint64_t previous_route_session_id;
     uint8_t previous_route_session_version;
 
-    NEXT_DECLARE_SENTINEL(3)
+    NEXT_DECLARE_SENTINEL( 3 )
 
     uint8_t previous_route_private_key[NEXT_CRYPTO_BOX_SECRETKEYBYTES];
 
-    NEXT_DECLARE_SENTINEL(4)
+    NEXT_DECLARE_SENTINEL( 4 )
 
     bool pending_route;
     double pending_route_start_time;
@@ -55,26 +55,26 @@ struct next_route_data_t
     int pending_route_request_packet_bytes;
     next_address_t pending_route_next_address;
 
-    NEXT_DECLARE_SENTINEL(5)
+    NEXT_DECLARE_SENTINEL( 5 )
 
     uint8_t pending_route_request_packet_data[NEXT_MAX_PACKET_BYTES];
 
-    NEXT_DECLARE_SENTINEL(6)
+    NEXT_DECLARE_SENTINEL( 6 )
 
     uint8_t pending_route_private_key[NEXT_CRYPTO_BOX_SECRETKEYBYTES];
 
-    NEXT_DECLARE_SENTINEL(7)
+    NEXT_DECLARE_SENTINEL( 7 )
 
     bool pending_continue;
     double pending_continue_start_time;
     double pending_continue_last_send_time;
     int pending_continue_request_packet_bytes;
 
-    NEXT_DECLARE_SENTINEL(8)
+    NEXT_DECLARE_SENTINEL( 8 )
 
     uint8_t pending_continue_request_packet_data[NEXT_MAX_PACKET_BYTES];
 
-    NEXT_DECLARE_SENTINEL(9)
+    NEXT_DECLARE_SENTINEL( 9 )
 };
 
 void next_route_data_initialize_sentinels( next_route_data_t * route_data )
@@ -111,7 +111,7 @@ void next_route_data_verify_sentinels( next_route_data_t * route_data )
 
 struct next_route_manager_t
 {
-    NEXT_DECLARE_SENTINEL(0)
+    NEXT_DECLARE_SENTINEL( 0 )
 
     void * context;
     uint64_t send_sequence;
@@ -120,7 +120,7 @@ struct next_route_manager_t
     double last_route_update_time;
     uint32_t flags;
 
-    NEXT_DECLARE_SENTINEL(1)
+    NEXT_DECLARE_SENTINEL( 1 )
 };
 
 void next_route_manager_initialize_sentinels( next_route_manager_t * route_manager )
@@ -143,10 +143,10 @@ void next_route_manager_verify_sentinels( next_route_manager_t * route_manager )
 
 next_route_manager_t * next_route_manager_create( void * context )
 {
-    next_route_manager_t * route_manager = (next_route_manager_t*) next_malloc( context, sizeof(next_route_manager_t) );
+    next_route_manager_t * route_manager = (next_route_manager_t *) next_malloc( context, sizeof( next_route_manager_t ) );
     if ( !route_manager )
         return NULL;
-    memset( route_manager, 0, sizeof(next_route_manager_t) );
+    memset( route_manager, 0, sizeof( next_route_manager_t ) );
     next_route_manager_initialize_sentinels( route_manager );
     route_manager->context = context;
     return route_manager;
@@ -160,7 +160,7 @@ void next_route_manager_reset( next_route_manager_t * route_manager )
     route_manager->fallback_to_direct = false;
     route_manager->last_route_update_time = 0.0;
 
-    memset( &route_manager->route_data, 0, sizeof(next_route_data_t) );
+    memset( &route_manager->route_data, 0, sizeof( next_route_data_t ) );
 
     next_route_manager_initialize_sentinels( route_manager );
 
@@ -243,7 +243,7 @@ void next_route_manager_begin_next_route( next_route_manager_t * route_manager, 
     route_manager->route_data.pending_route_kbps_up = route_token.kbps_up;
     route_manager->route_data.pending_route_kbps_down = route_token.kbps_down;
 
-    memcpy( route_manager->route_data.pending_route_request_packet_data + 1, tokens + NEXT_ENCRYPTED_ROUTE_TOKEN_BYTES, ( size_t(num_tokens) - 1 ) * NEXT_ENCRYPTED_ROUTE_TOKEN_BYTES );
+    memcpy( route_manager->route_data.pending_route_request_packet_data + 1, tokens + NEXT_ENCRYPTED_ROUTE_TOKEN_BYTES, ( size_t( num_tokens ) - 1 ) * NEXT_ENCRYPTED_ROUTE_TOKEN_BYTES );
     memcpy( route_manager->route_data.pending_route_private_key, route_token.private_key, NEXT_CRYPTO_BOX_SECRETKEYBYTES );
 
     const uint8_t * token_data = tokens + NEXT_ENCRYPTED_ROUTE_TOKEN_BYTES;

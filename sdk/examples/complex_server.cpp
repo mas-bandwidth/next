@@ -31,10 +31,9 @@ class Allocator
 {
     int64_t num_allocations;
     next_platform_mutex_t mutex;
-    std::map<void*, AllocatorEntry*> entries;
+    std::map<void *, AllocatorEntry *> entries;
 
 public:
-
     Allocator()
     {
         int result = next_platform_mutex_create( &mutex );
@@ -67,7 +66,7 @@ public:
         next_platform_mutex_guard( &mutex );
         next_assert( pointer );
         next_assert( num_allocations > 0 );
-        std::map<void*, AllocatorEntry*>::iterator itor = entries.find( pointer );
+        std::map<void *, AllocatorEntry *>::iterator itor = entries.find( pointer );
         next_assert( itor != entries.end() );
         entries.erase( itor );
         num_allocations--;
@@ -100,7 +99,7 @@ struct ServerContext
 
 void * malloc_function( void * _context, size_t bytes )
 {
-    Context * context = (Context*) _context;
+    Context * context = (Context *) _context;
     next_assert( context );
     next_assert( context->allocator );
     return context->allocator->Alloc( bytes );
@@ -108,7 +107,7 @@ void * malloc_function( void * _context, size_t bytes )
 
 void free_function( void * _context, void * p )
 {
-    Context * context = (Context*) _context;
+    Context * context = (Context *) _context;
     next_assert( context );
     next_assert( context->allocator );
     return context->allocator->Free( p );
@@ -132,7 +131,7 @@ const char * log_level_string( int level )
         return "???";
 }
 
-void log_function( int level, const char * format, ... ) 
+void log_function( int level, const char * format, ... )
 {
     va_list args;
     va_start( args, format );
@@ -155,21 +154,21 @@ void assert_function( const char * condition, const char * function, const char 
 {
     next_printf( NEXT_LOG_LEVEL_NONE, "assert failed: ( %s ), function %s, file %s, line %d\n", condition, function, file, line );
     fflush( stdout );
-    #if defined(_MSC_VER)
-        __debugbreak();
-    #elif defined(__ORBIS__)
-        __builtin_trap();
-    #elif defined(__PROSPERO__)
-        __builtin_trap();
-    #elif defined(__clang__)
-        __builtin_debugtrap();
-    #elif defined(__GNUC__)
-        __builtin_trap();
-    #elif defined(linux) || defined(__linux) || defined(__linux__) || defined(__APPLE__)
-        raise(SIGTRAP);
-    #else
-        #error "asserts not supported on this platform!"
-    #endif
+#if defined( _MSC_VER )
+    __debugbreak();
+#elif defined( __ORBIS__ )
+    __builtin_trap();
+#elif defined( __PROSPERO__ )
+    __builtin_trap();
+#elif defined( __clang__ )
+    __builtin_debugtrap();
+#elif defined( __GNUC__ )
+    __builtin_trap();
+#elif defined( linux ) || defined( __linux ) || defined( __linux__ ) || defined( __APPLE__ )
+    raise( SIGTRAP );
+#else
+#error "asserts not supported on this platform!"
+#endif
 }
 
 // -------------------------------------------------------------
@@ -178,33 +177,34 @@ static volatile int quit = 0;
 
 void interrupt_handler( int signal )
 {
-    (void) signal; quit = 1;
+    (void) signal;
+    quit = 1;
 }
 
-bool operator < ( const next_address_t & a, const next_address_t & b) 
+bool operator<( const next_address_t & a, const next_address_t & b )
 {
     next_assert( a.type == NEXT_ADDRESS_IPV4 );
     next_assert( b.type == NEXT_ADDRESS_IPV4 );
     uint64_t scalar_a = 0;
-    scalar_a |= uint64_t(a.data.ipv4[0]);
-    scalar_a |= uint64_t(a.data.ipv4[1]) << 8;
-    scalar_a |= uint64_t(a.data.ipv4[2]) << 16;
-    scalar_a |= uint64_t(a.data.ipv4[3]) << 24;
+    scalar_a |= uint64_t( a.data.ipv4[0] );
+    scalar_a |= uint64_t( a.data.ipv4[1] ) << 8;
+    scalar_a |= uint64_t( a.data.ipv4[2] ) << 16;
+    scalar_a |= uint64_t( a.data.ipv4[3] ) << 24;
     scalar_a <<= 32;
-    scalar_a |= uint64_t(a.port);
+    scalar_a |= uint64_t( a.port );
     uint64_t scalar_b = 0;
-    scalar_b |= uint64_t(b.data.ipv4[0]);
-    scalar_b |= uint64_t(b.data.ipv4[1]) << 8;
-    scalar_b |= uint64_t(b.data.ipv4[2]) << 16;
-    scalar_b |= uint64_t(b.data.ipv4[3]) << 24;
+    scalar_b |= uint64_t( b.data.ipv4[0] );
+    scalar_b |= uint64_t( b.data.ipv4[1] ) << 8;
+    scalar_b |= uint64_t( b.data.ipv4[2] ) << 16;
+    scalar_b |= uint64_t( b.data.ipv4[3] ) << 24;
     scalar_b <<= 32;
-    scalar_b |= uint64_t(b.port);
+    scalar_b |= uint64_t( b.port );
     return scalar_a < scalar_b;
 }
 
 void server_packet_received( next_server_t * server, void * _context, const next_address_t * from, const uint8_t * packet_data, int packet_bytes )
 {
-    ServerContext * context = (ServerContext*) _context;
+    ServerContext * context = (ServerContext *) _context;
 
     next_assert( context );
     next_assert( context->allocator != NULL );
@@ -214,12 +214,12 @@ void server_packet_received( next_server_t * server, void * _context, const next
         return;
 
     next_printf( NEXT_LOG_LEVEL_INFO, "server received packet from client (%d bytes)", packet_bytes );
-    
+
     next_server_send_packet( server, from, packet_data, packet_bytes );
-    
+
     char address_buffer[NEXT_MAX_ADDRESS_STRING_LENGTH];
 
-    ClientMap::iterator itor = context->client_map.find(*from);
+    ClientMap::iterator itor = context->client_map.find( *from );
 
     ClientData client_data;
 
@@ -252,15 +252,15 @@ void update_client_timeouts( ServerContext * context )
     next_assert( context );
     ClientMap::iterator itor = context->client_map.begin();
     const double current_time = next_platform_time();
-    while ( itor != context->client_map.end() ) 
+    while ( itor != context->client_map.end() )
     {
         if ( itor->second.last_packet_receive_time + 5.0 < current_time )
         {
             char address_buffer[NEXT_MAX_ADDRESS_STRING_LENGTH];
             next_printf( NEXT_LOG_LEVEL_INFO, "client disconnected: %s [%" PRIx64 "]", next_address_to_string( &itor->second.address, address_buffer ), itor->second.session_id );
             itor = context->client_map.erase( itor );
-        } 
-        else 
+        }
+        else
         {
             itor++;
         }
@@ -279,14 +279,14 @@ void print_server_stats( next_server_t * server, ServerContext * context )
     if ( !show_detailed_stats )
         return;
 
-    for ( ClientMap::iterator itor = context->client_map.begin(); itor != context->client_map.end(); ++itor ) 
+    for ( ClientMap::iterator itor = context->client_map.begin(); itor != context->client_map.end(); ++itor )
     {
         next_server_stats_t stats;
         if ( !next_server_stats( server, &itor->second.address, &stats ) )
             continue;
 
         printf( "================================================================\n" );
-        
+
         char address_buffer[NEXT_MAX_ADDRESS_STRING_LENGTH];
         printf( "address = %s\n", next_address_to_string( &itor->second.address, address_buffer ) );
 
@@ -339,7 +339,7 @@ void print_server_stats( next_server_t * server, ServerContext * context )
         printf( "platform_id = %s (%d)\n", platform, (int) stats.platform_id );
 
         const char * connection = "unknown";
-        
+
         switch ( stats.connection_type )
         {
             case NEXT_CONNECTION_TYPE_WIRED:
@@ -397,7 +397,8 @@ void print_server_stats( next_server_t * server, ServerContext * context )
 
 int main()
 {
-    signal( SIGINT, interrupt_handler ); signal( SIGTERM, interrupt_handler );
+    signal( SIGINT, interrupt_handler );
+    signal( SIGTERM, interrupt_handler );
 
     Context global_context;
     global_context.allocator = &global_allocator;
@@ -412,7 +413,7 @@ int main()
 
     next_config_t config;
     next_default_config( &config );
-    strncpy_s( config.server_backend_hostname, server_backend_hostname, sizeof(config.server_backend_hostname) - 1 );
+    strncpy_s( config.server_backend_hostname, server_backend_hostname, sizeof( config.server_backend_hostname ) - 1 );
 
     if ( next_init( &global_context, &config ) != NEXT_OK )
     {
@@ -432,7 +433,7 @@ int main()
         printf( "error: failed to create server\n" );
         return 1;
     }
-    
+
     uint16_t server_port = next_server_port( server );
 
     next_printf( NEXT_LOG_LEVEL_INFO, "server port is %d", server_port );
@@ -459,9 +460,9 @@ int main()
     }
 
     next_server_flush( server );
-    
+
     next_server_destroy( server );
-    
+
     next_term();
 
     printf( "\n" );

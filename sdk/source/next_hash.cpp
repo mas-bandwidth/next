@@ -18,8 +18,8 @@ void next_fnv_write( next_fnv_t * fnv, const uint8_t * data, size_t size )
 {
     for ( size_t i = 0; i < size; i++ )
     {
-        (*fnv) ^= data[i];
-        (*fnv) *= 0x00000100000001B3;
+        ( *fnv ) ^= data[i];
+        ( *fnv ) *= 0x00000100000001B3;
     }
 }
 
@@ -32,7 +32,7 @@ uint64_t next_hash_string( const char * string )
 {
     next_fnv_t fnv;
     next_fnv_init( &fnv );
-    next_fnv_write( &fnv, (uint8_t *)( string ), strlen( string ) );
+    next_fnv_write( &fnv, (uint8_t *) ( string ), strlen( string ) );
     return next_fnv_finalize( &fnv );
 }
 

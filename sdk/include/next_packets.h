@@ -16,6 +16,7 @@ struct next_replay_protection_t;
 
 // ------------------------------------------------------------------------------------------------------
 
+// clang-format off
 #define NEXT_PASSTHROUGH_PACKET                                         0
 
 #define NEXT_ROUTE_REQUEST_PACKET                                       1
@@ -55,6 +56,7 @@ struct next_replay_protection_t;
 #define NEXT_BACKEND_CLIENT_RELAY_RESPONSE_PACKET                      57
 #define NEXT_BACKEND_SERVER_RELAY_REQUEST_PACKET                       58
 #define NEXT_BACKEND_SERVER_RELAY_RESPONSE_PACKET                      59
+// clang-format on
 
 // ------------------------------------------------------------------------------------------------------
 
@@ -72,10 +74,11 @@ struct NextUpgradeRequestPacket
 
     NextUpgradeRequestPacket()
     {
-        memset( this, 0, sizeof(NextUpgradeRequestPacket) );
+        memset( this, 0, sizeof( NextUpgradeRequestPacket ) );
     }
 
-    template <typename Stream> bool Serialize( Stream & stream )
+    template <typename Stream>
+    bool Serialize( Stream & stream )
     {
         serialize_uint64( stream, protocol_version );
         serialize_uint64( stream, session_id );
@@ -103,10 +106,11 @@ struct NextUpgradeResponsePacket
 
     NextUpgradeResponsePacket()
     {
-        memset( this, 0, sizeof(NextUpgradeResponsePacket) );
+        memset( this, 0, sizeof( NextUpgradeResponsePacket ) );
     }
 
-    template <typename Stream> bool Serialize( Stream & stream )
+    template <typename Stream>
+    bool Serialize( Stream & stream )
     {
         serialize_bits( stream, client_open_session_sequence, 8 );
         serialize_bytes( stream, client_kx_public_key, NEXT_CRYPTO_KX_PUBLICKEYBYTES );
@@ -130,10 +134,11 @@ struct NextUpgradeConfirmPacket
 
     NextUpgradeConfirmPacket()
     {
-        memset( this, 0, sizeof(NextUpgradeConfirmPacket) );
+        memset( this, 0, sizeof( NextUpgradeConfirmPacket ) );
     }
 
-    template <typename Stream> bool Serialize( Stream & stream )
+    template <typename Stream>
+    bool Serialize( Stream & stream )
     {
         serialize_uint64( stream, upgrade_sequence );
         serialize_uint64( stream, session_id );
@@ -155,7 +160,8 @@ struct NextDirectPingPacket
         ping_sequence = 0;
     }
 
-    template <typename Stream> bool Serialize( Stream & stream )
+    template <typename Stream>
+    bool Serialize( Stream & stream )
     {
         serialize_uint64( stream, ping_sequence );
         return true;
@@ -168,7 +174,8 @@ struct NextDirectPongPacket
 {
     uint64_t ping_sequence;
 
-    template <typename Stream> bool Serialize( Stream & stream )
+    template <typename Stream>
+    bool Serialize( Stream & stream )
     {
         serialize_uint64( stream, ping_sequence );
         return true;
@@ -215,10 +222,11 @@ struct NextClientStatsPacket
 
     NextClientStatsPacket()
     {
-        memset( this, 0, sizeof(NextClientStatsPacket) );
+        memset( this, 0, sizeof( NextClientStatsPacket ) );
     }
 
-    template <typename Stream> bool Serialize( Stream & stream )
+    template <typename Stream>
+    bool Serialize( Stream & stream )
     {
         serialize_bool( stream, fallback_to_direct );
         serialize_bool( stream, next );
@@ -284,10 +292,11 @@ struct NextClientRelayUpdatePacket
 
     NextClientRelayUpdatePacket()
     {
-        memset( this, 0, sizeof(NextClientRelayUpdatePacket) );
+        memset( this, 0, sizeof( NextClientRelayUpdatePacket ) );
     }
 
-    template <typename Stream> bool Serialize( Stream & stream )
+    template <typename Stream>
+    bool Serialize( Stream & stream )
     {
         serialize_uint64( stream, request_id );
         serialize_int( stream, num_client_relays, 0, NEXT_MAX_CLIENT_RELAYS );
@@ -313,7 +322,8 @@ struct NextClientRelayAckPacket
         request_id = 0;
     }
 
-    template <typename Stream> bool Serialize( Stream & stream )
+    template <typename Stream>
+    bool Serialize( Stream & stream )
     {
         serialize_uint64( stream, request_id );
         return true;
@@ -328,7 +338,7 @@ struct NextRouteUpdatePacket
     bool multipath;
     uint8_t update_type;
     int num_tokens;
-    uint8_t tokens[NEXT_MAX_TOKENS*NEXT_ENCRYPTED_ROUTE_TOKEN_BYTES];
+    uint8_t tokens[NEXT_MAX_TOKENS * NEXT_ENCRYPTED_ROUTE_TOKEN_BYTES];
     uint64_t packets_sent_server_to_client;
     uint64_t packets_lost_client_to_server;
     uint64_t packets_out_of_order_client_to_server;
@@ -339,10 +349,11 @@ struct NextRouteUpdatePacket
 
     NextRouteUpdatePacket()
     {
-        memset( this, 0, sizeof(NextRouteUpdatePacket ) );
+        memset( this, 0, sizeof( NextRouteUpdatePacket ) );
     }
 
-    template <typename Stream> bool Serialize( Stream & stream )
+    template <typename Stream>
+    bool Serialize( Stream & stream )
     {
         serialize_uint64( stream, sequence );
 
@@ -388,7 +399,8 @@ struct NextRouteAckPacket
         sequence = 0;
     }
 
-    template <typename Stream> bool Serialize( Stream & stream )
+    template <typename Stream>
+    bool Serialize( Stream & stream )
     {
         serialize_uint64( stream, sequence );
         return true;
@@ -420,7 +432,8 @@ struct NextBackendServerInitRequestPacket
         datacenter_name[0] = '\0';
     }
 
-    template <typename Stream> bool Serialize( Stream & stream )
+    template <typename Stream>
+    bool Serialize( Stream & stream )
     {
         serialize_bits( stream, version_major, 8 );
         serialize_bits( stream, version_minor, 8 );
@@ -446,10 +459,11 @@ struct NextBackendServerInitResponsePacket
 
     NextBackendServerInitResponsePacket()
     {
-        memset( this, 0, sizeof(NextBackendServerInitResponsePacket) );
+        memset( this, 0, sizeof( NextBackendServerInitResponsePacket ) );
     }
 
-    template <typename Stream> bool Serialize( Stream & stream )
+    template <typename Stream>
+    bool Serialize( Stream & stream )
     {
         serialize_uint64( stream, request_id );
         serialize_bits( stream, response, 8 );
@@ -495,7 +509,8 @@ struct NextBackendServerUpdateRequestPacket
         delta_time_avg = 0.0f;
     }
 
-    template <typename Stream> bool Serialize( Stream & stream )
+    template <typename Stream>
+    bool Serialize( Stream & stream )
     {
         serialize_bits( stream, version_major, 8 );
         serialize_bits( stream, version_minor, 8 );
@@ -525,10 +540,11 @@ struct NextBackendServerUpdateResponsePacket
 
     NextBackendServerUpdateResponsePacket()
     {
-        memset( this, 0, sizeof(NextBackendServerUpdateResponsePacket) );
+        memset( this, 0, sizeof( NextBackendServerUpdateResponsePacket ) );
     }
 
-    template <typename Stream> bool Serialize( Stream & stream )
+    template <typename Stream>
+    bool Serialize( Stream & stream )
     {
         serialize_uint64( stream, request_id );
         serialize_bytes( stream, upcoming_magic, 8 );
@@ -549,7 +565,7 @@ struct NextBackendClientRelayRequestPacket
     uint64_t request_id;
     uint64_t datacenter_id;
     next_address_t client_address;
-   
+
     NextBackendClientRelayRequestPacket()
     {
         version_major = NEXT_VERSION_MAJOR_INT;
@@ -558,10 +574,11 @@ struct NextBackendClientRelayRequestPacket
         buyer_id = 0;
         request_id = 0;
         datacenter_id = 0;
-        memset( &client_address, 0, sizeof(next_address_t) );
+        memset( &client_address, 0, sizeof( next_address_t ) );
     }
 
-    template <typename Stream> bool Serialize( Stream & stream )
+    template <typename Stream>
+    bool Serialize( Stream & stream )
     {
         serialize_bits( stream, version_major, 8 );
         serialize_bits( stream, version_minor, 8 );
@@ -590,10 +607,11 @@ struct NextBackendClientRelayResponsePacket
 
     NextBackendClientRelayResponsePacket()
     {
-        memset( this, 0, sizeof(NextBackendClientRelayResponsePacket) );
+        memset( this, 0, sizeof( NextBackendClientRelayResponsePacket ) );
     }
 
-    template <typename Stream> bool Serialize( Stream & stream )
+    template <typename Stream>
+    bool Serialize( Stream & stream )
     {
         serialize_address( stream, client_address );
         serialize_uint64( stream, request_id );
@@ -621,7 +639,7 @@ struct NextBackendServerRelayRequestPacket
     uint64_t buyer_id;
     uint64_t request_id;
     uint64_t datacenter_id;
-   
+
     NextBackendServerRelayRequestPacket()
     {
         version_major = NEXT_VERSION_MAJOR_INT;
@@ -632,7 +650,8 @@ struct NextBackendServerRelayRequestPacket
         datacenter_id = 0;
     }
 
-    template <typename Stream> bool Serialize( Stream & stream )
+    template <typename Stream>
+    bool Serialize( Stream & stream )
     {
         serialize_bits( stream, version_major, 8 );
         serialize_bits( stream, version_minor, 8 );
@@ -657,10 +676,11 @@ struct NextBackendServerRelayResponsePacket
 
     NextBackendServerRelayResponsePacket()
     {
-        memset( this, 0, sizeof(NextBackendServerRelayResponsePacket) );
+        memset( this, 0, sizeof( NextBackendServerRelayResponsePacket ) );
     }
 
-    template <typename Stream> bool Serialize( Stream & stream )
+    template <typename Stream>
+    bool Serialize( Stream & stream )
     {
         serialize_uint64( stream, request_id );
         serialize_int( stream, num_server_relays, 0, NEXT_MAX_SERVER_RELAYS );
@@ -742,18 +762,19 @@ struct NextBackendSessionUpdateRequestPacket
     float game_jitter;
     float game_packet_loss;
     float bandwidth_kbps_up;
-    float bandwidth_kbps_down;    
+    float bandwidth_kbps_down;
     uint64_t flags;
 
     void Reset()
     {
-        memset( this, 0, sizeof(NextBackendSessionUpdateRequestPacket) );
+        memset( this, 0, sizeof( NextBackendSessionUpdateRequestPacket ) );
         version_major = NEXT_VERSION_MAJOR_INT;
         version_minor = NEXT_VERSION_MINOR_INT;
         version_patch = NEXT_VERSION_PATCH_INT;
     }
 
-    template <typename Stream> bool Serialize( Stream & stream )
+    template <typename Stream>
+    bool Serialize( Stream & stream )
     {
         serialize_bits( stream, version_major, 8 );
         serialize_bits( stream, version_minor, 8 );
@@ -910,15 +931,16 @@ struct NextBackendSessionUpdateResponsePacket
     uint8_t response_type;
 
     int num_tokens;
-    uint8_t tokens[NEXT_MAX_TOKENS*NEXT_ENCRYPTED_ROUTE_TOKEN_BYTES];
+    uint8_t tokens[NEXT_MAX_TOKENS * NEXT_ENCRYPTED_ROUTE_TOKEN_BYTES];
     bool multipath;
 
     NextBackendSessionUpdateResponsePacket()
     {
-        memset( this, 0, sizeof(NextBackendSessionUpdateResponsePacket) );
+        memset( this, 0, sizeof( NextBackendSessionUpdateResponsePacket ) );
     }
 
-    template <typename Stream> bool Serialize( Stream & stream )
+    template <typename Stream>
+    bool Serialize( Stream & stream )
     {
         serialize_uint64( stream, session_id );
 

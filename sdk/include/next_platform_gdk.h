@@ -16,12 +16,12 @@
 
 // -------------------------------------
 
-#pragma warning(disable:4996)
+#pragma warning( disable : 4996 )
 
 #if _WIN64
-    typedef uint64_t next_platform_socket_handle_t;
+typedef uint64_t next_platform_socket_handle_t;
 #else
-    typedef _W64 unsigned int next_platform_socket_handle_t;
+typedef _W64 unsigned int next_platform_socket_handle_t;
 #endif
 
 struct next_platform_socket_t
@@ -35,7 +35,7 @@ struct next_platform_socket_t
 
 struct next_platform_thread_t
 {
-    void* context;
+    void * context;
     HANDLE handle;
 };
 

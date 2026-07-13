@@ -8,12 +8,12 @@
 
 struct next_out_of_order_tracker_t
 {
-    NEXT_DECLARE_SENTINEL(0)
+    NEXT_DECLARE_SENTINEL( 0 )
 
     uint64_t last_packet_processed;
     uint64_t num_out_of_order_packets;
 
-    NEXT_DECLARE_SENTINEL(1)
+    NEXT_DECLARE_SENTINEL( 1 )
 };
 
 inline void next_out_of_order_tracker_initialize_sentinels( next_out_of_order_tracker_t * tracker )

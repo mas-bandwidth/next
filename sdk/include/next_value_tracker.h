@@ -8,18 +8,18 @@
 
 struct next_value_tracker_t
 {
-    NEXT_DECLARE_SENTINEL(0)
+    NEXT_DECLARE_SENTINEL( 0 )
 
     int index;
     int num_samples;
     float minimum;
     float maximum;
 
-    NEXT_DECLARE_SENTINEL(1)
+    NEXT_DECLARE_SENTINEL( 1 )
 
     float values[NEXT_VALUE_TRACKER_HISTORY];
 
-    NEXT_DECLARE_SENTINEL(2)
+    NEXT_DECLARE_SENTINEL( 2 )
 };
 
 inline void next_value_tracker_initialize_sentinels( next_value_tracker_t * tracker )
@@ -44,7 +44,7 @@ inline void next_value_tracker_reset( next_value_tracker_t * tracker )
 {
     next_assert( tracker );
 
-    memset( tracker, 0, sizeof(next_value_tracker_t) );
+    memset( tracker, 0, sizeof( next_value_tracker_t ) );
 
     next_value_tracker_initialize_sentinels( tracker );
 
@@ -104,7 +104,7 @@ inline void next_value_tracker_calculate( next_value_tracker_t * tracker, float 
     {
         sum += (double) tracker->values[i];
     }
-    *avg_value = float( sum / double(tracker->num_samples) );
+    *avg_value = float( sum / double( tracker->num_samples ) );
 
     next_value_tracker_reset( tracker );
 }

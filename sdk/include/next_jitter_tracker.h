@@ -12,14 +12,14 @@
 
 struct next_jitter_tracker_t
 {
-    NEXT_DECLARE_SENTINEL(0)
+    NEXT_DECLARE_SENTINEL( 0 )
 
     uint64_t last_packet_processed;
     double last_packet_time;
     double last_packet_delta;
     double jitter;
 
-    NEXT_DECLARE_SENTINEL(1)
+    NEXT_DECLARE_SENTINEL( 1 )
 };
 
 inline void next_jitter_tracker_initialize_sentinels( next_jitter_tracker_t * tracker )

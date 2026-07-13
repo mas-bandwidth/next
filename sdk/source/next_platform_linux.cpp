@@ -73,17 +73,17 @@ int next_platform_connection_type()
 
 uint16_t next_platform_ntohs( uint16_t in )
 {
-    return (uint16_t)( ( ( in << 8 ) & 0xFF00 ) | ( ( in >> 8 ) & 0x00FF ) );
+    return (uint16_t) ( ( ( in << 8 ) & 0xFF00 ) | ( ( in >> 8 ) & 0x00FF ) );
 }
 
 uint16_t next_platform_htons( uint16_t in )
 {
-    return (uint16_t)( ( ( in << 8 ) & 0xFF00 ) | ( ( in >> 8 ) & 0x00FF ) );
+    return (uint16_t) ( ( ( in << 8 ) & 0xFF00 ) | ( ( in >> 8 ) & 0x00FF ) );
 }
 
 int next_platform_inet_pton4( const char * address_string, uint32_t * address_out )
 {
-    sockaddr_in sockaddr4 = {0};
+    sockaddr_in sockaddr4 = { 0 };
     bool success = inet_pton( AF_INET, address_string, &sockaddr4.sin_addr ) == 1;
     *address_out = sockaddr4.sin_addr.s_addr;
     return success ? NEXT_OK : NEXT_ERROR;
@@ -96,13 +96,13 @@ int next_platform_inet_pton6( const char * address_string, uint16_t * address_ou
 
 int next_platform_inet_ntop6( const uint16_t * address, char * address_string, size_t address_string_size )
 {
-    return inet_ntop( AF_INET6, (void*)address, address_string, socklen_t( address_string_size ) ) == NULL ? NEXT_ERROR : NEXT_OK;
+    return inet_ntop( AF_INET6, (void *) address, address_string, socklen_t( address_string_size ) ) == NULL ? NEXT_ERROR : NEXT_OK;
 }
 
 int next_platform_hostname_resolve( const char * hostname, const char * port, next_address_t * address )
 {
     addrinfo hints;
-    memset( &hints, 0, sizeof(hints) );
+    memset( &hints, 0, sizeof( hints ) );
     addrinfo * result;
     if ( getaddrinfo( hostname, port, &hints, &result ) == 0 )
     {
@@ -110,11 +110,11 @@ int next_platform_hostname_resolve( const char * hostname, const char * port, ne
         {
             if ( result->ai_addr->sa_family == AF_INET6 )
             {
-                sockaddr_in6 * addr_ipv6 = (sockaddr_in6 *)( result->ai_addr );
+                sockaddr_in6 * addr_ipv6 = (sockaddr_in6 *) ( result->ai_addr );
                 address->type = NEXT_ADDRESS_IPV6;
                 for ( int i = 0; i < 8; ++i )
                 {
-                    address->data.ipv6[i] = next_platform_ntohs( ( (uint16_t*) &addr_ipv6->sin6_addr ) [i] );
+                    address->data.ipv6[i] = next_platform_ntohs( ( (uint16_t *) &addr_ipv6->sin6_addr )[i] );
                 }
                 address->port = next_platform_ntohs( addr_ipv6->sin6_port );
                 freeaddrinfo( result );
@@ -122,7 +122,7 @@ int next_platform_hostname_resolve( const char * hostname, const char * port, ne
             }
             else if ( result->ai_addr->sa_family == AF_INET )
             {
-                sockaddr_in * addr_ipv4 = (sockaddr_in *)( result->ai_addr );
+                sockaddr_in * addr_ipv4 = (sockaddr_in *) ( result->ai_addr );
                 address->type = NEXT_ADDRESS_IPV4;
                 address->data.ipv4[0] = (uint8_t) ( ( addr_ipv4->sin_addr.s_addr & 0x000000FF ) );
                 address->data.ipv4[1] = (uint8_t) ( ( addr_ipv4->sin_addr.s_addr & 0x0000FF00 ) >> 8 );
@@ -180,7 +180,7 @@ next_platform_socket_t * next_platform_socket_create( void * context, next_addre
     next_assert( address );
     next_assert( address->type != NEXT_ADDRESS_NONE );
 
-    next_platform_socket_t * socket = (next_platform_socket_t*) next_malloc( context, sizeof( next_platform_socket_t ) );
+    next_platform_socket_t * socket = (next_platform_socket_t *) next_malloc( context, sizeof( next_platform_socket_t ) );
 
     next_assert( socket );
 
@@ -206,7 +206,7 @@ next_platform_socket_t * next_platform_socket_create( void * context, next_addre
     if ( address->type == NEXT_ADDRESS_IPV6 )
     {
         int yes = 0;
-        if ( setsockopt( socket->handle, IPPROTO_IPV6, IPV6_V6ONLY, (char*)( &yes ), sizeof( yes ) ) != 0 )
+        if ( setsockopt( socket->handle, IPPROTO_IPV6, IPV6_V6ONLY, (char *) ( &yes ), sizeof( yes ) ) != 0 )
         {
             next_printf( NEXT_LOG_LEVEL_ERROR, "failed to clear socket ipv6 only" );
             next_platform_socket_destroy( socket );
@@ -216,13 +216,13 @@ next_platform_socket_t * next_platform_socket_create( void * context, next_addre
 
     // increase socket send and receive buffer sizes
 
-    if ( setsockopt( socket->handle, SOL_SOCKET, SO_SNDBUF, (char*)( &send_buffer_size ), sizeof( int ) ) != 0 )
+    if ( setsockopt( socket->handle, SOL_SOCKET, SO_SNDBUF, (char *) ( &send_buffer_size ), sizeof( int ) ) != 0 )
     {
         next_printf( NEXT_LOG_LEVEL_ERROR, "failed to set socket send buffer size" );
         return NULL;
     }
 
-    if ( setsockopt( socket->handle, SOL_SOCKET, SO_RCVBUF, (char*)( &receive_buffer_size ), sizeof( int ) ) != 0 )
+    if ( setsockopt( socket->handle, SOL_SOCKET, SO_RCVBUF, (char *) ( &receive_buffer_size ), sizeof( int ) ) != 0 )
     {
         next_printf( NEXT_LOG_LEVEL_ERROR, "failed to set socket receive buffer size" );
         next_platform_socket_destroy( socket );
@@ -233,15 +233,15 @@ next_platform_socket_t * next_platform_socket_create( void * context, next_addre
 
     if ( address->type == NEXT_ADDRESS_IPV6 )
     {
-        sockaddr_in6 socket_address = {0};
+        sockaddr_in6 socket_address = { 0 };
         socket_address.sin6_family = AF_INET6;
         for ( int i = 0; i < 8; ++i )
         {
-            ( (uint16_t*) &socket_address.sin6_addr ) [i] = next_platform_htons( address->data.ipv6[i] );
+            ( (uint16_t *) &socket_address.sin6_addr )[i] = next_platform_htons( address->data.ipv6[i] );
         }
         socket_address.sin6_port = next_platform_htons( address->port );
 
-        if ( bind( socket->handle, (sockaddr*) &socket_address, sizeof( socket_address ) ) < 0 )
+        if ( bind( socket->handle, (sockaddr *) &socket_address, sizeof( socket_address ) ) < 0 )
         {
             next_printf( NEXT_LOG_LEVEL_ERROR, "failed to bind socket (ipv6)" );
             next_platform_socket_destroy( socket );
@@ -250,15 +250,15 @@ next_platform_socket_t * next_platform_socket_create( void * context, next_addre
     }
     else
     {
-        sockaddr_in socket_address = {0};
+        sockaddr_in socket_address = { 0 };
         socket_address.sin_family = AF_INET;
-        socket_address.sin_addr.s_addr = ( ( (uint32_t) address->data.ipv4[0] ) )      | 
-                                         ( ( (uint32_t) address->data.ipv4[1] ) << 8 )  | 
-                                         ( ( (uint32_t) address->data.ipv4[2] ) << 16 ) | 
+        socket_address.sin_addr.s_addr = ( ( (uint32_t) address->data.ipv4[0] ) ) |
+                                         ( ( (uint32_t) address->data.ipv4[1] ) << 8 ) |
+                                         ( ( (uint32_t) address->data.ipv4[2] ) << 16 ) |
                                          ( ( (uint32_t) address->data.ipv4[3] ) << 24 );
         socket_address.sin_port = next_platform_htons( address->port );
 
-        if ( bind( socket->handle, (sockaddr*) &socket_address, sizeof( socket_address ) ) < 0 )
+        if ( bind( socket->handle, (sockaddr *) &socket_address, sizeof( socket_address ) ) < 0 )
         {
             next_printf( NEXT_LOG_LEVEL_ERROR, "failed to bind socket (ipv4)" );
             next_platform_socket_destroy( socket );
@@ -272,9 +272,9 @@ next_platform_socket_t * next_platform_socket_create( void * context, next_addre
     {
         if ( address->type == NEXT_ADDRESS_IPV6 )
         {
-            sockaddr_in6 sin = {0};
+            sockaddr_in6 sin = { 0 };
             socklen_t len = sizeof( sin );
-            if ( getsockname( socket->handle, (sockaddr*)( &sin ), &len ) == -1 )
+            if ( getsockname( socket->handle, (sockaddr *) ( &sin ), &len ) == -1 )
             {
                 next_printf( NEXT_LOG_LEVEL_ERROR, "failed to get socket port (ipv6)" );
                 next_platform_socket_destroy( socket );
@@ -284,9 +284,9 @@ next_platform_socket_t * next_platform_socket_create( void * context, next_addre
         }
         else
         {
-            sockaddr_in sin = {0};
+            sockaddr_in sin = { 0 };
             socklen_t len = sizeof( sin );
-            if ( getsockname( socket->handle, (sockaddr*)( &sin ), &len ) == -1 )
+            if ( getsockname( socket->handle, (sockaddr *) ( &sin ), &len ) == -1 )
             {
                 next_printf( NEXT_LOG_LEVEL_ERROR, "failed to get socket port (ipv4)" );
                 next_platform_socket_destroy( socket );
@@ -331,12 +331,12 @@ next_platform_socket_t * next_platform_socket_create( void * context, next_addre
     if ( address->type == NEXT_ADDRESS_IPV6 )
     {
         int val = IPV6_PMTUDISC_DO;
-        setsockopt( socket->handle, IPPROTO_IPV6, IPV6_MTU_DISCOVER, &val, sizeof(val) );
+        setsockopt( socket->handle, IPPROTO_IPV6, IPV6_MTU_DISCOVER, &val, sizeof( val ) );
     }
     else
     {
         int val = IP_PMTUDISC_DO;
-        setsockopt( socket->handle, IPPROTO_IP, IP_MTU_DISCOVER, &val, sizeof(val) );
+        setsockopt( socket->handle, IPPROTO_IP, IP_MTU_DISCOVER, &val, sizeof( val ) );
     }
 
     // tag packet as low latency
@@ -346,7 +346,7 @@ next_platform_socket_t * next_platform_socket_create( void * context, next_addre
         if ( address->type == NEXT_ADDRESS_IPV6 )
         {
             int tos = 46;
-            if ( setsockopt( socket->handle, IPPROTO_IPV6, IPV6_TCLASS, (const char *)&tos, sizeof(tos) ) != 0 )
+            if ( setsockopt( socket->handle, IPPROTO_IPV6, IPV6_TCLASS, (const char *) &tos, sizeof( tos ) ) != 0 )
             {
                 next_printf( NEXT_LOG_LEVEL_DEBUG, "failed to enable dscp packet tagging (ipv6)" );
             }
@@ -354,7 +354,7 @@ next_platform_socket_t * next_platform_socket_create( void * context, next_addre
         else
         {
             int tos = 46;
-            if ( setsockopt( socket->handle, IPPROTO_IP, IP_TOS, (const char *)&tos, sizeof(tos) ) != 0 )
+            if ( setsockopt( socket->handle, IPPROTO_IP, IP_TOS, (const char *) &tos, sizeof( tos ) ) != 0 )
             {
                 next_printf( NEXT_LOG_LEVEL_DEBUG, "failed to enable dscp packet tagging (ipv4)" );
             }
@@ -393,14 +393,14 @@ void next_platform_socket_send_packet( next_platform_socket_t * socket, const ne
             next_address_convert_ipv4_to_ipv6( &to );
         }
 
-        sockaddr_in6 socket_address = {0};
+        sockaddr_in6 socket_address = { 0 };
         socket_address.sin6_family = AF_INET6;
         for ( int i = 0; i < 8; ++i )
         {
-            ( (uint16_t*) &socket_address.sin6_addr ) [i] = next_platform_htons( to.data.ipv6[i] );
+            ( (uint16_t *) &socket_address.sin6_addr )[i] = next_platform_htons( to.data.ipv6[i] );
         }
         socket_address.sin6_port = next_platform_htons( to.port );
-        int result = int( sendto( socket->handle, (char*)( packet_data ), packet_bytes, 0, (sockaddr*)( &socket_address ), sizeof(sockaddr_in6) ) );
+        int result = int( sendto( socket->handle, (char *) ( packet_data ), packet_bytes, 0, (sockaddr *) ( &socket_address ), sizeof( sockaddr_in6 ) ) );
         if ( result < 0 )
         {
             char address_string[NEXT_MAX_ADDRESS_STRING_LENGTH];
@@ -412,14 +412,14 @@ void next_platform_socket_send_packet( next_platform_socket_t * socket, const ne
     {
         if ( to.type == NEXT_ADDRESS_IPV4 )
         {
-            sockaddr_in socket_address = {0};
+            sockaddr_in socket_address = { 0 };
             socket_address.sin_family = AF_INET;
-            socket_address.sin_addr.s_addr = ( ( (uint32_t) to.data.ipv4[0] ) )        | 
-                                             ( ( (uint32_t) to.data.ipv4[1] ) << 8 )   | 
-                                             ( ( (uint32_t) to.data.ipv4[2] ) << 16 )  | 
+            socket_address.sin_addr.s_addr = ( ( (uint32_t) to.data.ipv4[0] ) ) |
+                                             ( ( (uint32_t) to.data.ipv4[1] ) << 8 ) |
+                                             ( ( (uint32_t) to.data.ipv4[2] ) << 16 ) |
                                              ( ( (uint32_t) to.data.ipv4[3] ) << 24 );
             socket_address.sin_port = next_platform_htons( to.port );
-            int result = int( sendto( socket->handle, (const char*)( packet_data ), packet_bytes, 0, (sockaddr*)( &socket_address ), sizeof(sockaddr_in) ) );
+            int result = int( sendto( socket->handle, (const char *) ( packet_data ), packet_bytes, 0, (sockaddr *) ( &socket_address ), sizeof( sockaddr_in ) ) );
             if ( result < 0 )
             {
                 char address_string[NEXT_MAX_ADDRESS_STRING_LENGTH];
@@ -441,10 +441,10 @@ int next_platform_socket_receive_packet( next_platform_socket_t * socket, next_a
     next_assert( packet_data );
     next_assert( max_packet_size > 0 );
 
-    sockaddr_storage sockaddr_from = {0};
+    sockaddr_storage sockaddr_from = { 0 };
     socklen_t from_length = sizeof( sockaddr_from );
 
-    int result = int( recvfrom( socket->handle, (char*) packet_data, max_packet_size, socket->type == NEXT_PLATFORM_SOCKET_NON_BLOCKING ? MSG_DONTWAIT : 0, (sockaddr*) &sockaddr_from, &from_length ) );
+    int result = int( recvfrom( socket->handle, (char *) packet_data, max_packet_size, socket->type == NEXT_PLATFORM_SOCKET_NON_BLOCKING ? MSG_DONTWAIT : 0, (sockaddr *) &sockaddr_from, &from_length ) );
 
     if ( result <= 0 )
     {
@@ -454,17 +454,17 @@ int next_platform_socket_receive_packet( next_platform_socket_t * socket, next_a
         }
 
         next_printf( NEXT_LOG_LEVEL_DEBUG, "recvfrom failed with error %d", errno );
-        
+
         return 0;
     }
 
     if ( sockaddr_from.ss_family == AF_INET6 )
     {
-        sockaddr_in6 * addr_ipv6 = (sockaddr_in6*) &sockaddr_from;
+        sockaddr_in6 * addr_ipv6 = (sockaddr_in6 *) &sockaddr_from;
         from->type = NEXT_ADDRESS_IPV6;
         for ( int i = 0; i < 8; ++i )
         {
-            from->data.ipv6[i] = next_platform_ntohs( ( (uint16_t*) &addr_ipv6->sin6_addr ) [i] );
+            from->data.ipv6[i] = next_platform_ntohs( ( (uint16_t *) &addr_ipv6->sin6_addr )[i] );
         }
         from->port = next_platform_ntohs( addr_ipv6->sin6_port );
 
@@ -475,7 +475,7 @@ int next_platform_socket_receive_packet( next_platform_socket_t * socket, next_a
     }
     else if ( sockaddr_from.ss_family == AF_INET )
     {
-        sockaddr_in * addr_ipv4 = (sockaddr_in*) &sockaddr_from;
+        sockaddr_in * addr_ipv4 = (sockaddr_in *) &sockaddr_from;
         from->type = NEXT_ADDRESS_IPV4;
         from->data.ipv4[0] = (uint8_t) ( ( addr_ipv4->sin_addr.s_addr & 0x000000FF ) );
         from->data.ipv4[1] = (uint8_t) ( ( addr_ipv4->sin_addr.s_addr & 0x0000FF00 ) >> 8 );
@@ -488,7 +488,7 @@ int next_platform_socket_receive_packet( next_platform_socket_t * socket, next_a
         next_assert( 0 );
         return 0;
     }
-  
+
     next_assert( result >= 0 );
 
     return result;
@@ -503,10 +503,10 @@ struct thread_shim_data_t
     next_platform_thread_func_t real_thread_function;
 };
 
-static void* thread_function_shim( void * data )
+static void * thread_function_shim( void * data )
 {
     next_assert( data );
-    thread_shim_data_t * shim_data = (thread_shim_data_t*) data;
+    thread_shim_data_t * shim_data = (thread_shim_data_t *) data;
     void * context = shim_data->context;
     void * real_thread_data = shim_data->real_thread_data;
     next_platform_thread_func_t real_thread_function = shim_data->real_thread_function;
@@ -517,13 +517,13 @@ static void* thread_function_shim( void * data )
 
 next_platform_thread_t * next_platform_thread_create( void * context, next_platform_thread_func_t thread_function, void * arg )
 {
-    next_platform_thread_t * thread = (next_platform_thread_t*) next_malloc( context, sizeof( next_platform_thread_t) );
+    next_platform_thread_t * thread = (next_platform_thread_t *) next_malloc( context, sizeof( next_platform_thread_t ) );
 
     next_assert( thread );
 
     thread->context = context;
 
-    thread_shim_data_t * shim_data = (thread_shim_data_t*) next_malloc( context, sizeof(thread_shim_data_t) );
+    thread_shim_data_t * shim_data = (thread_shim_data_t *) next_malloc( context, sizeof( thread_shim_data_t ) );
     next_assert( shim_data );
     if ( !shim_data )
     {
@@ -578,8 +578,8 @@ int next_platform_mutex_create( next_platform_mutex_t * mutex )
 {
     next_assert( mutex );
 
-    memset( mutex, 0, sizeof(next_platform_mutex_t) );
-    
+    memset( mutex, 0, sizeof( next_platform_mutex_t ) );
+
     pthread_mutexattr_t attr;
     pthread_mutexattr_init( &attr );
     pthread_mutexattr_settype( &attr, 0 );
@@ -614,7 +614,7 @@ void next_platform_mutex_destroy( next_platform_mutex_t * mutex )
     if ( mutex->ok )
     {
         pthread_mutex_destroy( &mutex->handle );
-        memset( mutex, 0, sizeof(next_platform_mutex_t) );
+        memset( mutex, 0, sizeof( next_platform_mutex_t ) );
     }
 }
 
@@ -622,7 +622,8 @@ void next_platform_mutex_destroy( next_platform_mutex_t * mutex )
 
 extern void * next_global_context;
 
-template <typename T> struct next_vector_t
+template <typename T>
+struct next_vector_t
 {
     T * data;
     int length;
@@ -645,7 +646,7 @@ template <typename T> struct next_vector_t
         clear();
     }
 
-    inline void clear() 
+    inline void clear()
     {
         if ( data )
         {
@@ -656,14 +657,14 @@ template <typename T> struct next_vector_t
         reserved = 0;
     }
 
-    inline const T & operator [] ( int i ) const
+    inline const T & operator[]( int i ) const
     {
         next_assert( data );
         next_assert( i >= 0 && i < length );
         return *( data + i );
     }
 
-    inline T & operator [] ( int i )
+    inline T & operator[]( int i )
     {
         next_assert( data );
         next_assert( i >= 0 && i < length );
@@ -677,22 +678,22 @@ template <typename T> struct next_vector_t
         {
             const double VECTOR_GROWTH_FACTOR = 1.5;
             const int VECTOR_INITIAL_RESERVATION = 1;
-            unsigned int next_size = (unsigned int)( pow( VECTOR_GROWTH_FACTOR, int( log( double( size ) ) / log( double( VECTOR_GROWTH_FACTOR ) ) ) + 1 ) );
+            unsigned int next_size = (unsigned int) ( pow( VECTOR_GROWTH_FACTOR, int( log( double( size ) ) / log( double( VECTOR_GROWTH_FACTOR ) ) ) + 1 ) );
             if ( !reserved )
             {
                 next_size = next_size > VECTOR_INITIAL_RESERVATION ? next_size : VECTOR_INITIAL_RESERVATION;
-                data = (T*)( next_malloc( next_global_context, next_size * sizeof(T) ) );
+                data = (T *) ( next_malloc( next_global_context, next_size * sizeof( T ) ) );
                 next_assert( data );
             }
             else
             {
-                T * new_data = (T*)( next_malloc( next_global_context, next_size * sizeof(T) ) );
+                T * new_data = (T *) ( next_malloc( next_global_context, next_size * sizeof( T ) ) );
                 next_assert( data );
-                memcpy( new_data, data, reserved * sizeof(T) );
+                memcpy( new_data, data, reserved * sizeof( T ) );
                 next_free( next_global_context, data );
                 data = new_data;
             }
-            memset( (void*)( &data[reserved] ), 0, ( next_size - reserved ) * sizeof(T) );
+            memset( (void *) ( &data[reserved] ), 0, ( next_size - reserved ) * sizeof( T ) );
             reserved = next_size;
         }
     }
@@ -751,7 +752,6 @@ template <typename T> struct next_vector_t
     }
 };
 
-
 // ---------------------------------------------------
 
 struct next_iftable_t
@@ -770,7 +770,7 @@ struct next_ifforward4_t
 
 static int parse_kernel_route( struct nlmsghdr * msg_ptr, next_ifforward4_t * out )
 {
-    struct rtmsg * route_entry = (struct rtmsg *)( NLMSG_DATA( msg_ptr ) );
+    struct rtmsg * route_entry = (struct rtmsg *) ( NLMSG_DATA( msg_ptr ) );
 
     if ( route_entry->rtm_table != RT_TABLE_MAIN )
         return NEXT_ERROR;
@@ -779,9 +779,9 @@ static int parse_kernel_route( struct nlmsghdr * msg_ptr, next_ifforward4_t * ou
 
     // read all attributes
     int route_attribute_len = RTM_PAYLOAD( msg_ptr );
-    for ( struct rtattr * route_attribute = (struct rtattr *)( RTM_RTA( route_entry ) );
-        RTA_OK( route_attribute, route_attribute_len );
-        route_attribute = RTA_NEXT( route_attribute, route_attribute_len ) )
+    for ( struct rtattr * route_attribute = (struct rtattr *) ( RTM_RTA( route_entry ) );
+          RTA_OK( route_attribute, route_attribute_len );
+          route_attribute = RTA_NEXT( route_attribute, route_attribute_len ) )
     {
         switch ( route_attribute->rta_type )
         {
@@ -806,7 +806,7 @@ static int parse_kernel_route( struct nlmsghdr * msg_ptr, next_ifforward4_t * ou
     return NEXT_OK;
 }
 
-#define CHECK_BIT( _num, _bit ) ( ( _num ) & ( uint32_t(1) << ( _bit ) ) )
+#define CHECK_BIT( _num, _bit ) ( ( _num ) & ( uint32_t( 1 ) << ( _bit ) ) )
 
 static bool better_match( next_ifforward4_t * a, next_ifforward4_t * b, uint32_t ip )
 {
@@ -817,8 +817,7 @@ static bool better_match( next_ifforward4_t * a, next_ifforward4_t * b, uint32_t
     {
         for ( int i = 0; i < 32; i++ )
         {
-            if ( CHECK_BIT( a->forward_mask, i )
-                && CHECK_BIT( a->forward_dest, i ) == CHECK_BIT( ip, i ) )
+            if ( CHECK_BIT( a->forward_mask, i ) && CHECK_BIT( a->forward_dest, i ) == CHECK_BIT( ip, i ) )
             {
                 matching_bits_a++;
             }
@@ -829,22 +828,21 @@ static bool better_match( next_ifforward4_t * a, next_ifforward4_t * b, uint32_t
     {
         for ( int i = 0; i < 32; i++ )
         {
-            if ( CHECK_BIT( b->forward_mask, i )
-                && CHECK_BIT( b->forward_dest, i ) == CHECK_BIT( ip, i ) )
+            if ( CHECK_BIT( b->forward_mask, i ) && CHECK_BIT( b->forward_dest, i ) == CHECK_BIT( ip, i ) )
             {
                 matching_bits_b++;
             }
         }
     }
-    
+
     return matching_bits_a > matching_bits_b;
 }
 
 static int classify_connection_type( next_vector_t<next_ifforward4_t> * route_table, next_vector_t<next_iftable_t> * interface_list, const next_address_t * addr )
 {
-    uint32_t ip = ( ( (uint32_t) addr->data.ipv4[0] ) )        | 
-                  ( ( (uint32_t) addr->data.ipv4[1] ) << 8 )   | 
-                  ( ( (uint32_t) addr->data.ipv4[2] ) << 16 )  | 
+    uint32_t ip = ( ( (uint32_t) addr->data.ipv4[0] ) ) |
+                  ( ( (uint32_t) addr->data.ipv4[1] ) << 8 ) |
+                  ( ( (uint32_t) addr->data.ipv4[2] ) << 16 ) |
                   ( ( (uint32_t) addr->data.ipv4[3] ) << 24 );
     next_ifforward4_t * best_match = NULL;
     for ( int i = 0; i < route_table->length; i++ )
@@ -862,7 +860,7 @@ static int classify_connection_type( next_vector_t<next_ifforward4_t> * route_ta
     {
         for ( int i = 0; i < interface_list->length; i++ )
         {
-            next_iftable_t * iface = &( (* interface_list )[i] );
+            next_iftable_t * iface = &( ( *interface_list )[i] );
             if ( iface->if_index == best_match->if_index )
             {
                 outgoing_interface = iface;
@@ -960,7 +958,7 @@ static int get_connection_type()
     // get kernel route table
     {
         // open netlink socket
-        
+
         pid_t pid = getpid();
 
         int sock = socket( AF_NETLINK, SOCK_RAW, NETLINK_ROUTE );
@@ -976,14 +974,14 @@ static int get_connection_type()
         local.nl_pid = pid;
         local.nl_groups = 0;
 
-        if ( bind( sock, (struct sockaddr *)( &local ), sizeof( local ) ) < 0 )
+        if ( bind( sock, (struct sockaddr *) ( &local ), sizeof( local ) ) < 0 )
         {
             next_printf( NEXT_LOG_LEVEL_WARN, "failed to bind netlink socket" );
             return NEXT_CONNECTION_TYPE_UNKNOWN;
         }
 
         // prepare route table request
-        typedef struct nl_req_s nl_req_t;  
+        typedef struct nl_req_s nl_req_t;
         struct nl_req_s
         {
             struct nlmsghdr hdr;
@@ -994,10 +992,10 @@ static int get_connection_type()
         memset( &req, 0, sizeof( req ) );
         req.hdr.nlmsg_len = NLMSG_LENGTH( sizeof( struct rtgenmsg ) );
         req.hdr.nlmsg_type = RTM_GETROUTE;
-        req.hdr.nlmsg_flags = NLM_F_REQUEST | NLM_F_DUMP; 
+        req.hdr.nlmsg_flags = NLM_F_REQUEST | NLM_F_DUMP;
         req.hdr.nlmsg_seq = 1;
         req.hdr.nlmsg_pid = pid;
-        req.gen.rtgen_family = AF_INET; 
+        req.gen.rtgen_family = AF_INET;
 
         struct iovec io;
         io.iov_base = &req;
@@ -1016,7 +1014,7 @@ static int get_connection_type()
         rtnl_msg.msg_namelen = sizeof( kernel );
 
         // send request
-        sendmsg( sock, (struct msghdr *)( &rtnl_msg ), 0 );
+        sendmsg( sock, (struct msghdr *) ( &rtnl_msg ), 0 );
 
         // read reply
 
@@ -1041,7 +1039,7 @@ static int get_connection_type()
             int len = recvmsg( sock, &rtnl_reply, 0 );
             if ( len )
             {
-                for ( struct nlmsghdr * msg_ptr = (struct nlmsghdr *)( reply ); NLMSG_OK( msg_ptr, len ); msg_ptr = NLMSG_NEXT( msg_ptr, len ) )
+                for ( struct nlmsghdr * msg_ptr = (struct nlmsghdr *) ( reply ); NLMSG_OK( msg_ptr, len ); msg_ptr = NLMSG_NEXT( msg_ptr, len ) )
                 {
                     if ( msg_ptr->nlmsg_type == 24 )
                     {

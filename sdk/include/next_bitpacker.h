@@ -23,8 +23,8 @@
 
 namespace next
 {
-    using serialize::BitWriter;
-    using serialize::BitReader;
+using serialize::BitReader;
+using serialize::BitWriter;
 }
 
 #endif // #ifndef NEXT_BITPACKER_H

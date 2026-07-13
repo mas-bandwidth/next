@@ -14,6 +14,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 
+// clang-format off
 #define NEXT_ADVANCED_PACKET_FILTER                               1
 
 #if !defined( NEXT_DEVELOPMENT )
@@ -76,11 +77,13 @@
 #define NEXT_PLATFORM_MAX                                        10
 
 #define NEXT_MAX_TAGS                                             8
+// clang-format on
 
-#if defined(_WIN32)
+#if defined( _WIN32 )
 #define NOMINMAX
 #endif
 
+// clang-format off
 #if defined( NEXT_SHARED )
     #if defined( _WIN32 ) || defined( __ORBIS__ ) || defined( __PROSPERO__ )
         #ifdef NEXT_EXPORT
@@ -110,34 +113,35 @@
     #define NEXT_EXPORT_FUNC extern
     #endif
 #endif
+// clang-format on
 
-#if defined(__GNUC__) || defined(__clang__)
-    #define NEXT_PRINTF_FORMAT(format_index,args_index) __attribute__((format(printf,format_index,args_index)))
+#if defined( __GNUC__ ) || defined( __clang__ )
+#define NEXT_PRINTF_FORMAT( format_index, args_index ) __attribute__( ( format( printf, format_index, args_index ) ) )
 #else
-    #define NEXT_PRINTF_FORMAT(format_index,args_index)
+#define NEXT_PRINTF_FORMAT( format_index, args_index )
 #endif
 
-#if defined(NN_NINTENDO_SDK)
-    #define NEXT_PLATFORM NEXT_PLATFORM_SWITCH
-#elif defined(__ORBIS__)
-    #define NEXT_PLATFORM NEXT_PLATFORM_PS4
-#elif defined(__PROSPERO__)
-    #define NEXT_PLATFORM NEXT_PLATFORM_PS5
-#elif defined(_XBOX_ONE)
-    #define NEXT_PLATFORM NEXT_PLATFORM_XBOX_ONE
-#elif defined(_GAMING_XBOX)
-    #define NEXT_PLATFORM NEXT_PLATFORM_GDK
-#elif defined(_WIN32)
-    #define NEXT_PLATFORM NEXT_PLATFORM_WINDOWS
-#elif defined(__APPLE__)
-    #include "TargetConditionals.h"
-    #if TARGET_OS_IPHONE
-        #define NEXT_PLATFORM NEXT_PLATFORM_IOS
-    #else
-        #define NEXT_PLATFORM NEXT_PLATFORM_MAC
-    #endif
+#if defined( NN_NINTENDO_SDK )
+#define NEXT_PLATFORM NEXT_PLATFORM_SWITCH
+#elif defined( __ORBIS__ )
+#define NEXT_PLATFORM NEXT_PLATFORM_PS4
+#elif defined( __PROSPERO__ )
+#define NEXT_PLATFORM NEXT_PLATFORM_PS5
+#elif defined( _XBOX_ONE )
+#define NEXT_PLATFORM NEXT_PLATFORM_XBOX_ONE
+#elif defined( _GAMING_XBOX )
+#define NEXT_PLATFORM NEXT_PLATFORM_GDK
+#elif defined( _WIN32 )
+#define NEXT_PLATFORM NEXT_PLATFORM_WINDOWS
+#elif defined( __APPLE__ )
+#include "TargetConditionals.h"
+#if TARGET_OS_IPHONE
+#define NEXT_PLATFORM NEXT_PLATFORM_IOS
 #else
-    #define NEXT_PLATFORM NEXT_PLATFORM_LINUX
+#define NEXT_PLATFORM NEXT_PLATFORM_MAC
+#endif
+#else
+#define NEXT_PLATFORM NEXT_PLATFORM_LINUX
 #endif
 
 #if NEXT_PLATFORM != NEXT_PLATFORM_PS4 && NEXT_PLATFORM != NEXT_PLATFORM_PS5 && NEXT_PLATFORM != NEXT_PLATFORM_SWITCH
@@ -148,75 +152,68 @@
 #define NEXT_PLATFORM_CAN_RUN_SERVER 1
 #endif // #if NEXT_PLATFORM != NEXT_PLATFORM_XBOX_ONE && NEXT_PLATFORM != NEXT_PLATFORM_GDK
 
-#if !defined(NEXT_UNREAL_ENGINE)
+#if !defined( NEXT_UNREAL_ENGINE )
 #define NEXT_UNREAL_ENGINE 0
 #endif // #if !defined(NEXT_UNREAL_ENGINE)
 
-#if NEXT_UNREAL_ENGINE && NEXT_PLATFORM == NEXT_PLATFORM_PS5 && !defined(PLATFORM_PS5)
+#if NEXT_UNREAL_ENGINE && NEXT_PLATFORM == NEXT_PLATFORM_PS5 && !defined( PLATFORM_PS5 )
 #error Building unreal engine on PS5, but PLATFORM_PS5 is not defined! Please follow steps in README.md for PS5 platform setup!
 #endif // #if NEXT_UNREAL_ENGINE && NEXT_PLATFORM == NEXT_PLATFORM_PS5 && !defined(PLATFORM_PS5)
 
-#if !defined(NEXT_SPIKE_TRACKING)
+#if !defined( NEXT_SPIKE_TRACKING )
 #define NEXT_SPIKE_TRACKING 0
 #endif // #if !defined(NEXT_SPIKE_TRACKING)
 
-#if !defined(NEXT_ENABLE_MEMORY_CHECKS)
+#if !defined( NEXT_ENABLE_MEMORY_CHECKS )
 #define NEXT_ENABLE_MEMORY_CHECKS 0
 #endif // #if !defined(NEXT_ENABLE_MEMORY_CHECKS)
 
-#if !defined (NEXT_LITTLE_ENDIAN ) && !defined( NEXT_BIG_ENDIAN )
+#if !defined( NEXT_LITTLE_ENDIAN ) && !defined( NEXT_BIG_ENDIAN )
 
-  #ifdef __BYTE_ORDER__
-    #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-      #define NEXT_LITTLE_ENDIAN 1
-    #elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-      #define NEXT_BIG_ENDIAN 1
-    #else
-      #error Unknown machine endianess detected. Please define NEXT_LITTLE_ENDIAN or NEXT_BIG_ENDIAN.
-    #endif // __BYTE_ORDER__
+#ifdef __BYTE_ORDER__
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+#define NEXT_LITTLE_ENDIAN 1
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+#define NEXT_BIG_ENDIAN 1
+#else
+#error Unknown machine endianess detected. Please define NEXT_LITTLE_ENDIAN or NEXT_BIG_ENDIAN.
+#endif // __BYTE_ORDER__
 
   // Detect with GLIBC's endian.h
-  #elif defined(__GLIBC__)
-    #include <endian.h>
-    #if (__BYTE_ORDER == __LITTLE_ENDIAN)
-      #define NEXT_LITTLE_ENDIAN 1
-    #elif (__BYTE_ORDER == __BIG_ENDIAN)
-      #define NEXT_BIG_ENDIAN 1
-    #else
-      #error Unknown machine endianess detected. Please define NEXT_LITTLE_ENDIAN or NEXT_BIG_ENDIAN.
-    #endif // __BYTE_ORDER
+#elif defined( __GLIBC__ )
+#include <endian.h>
+#if ( __BYTE_ORDER == __LITTLE_ENDIAN )
+#define NEXT_LITTLE_ENDIAN 1
+#elif ( __BYTE_ORDER == __BIG_ENDIAN )
+#define NEXT_BIG_ENDIAN 1
+#else
+#error Unknown machine endianess detected. Please define NEXT_LITTLE_ENDIAN or NEXT_BIG_ENDIAN.
+#endif // __BYTE_ORDER
 
   // Detect with _LITTLE_ENDIAN and _BIG_ENDIAN macro
-  #elif defined(_LITTLE_ENDIAN) && !defined(_BIG_ENDIAN)
-    #define NEXT_LITTLE_ENDIAN 1
-  #elif defined(_BIG_ENDIAN) && !defined(_LITTLE_ENDIAN)
-    #define NEXT_BIG_ENDIAN 1
+#elif defined( _LITTLE_ENDIAN ) && !defined( _BIG_ENDIAN )
+#define NEXT_LITTLE_ENDIAN 1
+#elif defined( _BIG_ENDIAN ) && !defined( _LITTLE_ENDIAN )
+#define NEXT_BIG_ENDIAN 1
 
   // Detect with architecture macros
-  #elif    defined(__sparc)     || defined(__sparc__)                           \
-        || defined(_POWER)      || defined(__powerpc__)                         \
-        || defined(__ppc__)     || defined(__hpux)      || defined(__hppa)      \
-        || defined(_MIPSEB)     || defined(_POWER)      || defined(__s390__)
-    #define NEXT_BIG_ENDIAN 1
-  #elif    defined(__i386__)    || defined(__alpha__)   || defined(__ia64)      \
-        || defined(__ia64__)    || defined(_M_IX86)     || defined(_M_IA64)     \
-        || defined(_M_ALPHA)    || defined(__amd64)     || defined(__amd64__)   \
-        || defined(_M_AMD64)    || defined(__x86_64)    || defined(__x86_64__)  \
-        || defined(_M_X64)      || defined(__bfin__)
-    #define NEXT_LITTLE_ENDIAN 1
-  #elif defined(_MSC_VER) && defined(_M_ARM)
-    #define NEXT_LITTLE_ENDIAN 1
-  #else
-    #error Unknown machine endianess detected. Please define NEXT_LITTLE_ENDIAN or NEXT_BIG_ENDIAN.
-  #endif
+#elif defined( __sparc ) || defined( __sparc__ ) || defined( _POWER ) || defined( __powerpc__ ) || defined( __ppc__ ) || defined( __hpux ) || defined( __hppa ) || defined( _MIPSEB ) || defined( _POWER ) || defined( __s390__ )
+#define NEXT_BIG_ENDIAN 1
+#elif defined( __i386__ ) || defined( __alpha__ ) || defined( __ia64 ) || defined( __ia64__ ) || defined( _M_IX86 ) || defined( _M_IA64 ) || defined( _M_ALPHA ) || defined( __amd64 ) || defined( __amd64__ ) || defined( _M_AMD64 ) || defined( __x86_64 ) || defined( __x86_64__ ) || defined( _M_X64 ) || defined( __bfin__ )
+#define NEXT_LITTLE_ENDIAN 1
+#elif defined( _MSC_VER ) && defined( _M_ARM )
+#define NEXT_LITTLE_ENDIAN 1
+#else
+#error Unknown machine endianess detected. Please define NEXT_LITTLE_ENDIAN or NEXT_BIG_ENDIAN.
+#endif
 
 #endif
 
-#if !defined(NEXT_BIG_ENDIAN)
+#if !defined( NEXT_BIG_ENDIAN )
 #define NEXT_BIG_ENDIAN 0
 #endif // #if !defined(NEXT_BIG_ENDIAN)
 
-#if !defined(NEXT_LITTLE_ENDIAN)
+#if !defined( NEXT_LITTLE_ENDIAN )
 #define NEXT_LITTLE_ENDIAN 0
 #endif // #if !defined(NEXT_LITTLE_ENDIAN)
 
@@ -236,26 +233,26 @@ typedef __int64 int64_t;
 #define snprintf c99_snprintf
 #define vsnprintf c99_vsnprintf
 
-__inline int c99_vsnprintf(char *outBuf, size_t size, const char *format, va_list ap)
+__inline int c99_vsnprintf( char * outBuf, size_t size, const char * format, va_list ap )
 {
     int count = -1;
 
-    if (size != 0)
-        count = _vsnprintf_s(outBuf, size, _TRUNCATE, format, ap);
-    if (count == -1)
-        count = _vscprintf(format, ap);
+    if ( size != 0 )
+        count = _vsnprintf_s( outBuf, size, _TRUNCATE, format, ap );
+    if ( count == -1 )
+        count = _vscprintf( format, ap );
 
     return count;
 }
 
-__inline int c99_snprintf(char *outBuf, size_t size, const char *format, ...)
+__inline int c99_snprintf( char * outBuf, size_t size, const char * format, ... )
 {
     int count;
     va_list ap;
 
-    va_start(ap, format);
-    count = c99_vsnprintf(outBuf, size, format, ap);
-    va_end(ap);
+    va_start( ap, format );
+    count = c99_vsnprintf( outBuf, size, format, ap );
+    va_end( ap );
 
     return count;
 }
@@ -283,30 +280,30 @@ NEXT_EXPORT_FUNC void next_term();
 
 // -----------------------------------------
 
-extern void (*next_assert_function_pointer)( const char * condition, const char * function, const char * file, int line );
+extern void ( *next_assert_function_pointer )( const char * condition, const char * function, const char * file, int line );
 
 #ifndef NEXT_ASSERTS
-    #ifdef NDEBUG
-        #define NEXT_ASSERTS 0
-    #else
-        #define NEXT_ASSERTS 1
-    #endif
+#ifdef NDEBUG
+#define NEXT_ASSERTS 0
+#else
+#define NEXT_ASSERTS 1
+#endif
 #endif
 
 #if NEXT_ASSERTS
-#define next_assert( condition )                                                            \
-do                                                                                          \
-{                                                                                           \
-    if ( !(condition) )                                                                     \
-    {                                                                                       \
-        next_assert_function_pointer( #condition, __FUNCTION__, __FILE__, __LINE__ );       \
-    }                                                                                       \
-} while(0)
+#define next_assert( condition )                                                          \
+    do                                                                                    \
+    {                                                                                     \
+        if ( !( condition ) )                                                             \
+        {                                                                                 \
+            next_assert_function_pointer( #condition, __FUNCTION__, __FILE__, __LINE__ ); \
+        }                                                                                 \
+    } while ( 0 )
 #else
-#define next_assert( ignore ) ((void)0)
+#define next_assert( ignore ) ( (void) 0 )
 #endif
 
-NEXT_EXPORT_FUNC void next_assert_function( void (*function)( const char * condition, const char * function, const char * file, int line ) );
+NEXT_EXPORT_FUNC void next_assert_function( void ( *function )( const char * condition, const char * function, const char * file, int line ) );
 
 // ------------------------------------------
 
@@ -314,13 +311,13 @@ NEXT_EXPORT_FUNC void next_quiet( bool flag );
 
 NEXT_EXPORT_FUNC void next_log_level( int level );
 
-NEXT_EXPORT_FUNC void next_log_function( void (*function)( int level, const char * format, ... ) );
+NEXT_EXPORT_FUNC void next_log_function( void ( *function )( int level, const char * format, ... ) );
 
-NEXT_EXPORT_FUNC void next_printf( int level, const char * format, ... ) NEXT_PRINTF_FORMAT(2,3);
+NEXT_EXPORT_FUNC void next_printf( int level, const char * format, ... ) NEXT_PRINTF_FORMAT( 2, 3 );
 
 // ------------------------------------------
 
-NEXT_EXPORT_FUNC void next_allocator( void * (*malloc_function)( void * context, size_t bytes ), void (*free_function)( void * context, void * p ) );
+NEXT_EXPORT_FUNC void next_allocator( void * ( *malloc_function )( void * context, size_t bytes ), void ( *free_function )( void * context, void * p ) );
 
 NEXT_EXPORT_FUNC void * next_malloc( void * context, size_t bytes );
 
@@ -377,14 +374,16 @@ struct next_client_stats_t
 
 // -----------------------------------------
 
+// clang-format off
 #define NEXT_CLIENT_STATE_CLOSED        0
 #define NEXT_CLIENT_STATE_OPEN          1
 #define NEXT_CLIENT_STATE_ERROR         2
+// clang-format on
 
 struct next_client_t;
 struct next_address_t;
 
-NEXT_EXPORT_FUNC struct next_client_t * next_client_create( void * context, const char * bind_address, void (*packet_received_callback)( struct next_client_t * client, void * context, const struct next_address_t * from, const uint8_t * packet_data, int packet_bytes ) );
+NEXT_EXPORT_FUNC struct next_client_t * next_client_create( void * context, const char * bind_address, void ( *packet_received_callback )( struct next_client_t * client, void * context, const struct next_address_t * from, const uint8_t * packet_data, int packet_bytes ) );
 
 NEXT_EXPORT_FUNC void next_client_destroy( struct next_client_t * client );
 
@@ -455,14 +454,16 @@ struct next_server_stats_t
     uint32_t flags;
 };
 
+// clang-format off
 #define NEXT_SERVER_STATE_DIRECT_ONLY               0
 #define NEXT_SERVER_STATE_INITIALIZING              1
 #define NEXT_SERVER_STATE_INITIALIZED               2
+// clang-format on
 
 struct next_server_t;
 struct next_address_t;
 
-NEXT_EXPORT_FUNC struct next_server_t * next_server_create( void * context, const char * server_address, const char * bind_address, const char * datacenter, void (*packet_received_callback)( struct next_server_t * server, void * context, const struct next_address_t * from, const uint8_t * packet_data, int packet_bytes ) );
+NEXT_EXPORT_FUNC struct next_server_t * next_server_create( void * context, const char * server_address, const char * bind_address, const char * datacenter, void ( *packet_received_callback )( struct next_server_t * server, void * context, const struct next_address_t * from, const uint8_t * packet_data, int packet_bytes ) );
 
 NEXT_EXPORT_FUNC void next_server_destroy( struct next_server_t * server );
 
@@ -494,11 +495,11 @@ NEXT_EXPORT_FUNC void next_server_session_event( struct next_server_t * server, 
 
 NEXT_EXPORT_FUNC void next_server_flush( struct next_server_t * server );
 
-NEXT_EXPORT_FUNC void next_server_set_packet_receive_callback( struct next_server_t * server, void (*callback) ( void * data, struct next_address_t * from, uint8_t * packet_data, int * begin, int * end ), void * callback_data );
+NEXT_EXPORT_FUNC void next_server_set_packet_receive_callback( struct next_server_t * server, void ( *callback )( void * data, struct next_address_t * from, uint8_t * packet_data, int * begin, int * end ), void * callback_data );
 
-NEXT_EXPORT_FUNC void next_server_set_send_packet_to_address_callback( struct next_server_t * server, int (*callback) ( void * data, const struct next_address_t * address, const uint8_t * packet_data, int packet_bytes ), void * callback_data );
+NEXT_EXPORT_FUNC void next_server_set_send_packet_to_address_callback( struct next_server_t * server, int ( *callback )( void * data, const struct next_address_t * address, const uint8_t * packet_data, int packet_bytes ), void * callback_data );
 
-NEXT_EXPORT_FUNC void next_server_set_payload_receive_callback( struct next_server_t * server, int (*callback) ( void * data, const struct next_address_t * address, const uint8_t * payload_data, int payload_bytes ), void * callback_data );
+NEXT_EXPORT_FUNC void next_server_set_payload_receive_callback( struct next_server_t * server, int ( *callback )( void * data, const struct next_address_t * address, const uint8_t * payload_data, int payload_bytes ), void * callback_data );
 
 NEXT_EXPORT_FUNC bool next_server_direct_only( struct next_server_t * server );
 

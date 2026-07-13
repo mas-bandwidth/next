@@ -1,0 +1,4 @@
+# sdk/sodium is vendored libsodium (flattened for Unreal) -- upstream code,
+# never reformatted.
+DisableFormat: true
+SortIncludes: Never

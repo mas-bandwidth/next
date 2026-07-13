@@ -24,40 +24,41 @@
 
 namespace next
 {
-    template <typename Stream> bool serialize_address_internal( Stream & stream, next_address_t & address )
+template <typename Stream>
+bool serialize_address_internal( Stream & stream, next_address_t & address )
+{
+    serialize_bits( stream, address.type, 2 );
+    if ( address.type == NEXT_ADDRESS_IPV4 )
     {
-        serialize_bits( stream, address.type, 2 );
-        if ( address.type == NEXT_ADDRESS_IPV4 )
-        {
-            serialize_bytes( stream, address.data.ipv4, 4 );
-            serialize_bits( stream, address.port, 16 );
-        }
-        else if ( address.type == NEXT_ADDRESS_IPV6 )
-        {
-            for ( int i = 0; i < 8; ++i )
-            {
-                serialize_bits( stream, address.data.ipv6[i], 16 );
-            }
-            serialize_bits( stream, address.port, 16 );
-        }
-        else
-        {
-            if ( Stream::IsReading )
-            {
-                memset( &address, 0, sizeof(next_address_t) );
-            }
-        }
-        return true;
+        serialize_bytes( stream, address.data.ipv4, 4 );
+        serialize_bits( stream, address.port, 16 );
     }
+    else if ( address.type == NEXT_ADDRESS_IPV6 )
+    {
+        for ( int i = 0; i < 8; ++i )
+        {
+            serialize_bits( stream, address.data.ipv6[i], 16 );
+        }
+        serialize_bits( stream, address.port, 16 );
+    }
+    else
+    {
+        if ( Stream::IsReading )
+        {
+            memset( &address, 0, sizeof( next_address_t ) );
+        }
+    }
+    return true;
+}
 
-    #define serialize_address( stream, address )                                                    \
-        do                                                                                          \
-        {                                                                                           \
-            if ( !next::serialize_address_internal( stream, address ) )                             \
-            {                                                                                       \
-                return false;                                                                       \
-            }                                                                                       \
-        } while (0)
+#define serialize_address( stream, address )                        \
+    do                                                              \
+    {                                                               \
+        if ( !next::serialize_address_internal( stream, address ) ) \
+        {                                                           \
+            return false;                                           \
+        }                                                           \
+    } while ( 0 )
 }
 
 #endif // #ifndef NEXT_SERIALIZE_H

@@ -79,10 +79,21 @@ dist/%.tar.gz: dist/%
 
 # Format code
 
+# The SDK C++ style is locked in by sdk/.clang-format (vendored sdk/serialize and
+# sdk/sodium are exempt via DisableFormat configs). Pin the clang-format version so
+# local passes and the CI check agree byte for byte: pip3 install clang-format==22.1.8
+
+SDK_FORMAT_FILES = sdk/include/*.h sdk/source/*.cpp sdk/examples/*.cpp sdk/test.cpp sdk/soak.cpp
+
 .PHONY: format
 format:
 	@gofmt -s -w .
 	@./scripts/tabs2spaces.sh
+	@clang-format -i $(SDK_FORMAT_FILES)
+
+.PHONY: format-check-sdk
+format-check-sdk:
+	@clang-format --dry-run --Werror $(SDK_FORMAT_FILES)
 
 # Build sdk
 

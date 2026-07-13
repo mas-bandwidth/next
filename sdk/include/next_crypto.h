@@ -8,6 +8,7 @@
 #ifndef NEXT_CRYPTO_H
 #define NEXT_CRYPTO_H
 
+// clang-format off
 #define NEXT_CRYPTO_GENERICHASH_KEYBYTES                    32
 
 #define NEXT_CRYPTO_SECRETBOX_KEYBYTES                      32
@@ -34,11 +35,11 @@
 #define NEXT_CRYPTO_AEAD_CHACHA20POLY1305_IETF_ABYTES       16
 #define NEXT_CRYPTO_AEAD_CHACHA20POLY1305_IETF_KEYBYTES     32
 #define NEXT_CRYPTO_AEAD_CHACHA20POLY1305_IETF_NPUBBYTES    12
+// clang-format on
 
 int next_crypto_init();
 
 void next_crypto_random_bytes( uint8_t * buffer, int bytes );
-
 
 struct next_crypto_sign_state_t
 {
@@ -51,7 +52,7 @@ int next_crypto_sign_init( struct next_crypto_sign_state_t * state );
 
 int next_crypto_sign_update( struct next_crypto_sign_state_t * state, const unsigned char * m, unsigned long long mlen );
 
-int next_crypto_sign_final_create( struct next_crypto_sign_state_t * state, unsigned char * sig, unsigned long long * siglen_p, const unsigned char *sk );
+int next_crypto_sign_final_create( struct next_crypto_sign_state_t * state, unsigned char * sig, unsigned long long * siglen_p, const unsigned char * sk );
 
 int next_crypto_sign_final_verify( struct next_crypto_sign_state_t * state, const unsigned char * sig, const unsigned char * pk );
 
@@ -72,7 +73,6 @@ void next_crypto_aead_chacha20poly1305_ietf_keygen( unsigned char * k );
 int next_crypto_aead_chacha20poly1305_ietf_encrypt( unsigned char * c, unsigned long long * clen_p, const unsigned char * m, unsigned long long mlen, const unsigned char * ad, unsigned long long adlen, const unsigned char * nsec, const unsigned char * npub, const unsigned char * k );
 
 int next_crypto_aead_chacha20poly1305_ietf_decrypt( unsigned char * m, unsigned long long * mlen_p, unsigned char * nsec, const unsigned char * c, unsigned long long clen, const unsigned char * ad, unsigned long long adlen, const unsigned char * npub, const unsigned char * k );
-
 
 int next_crypto_aead_xchacha20poly1305_ietf_decrypt( unsigned char * m, unsigned long long * mlen_p, unsigned char * nsec, const unsigned char * c, unsigned long long clen, const unsigned char * ad, unsigned long long adlen, const unsigned char * npub, const unsigned char * k );
 
