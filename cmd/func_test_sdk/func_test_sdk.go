@@ -502,6 +502,19 @@ func test_accelerated() {
 
 	fmt.Printf("test_accelerated\n")
 
+	relay_1_cmd, relay_1_stdout := relay("relay.1", 2000)
+	relay_2_cmd, relay_2_stdout := relay("relay.2", 2001)
+	relay_3_cmd, relay_3_stdout := relay("relay.3", 2002)
+
+	backend_cmd, backend_stdout := backend("")
+
+	// IMPORTANT: wait for the relays to initialize with the backend, so the server's
+	// relay request cannot race relay registration (a timed-out request cycle is not
+	// retried for minutes, and a server that never pings is never whitelisted)
+	common.WaitForOutput(relay_1_stdout, "Relay initialized", 60*time.Second)
+	common.WaitForOutput(relay_2_stdout, "Relay initialized", 60*time.Second)
+	common.WaitForOutput(relay_3_stdout, "Relay initialized", 60*time.Second)
+
 	clientConfig := &ClientConfig{}
 	clientConfig.stop_sending_packets_time = 50.0
 	clientConfig.duration = 60.0
@@ -513,12 +526,6 @@ func test_accelerated() {
 	serverConfig.buyer_private_key = TestBuyerPrivateKey
 
 	server_cmd, server_stdout := server(serverConfig)
-
-	relay_1_cmd, _ := relay("relay.1", 2000)
-	relay_2_cmd, _ := relay("relay.2", 2001)
-	relay_3_cmd, _ := relay("relay.3", 2002)
-
-	backend_cmd, backend_stdout := backend("")
 
 	client_cmd.Wait()
 
@@ -563,6 +570,28 @@ func test_next_packet_loss() {
 
 	fmt.Printf("test_next_packet_loss\n")
 
+	// the loss clock starts at RELAY process start. the relays now start (and register
+	// with the backend) BEFORE the client, so 25s relay time ~= 22s client time -- the
+	// same window the test always had: next route engages ~10s, ~11s of clean next
+	// traffic, then 100% next packet loss and the client falls back to direct.
+	relayConfig := RelayConfig{
+		fake_packet_loss_percent:    100.0,
+		fake_packet_loss_start_time: 25.0,
+	}
+
+	relay_1_cmd, relay_1_stdout := relay("relay.1", 2000, relayConfig)
+	relay_2_cmd, relay_2_stdout := relay("relay.2", 2001, relayConfig)
+	relay_3_cmd, relay_3_stdout := relay("relay.3", 2002, relayConfig)
+
+	backend_cmd, backend_stdout := backend("")
+
+	// IMPORTANT: wait for the relays to initialize with the backend, so the server's
+	// relay request cannot race relay registration (a timed-out request cycle is not
+	// retried for minutes, and a server that never pings is never whitelisted)
+	common.WaitForOutput(relay_1_stdout, "Relay initialized", 60*time.Second)
+	common.WaitForOutput(relay_2_stdout, "Relay initialized", 60*time.Second)
+	common.WaitForOutput(relay_3_stdout, "Relay initialized", 60*time.Second)
+
 	clientConfig := &ClientConfig{}
 	clientConfig.stop_sending_packets_time = 50.0
 	clientConfig.duration = 60.0
@@ -574,17 +603,6 @@ func test_next_packet_loss() {
 	serverConfig.buyer_private_key = TestBuyerPrivateKey
 
 	server_cmd, server_stdout := server(serverConfig)
-
-	relayConfig := RelayConfig{
-		fake_packet_loss_percent:    100.0,
-		fake_packet_loss_start_time: 20.0,
-	}
-
-	relay_1_cmd, _ := relay("relay.1", 2000, relayConfig)
-	relay_2_cmd, _ := relay("relay.2", 2001, relayConfig)
-	relay_3_cmd, _ := relay("relay.3", 2002, relayConfig)
-
-	backend_cmd, backend_stdout := backend("")
 
 	client_cmd.Wait()
 
@@ -629,6 +647,19 @@ func test_fallback_to_direct_backend() {
 
 	fmt.Printf("test_fallback_to_direct_backend\n")
 
+	relay_1_cmd, relay_1_stdout := relay("relay.1", 2000)
+	relay_2_cmd, relay_2_stdout := relay("relay.2", 2001)
+	relay_3_cmd, relay_3_stdout := relay("relay.3", 2002)
+
+	backend_cmd, backend_stdout := backend("DEFAULT")
+
+	// IMPORTANT: wait for the relays to initialize with the backend, so the server's
+	// relay request cannot race relay registration (a timed-out request cycle is not
+	// retried for minutes, and a server that never pings is never whitelisted)
+	common.WaitForOutput(relay_1_stdout, "Relay initialized", 60*time.Second)
+	common.WaitForOutput(relay_2_stdout, "Relay initialized", 60*time.Second)
+	common.WaitForOutput(relay_3_stdout, "Relay initialized", 60*time.Second)
+
 	clientConfig := &ClientConfig{}
 	clientConfig.duration = 70.0
 	clientConfig.stop_sending_packets_time = 50.0
@@ -640,12 +671,6 @@ func test_fallback_to_direct_backend() {
 	serverConfig.buyer_private_key = TestBuyerPrivateKey
 
 	server_cmd, server_stdout := server(serverConfig)
-
-	relay_1_cmd, relay_1_stdout := relay("relay.1", 2000)
-	relay_2_cmd, relay_2_stdout := relay("relay.2", 2001)
-	relay_3_cmd, relay_3_stdout := relay("relay.3", 2002)
-
-	backend_cmd, backend_stdout := backend("DEFAULT")
 
 	go func(cmd *exec.Cmd) {
 		time.Sleep(time.Second * 30)
@@ -683,6 +708,19 @@ func test_fallback_to_direct_client_side() {
 
 	fmt.Printf("test_fallback_to_direct_client_side\n")
 
+	relay_1_cmd, relay_1_stdout := relay("relay.1", 2000)
+	relay_2_cmd, relay_2_stdout := relay("relay.2", 2001)
+	relay_3_cmd, relay_3_stdout := relay("relay.3", 2002)
+
+	backend_cmd, backend_stdout := backend("DEFAULT")
+
+	// IMPORTANT: wait for the relays to initialize with the backend, so the server's
+	// relay request cannot race relay registration (a timed-out request cycle is not
+	// retried for minutes, and a server that never pings is never whitelisted)
+	common.WaitForOutput(relay_1_stdout, "Relay initialized", 60*time.Second)
+	common.WaitForOutput(relay_2_stdout, "Relay initialized", 60*time.Second)
+	common.WaitForOutput(relay_3_stdout, "Relay initialized", 60*time.Second)
+
 	clientConfig := &ClientConfig{}
 	clientConfig.fallback_to_direct_time = 30.0
 	clientConfig.stop_sending_packets_time = 50.0
@@ -695,12 +733,6 @@ func test_fallback_to_direct_client_side() {
 	serverConfig.buyer_private_key = TestBuyerPrivateKey
 
 	server_cmd, server_stdout := server(serverConfig)
-
-	relay_1_cmd, _ := relay("relay.1", 2000)
-	relay_2_cmd, _ := relay("relay.2", 2001)
-	relay_3_cmd, _ := relay("relay.3", 2002)
-
-	backend_cmd, backend_stdout := backend("DEFAULT")
 
 	client_cmd.Wait()
 
@@ -780,6 +812,19 @@ func test_disable_on_server() {
 
 	fmt.Printf("test_disable_on_server\n")
 
+	relay_1_cmd, relay_1_stdout := relay("relay.1", 2000)
+	relay_2_cmd, relay_2_stdout := relay("relay.2", 2001)
+	relay_3_cmd, relay_3_stdout := relay("relay.3", 2002)
+
+	backend_cmd, backend_stdout := backend("DEFAULT")
+
+	// IMPORTANT: wait for the relays to initialize with the backend, so the server's
+	// relay request cannot race relay registration (a timed-out request cycle is not
+	// retried for minutes, and a server that never pings is never whitelisted)
+	common.WaitForOutput(relay_1_stdout, "Relay initialized", 60*time.Second)
+	common.WaitForOutput(relay_2_stdout, "Relay initialized", 60*time.Second)
+	common.WaitForOutput(relay_3_stdout, "Relay initialized", 60*time.Second)
+
 	clientConfig := &ClientConfig{}
 	clientConfig.stop_sending_packets_time = 50.0
 	clientConfig.duration = 60.0
@@ -792,12 +837,6 @@ func test_disable_on_server() {
 	serverConfig.disable_network_next = true
 
 	server_cmd, server_stdout := server(serverConfig)
-
-	relay_1_cmd, _ := relay("relay.1", 2000)
-	relay_2_cmd, _ := relay("relay.2", 2001)
-	relay_3_cmd, _ := relay("relay.3", 2002)
-
-	backend_cmd, backend_stdout := backend("DEFAULT")
 
 	client_cmd.Wait()
 
@@ -842,6 +881,19 @@ func test_disable_on_client() {
 
 	fmt.Printf("test_disable_on_client\n")
 
+	relay_1_cmd, relay_1_stdout := relay("relay.1", 2000)
+	relay_2_cmd, relay_2_stdout := relay("relay.2", 2001)
+	relay_3_cmd, relay_3_stdout := relay("relay.3", 2002)
+
+	backend_cmd, backend_stdout := backend("DEFAULT")
+
+	// IMPORTANT: wait for the relays to initialize with the backend, so the server's
+	// relay request cannot race relay registration (a timed-out request cycle is not
+	// retried for minutes, and a server that never pings is never whitelisted)
+	common.WaitForOutput(relay_1_stdout, "Relay initialized", 60*time.Second)
+	common.WaitForOutput(relay_2_stdout, "Relay initialized", 60*time.Second)
+	common.WaitForOutput(relay_3_stdout, "Relay initialized", 60*time.Second)
+
 	clientConfig := &ClientConfig{}
 	clientConfig.stop_sending_packets_time = 50.0
 	clientConfig.duration = 60.0
@@ -854,12 +906,6 @@ func test_disable_on_client() {
 	serverConfig.buyer_private_key = TestBuyerPrivateKey
 
 	server_cmd, server_stdout := server(serverConfig)
-
-	relay_1_cmd, _ := relay("relay.1", 2000)
-	relay_2_cmd, _ := relay("relay.2", 2001)
-	relay_3_cmd, _ := relay("relay.3", 2002)
-
-	backend_cmd, backend_stdout := backend("DEFAULT")
 
 	fmt.Printf("waiting for client\n")
 	client_cmd.Wait()
@@ -906,6 +952,19 @@ func test_route_switching() {
 
 	fmt.Printf("test_route_switching\n")
 
+	relay_1_cmd, relay_1_stdout := relay("relay.1", 2000)
+	relay_2_cmd, relay_2_stdout := relay("relay.2", 2001)
+	relay_3_cmd, relay_3_stdout := relay("relay.3", 2002)
+
+	backend_cmd, backend_stdout := backend("ROUTE_SWITCHING")
+
+	// IMPORTANT: wait for the relays to initialize with the backend, so the server's
+	// relay request cannot race relay registration (a timed-out request cycle is not
+	// retried for minutes, and a server that never pings is never whitelisted)
+	common.WaitForOutput(relay_1_stdout, "Relay initialized", 60*time.Second)
+	common.WaitForOutput(relay_2_stdout, "Relay initialized", 60*time.Second)
+	common.WaitForOutput(relay_3_stdout, "Relay initialized", 60*time.Second)
+
 	clientConfig := &ClientConfig{}
 	clientConfig.stop_sending_packets_time = 50.0
 	clientConfig.duration = 60.0
@@ -917,12 +976,6 @@ func test_route_switching() {
 	serverConfig.buyer_private_key = TestBuyerPrivateKey
 
 	server_cmd, server_stdout := server(serverConfig)
-
-	relay_1_cmd, _ := relay("relay.1", 2000)
-	relay_2_cmd, _ := relay("relay.2", 2001)
-	relay_3_cmd, _ := relay("relay.3", 2002)
-
-	backend_cmd, backend_stdout := backend("ROUTE_SWITCHING")
 
 	client_cmd.Wait()
 
@@ -957,6 +1010,19 @@ func test_on_off() {
 
 	fmt.Printf("test_on_off\n")
 
+	relay_1_cmd, relay_1_stdout := relay("relay.1", 2000)
+	relay_2_cmd, relay_2_stdout := relay("relay.2", 2001)
+	relay_3_cmd, relay_3_stdout := relay("relay.3", 2002)
+
+	backend_cmd, backend_stdout := backend("ON_OFF")
+
+	// IMPORTANT: wait for the relays to initialize with the backend, so the server's
+	// relay request cannot race relay registration (a timed-out request cycle is not
+	// retried for minutes, and a server that never pings is never whitelisted)
+	common.WaitForOutput(relay_1_stdout, "Relay initialized", 60*time.Second)
+	common.WaitForOutput(relay_2_stdout, "Relay initialized", 60*time.Second)
+	common.WaitForOutput(relay_3_stdout, "Relay initialized", 60*time.Second)
+
 	clientConfig := &ClientConfig{}
 	clientConfig.stop_sending_packets_time = 50.0
 	clientConfig.duration = 60.0
@@ -968,12 +1034,6 @@ func test_on_off() {
 	serverConfig.buyer_private_key = TestBuyerPrivateKey
 
 	server_cmd, server_stdout := server(serverConfig)
-
-	relay_1_cmd, _ := relay("relay.1", 2000)
-	relay_2_cmd, _ := relay("relay.2", 2001)
-	relay_3_cmd, _ := relay("relay.3", 2002)
-
-	backend_cmd, backend_stdout := backend("ON_OFF")
 
 	client_cmd.Wait()
 
@@ -1012,6 +1072,19 @@ func test_on_on_off() {
 
 	fmt.Printf("test_on_on_off\n")
 
+	relay_1_cmd, relay_1_stdout := relay("relay.1", 2000)
+	relay_2_cmd, relay_2_stdout := relay("relay.2", 2001)
+	relay_3_cmd, relay_3_stdout := relay("relay.3", 2002)
+
+	backend_cmd, backend_stdout := backend("ON_ON_OFF")
+
+	// IMPORTANT: wait for the relays to initialize with the backend, so the server's
+	// relay request cannot race relay registration (a timed-out request cycle is not
+	// retried for minutes, and a server that never pings is never whitelisted)
+	common.WaitForOutput(relay_1_stdout, "Relay initialized", 60*time.Second)
+	common.WaitForOutput(relay_2_stdout, "Relay initialized", 60*time.Second)
+	common.WaitForOutput(relay_3_stdout, "Relay initialized", 60*time.Second)
+
 	clientConfig := &ClientConfig{}
 	clientConfig.stop_sending_packets_time = 50.0
 	clientConfig.duration = 60.0
@@ -1023,12 +1096,6 @@ func test_on_on_off() {
 	serverConfig.buyer_private_key = TestBuyerPrivateKey
 
 	server_cmd, server_stdout := server(serverConfig)
-
-	relay_1_cmd, _ := relay("relay.1", 2000)
-	relay_2_cmd, _ := relay("relay.2", 2001)
-	relay_3_cmd, _ := relay("relay.3", 2002)
-
-	backend_cmd, backend_stdout := backend("ON_ON_OFF")
 
 	client_cmd.Wait()
 
@@ -1164,11 +1231,18 @@ func test_reconnect_next() {
 
 	fmt.Printf("test_reconnect_next\n")
 
-	relay_1_cmd, _ := relay("relay.1", 2000)
-	relay_2_cmd, _ := relay("relay.2", 2001)
-	relay_3_cmd, _ := relay("relay.3", 2002)
+	relay_1_cmd, relay_1_stdout := relay("relay.1", 2000)
+	relay_2_cmd, relay_2_stdout := relay("relay.2", 2001)
+	relay_3_cmd, relay_3_stdout := relay("relay.3", 2002)
 
 	backend_cmd, backend_stdout := backend("DEFAULT")
+
+	// IMPORTANT: wait for the relays to initialize with the backend, so the server's
+	// relay request cannot race relay registration (a timed-out request cycle is not
+	// retried for minutes, and a server that never pings is never whitelisted)
+	common.WaitForOutput(relay_1_stdout, "Relay initialized", 60*time.Second)
+	common.WaitForOutput(relay_2_stdout, "Relay initialized", 60*time.Second)
+	common.WaitForOutput(relay_3_stdout, "Relay initialized", 60*time.Second)
 
 	serverConfig := &ServerConfig{}
 	serverConfig.buyer_private_key = TestBuyerPrivateKey
@@ -1544,6 +1618,19 @@ func test_session_update_retry() {
 
 	fmt.Printf("test_session_update_retry\n")
 
+	relay_1_cmd, relay_1_stdout := relay("relay.1", 2000)
+	relay_2_cmd, relay_2_stdout := relay("relay.2", 2001)
+	relay_3_cmd, relay_3_stdout := relay("relay.3", 2002)
+
+	backend_cmd, backend_stdout := backend("FORCE_RETRY")
+
+	// IMPORTANT: wait for the relays to initialize with the backend, so the server's
+	// relay request cannot race relay registration (a timed-out request cycle is not
+	// retried for minutes, and a server that never pings is never whitelisted)
+	common.WaitForOutput(relay_1_stdout, "Relay initialized", 60*time.Second)
+	common.WaitForOutput(relay_2_stdout, "Relay initialized", 60*time.Second)
+	common.WaitForOutput(relay_3_stdout, "Relay initialized", 60*time.Second)
+
 	clientConfig := &ClientConfig{}
 	clientConfig.stop_sending_packets_time = 50.0
 	clientConfig.duration = 60.0
@@ -1555,12 +1642,6 @@ func test_session_update_retry() {
 	serverConfig.buyer_private_key = TestBuyerPrivateKey
 
 	server_cmd, server_stdout := server(serverConfig)
-
-	relay_1_cmd, relay_1_stdout := relay("relay.1", 2000)
-	relay_2_cmd, relay_2_stdout := relay("relay.2", 2001)
-	relay_3_cmd, relay_3_stdout := relay("relay.3", 2002)
-
-	backend_cmd, backend_stdout := backend("FORCE_RETRY")
 
 	client_cmd.Wait()
 
@@ -1640,6 +1721,19 @@ func test_jitter() {
 
 	fmt.Printf("test_jitter\n")
 
+	relay_1_cmd, relay_1_stdout := relay("relay.1", 2000)
+	relay_2_cmd, relay_2_stdout := relay("relay.2", 2001)
+	relay_3_cmd, relay_3_stdout := relay("relay.3", 2002)
+
+	backend_cmd, backend_stdout := backend("JITTER")
+
+	// IMPORTANT: wait for the relays to initialize with the backend, so the server's
+	// relay request cannot race relay registration (a timed-out request cycle is not
+	// retried for minutes, and a server that never pings is never whitelisted)
+	common.WaitForOutput(relay_1_stdout, "Relay initialized", 60*time.Second)
+	common.WaitForOutput(relay_2_stdout, "Relay initialized", 60*time.Second)
+	common.WaitForOutput(relay_3_stdout, "Relay initialized", 60*time.Second)
+
 	clientConfig := &ClientConfig{}
 	clientConfig.stop_sending_packets_time = 50.0
 	clientConfig.duration = 60.0
@@ -1651,12 +1745,6 @@ func test_jitter() {
 	serverConfig.buyer_private_key = TestBuyerPrivateKey
 
 	server_cmd, server_stdout := server(serverConfig)
-
-	relay_1_cmd, _ := relay("relay.1", 2000)
-	relay_2_cmd, _ := relay("relay.2", 2001)
-	relay_3_cmd, _ := relay("relay.3", 2002)
-
-	backend_cmd, backend_stdout := backend("JITTER")
 
 	client_cmd.Wait()
 
@@ -1743,6 +1831,19 @@ func test_next_stats() {
 
 	fmt.Printf("test_next_stats\n")
 
+	relay_1_cmd, relay_1_stdout := relay("relay.1", 2000)
+	relay_2_cmd, relay_2_stdout := relay("relay.2", 2001)
+	relay_3_cmd, relay_3_stdout := relay("relay.3", 2002)
+
+	backend_cmd, backend_stdout := backend("NEXT_STATS")
+
+	// IMPORTANT: wait for the relays to initialize with the backend, so the server's
+	// relay request cannot race relay registration (a timed-out request cycle is not
+	// retried for minutes, and a server that never pings is never whitelisted)
+	common.WaitForOutput(relay_1_stdout, "Relay initialized", 60*time.Second)
+	common.WaitForOutput(relay_2_stdout, "Relay initialized", 60*time.Second)
+	common.WaitForOutput(relay_3_stdout, "Relay initialized", 60*time.Second)
+
 	clientConfig := &ClientConfig{}
 	clientConfig.fake_next_packet_loss = 10.0
 	clientConfig.stop_sending_packets_time = 50.0
@@ -1755,12 +1856,6 @@ func test_next_stats() {
 	serverConfig.buyer_private_key = TestBuyerPrivateKey
 
 	server_cmd, server_stdout := server(serverConfig)
-
-	relay_1_cmd, relay_1_stdout := relay("relay.1", 2000)
-	relay_2_cmd, relay_2_stdout := relay("relay.2", 2001)
-	relay_3_cmd, relay_3_stdout := relay("relay.3", 2002)
-
-	backend_cmd, backend_stdout := backend("NEXT_STATS")
 
 	client_cmd.Wait()
 
@@ -1782,7 +1877,9 @@ func test_next_stats() {
 
 	backendSawNextStats := strings.Contains(backend_stdout.String(), "next rtt =")
 
-	client_check(client_counters, client_stdout, server_stdout, backend_stdout, backendSawNextStats)
+	// include the relay output: when this fails it is usually because the next route
+	// never engaged, and the relays say why (test-286 hid the evidence here)
+	client_check(client_counters, client_stdout, server_stdout, backend_stdout, backendSawNextStats, relay_1_stdout, relay_2_stdout, relay_3_stdout)
 	client_check(client_counters, client_stdout, server_stdout, backend_stdout, client_counters[NEXT_CLIENT_COUNTER_OPEN_SESSION] == 1)
 	client_check(client_counters, client_stdout, server_stdout, backend_stdout, client_counters[NEXT_CLIENT_COUNTER_CLOSE_SESSION] == 1)
 	client_check(client_counters, client_stdout, server_stdout, backend_stdout, client_counters[NEXT_CLIENT_COUNTER_UPGRADE_SESSION] == 1)
@@ -1795,7 +1892,6 @@ func test_next_stats() {
 	client_check(client_counters, client_stdout, server_stdout, backend_stdout, client_counters[NEXT_CLIENT_COUNTER_PACKETS_LOST_CLIENT_TO_SERVER] == 0, relay_1_stdout, relay_2_stdout, relay_3_stdout)
 	client_check(client_counters, client_stdout, server_stdout, backend_stdout, client_counters[NEXT_CLIENT_COUNTER_PACKETS_LOST_SERVER_TO_CLIENT] == 0, relay_1_stdout, relay_2_stdout, relay_3_stdout)
 	client_check(client_counters, client_stdout, server_stdout, backend_stdout, client_counters[NEXT_CLIENT_COUNTER_PACKET_SENT_NEXT] >= 30*60, relay_1_stdout, relay_2_stdout, relay_3_stdout)
-
 }
 
 /*
@@ -1805,6 +1901,19 @@ func test_next_stats() {
 func test_report_session() {
 
 	fmt.Printf("test_report_session\n")
+
+	relay_1_cmd, relay_1_stdout := relay("relay.1", 2000)
+	relay_2_cmd, relay_2_stdout := relay("relay.2", 2001)
+	relay_3_cmd, relay_3_stdout := relay("relay.3", 2002)
+
+	backend_cmd, backend_stdout := backend("DEFAULT")
+
+	// IMPORTANT: wait for the relays to initialize with the backend, so the server's
+	// relay request cannot race relay registration (a timed-out request cycle is not
+	// retried for minutes, and a server that never pings is never whitelisted)
+	common.WaitForOutput(relay_1_stdout, "Relay initialized", 60*time.Second)
+	common.WaitForOutput(relay_2_stdout, "Relay initialized", 60*time.Second)
+	common.WaitForOutput(relay_3_stdout, "Relay initialized", 60*time.Second)
 
 	clientConfig := &ClientConfig{}
 	clientConfig.report_session = true
@@ -1818,12 +1927,6 @@ func test_report_session() {
 	serverConfig.buyer_private_key = TestBuyerPrivateKey
 
 	server_cmd, server_stdout := server(serverConfig)
-
-	relay_1_cmd, _ := relay("relay.1", 2000)
-	relay_2_cmd, _ := relay("relay.2", 2001)
-	relay_3_cmd, _ := relay("relay.3", 2002)
-
-	backend_cmd, backend_stdout := backend("DEFAULT")
 
 	client_cmd.Wait()
 
@@ -1854,6 +1957,19 @@ func test_client_ping_timed_out() {
 
 	fmt.Printf("test_client_ping_timed_out\n")
 
+	relay_1_cmd, relay_1_stdout := relay("relay.1", 2000)
+	relay_2_cmd, relay_2_stdout := relay("relay.2", 2001)
+	relay_3_cmd, relay_3_stdout := relay("relay.3", 2002)
+
+	backend_cmd, backend_stdout := backend("DEFAULT")
+
+	// IMPORTANT: wait for the relays to initialize with the backend, so the server's
+	// relay request cannot race relay registration (a timed-out request cycle is not
+	// retried for minutes, and a server that never pings is never whitelisted)
+	common.WaitForOutput(relay_1_stdout, "Relay initialized", 60*time.Second)
+	common.WaitForOutput(relay_2_stdout, "Relay initialized", 60*time.Second)
+	common.WaitForOutput(relay_3_stdout, "Relay initialized", 60*time.Second)
+
 	clientConfig := &ClientConfig{}
 	clientConfig.duration = 30.0
 	clientConfig.buyer_public_key = TestBuyerPublicKey
@@ -1864,12 +1980,6 @@ func test_client_ping_timed_out() {
 	serverConfig.buyer_private_key = TestBuyerPrivateKey
 
 	server_cmd, server_stdout := server(serverConfig)
-
-	relay_1_cmd, _ := relay("relay.1", 2000)
-	relay_2_cmd, _ := relay("relay.2", 2001)
-	relay_3_cmd, _ := relay("relay.3", 2002)
-
-	backend_cmd, backend_stdout := backend("DEFAULT")
 
 	time.Sleep(time.Second * 60)
 
@@ -1892,7 +2002,6 @@ func test_client_ping_timed_out() {
 	backendSawClientPingTimedOut := strings.Contains(backend_stdout.String(), "client ping timed out")
 
 	client_check(client_counters, client_stdout, server_stdout, backend_stdout, backendSawClientPingTimedOut == true)
-
 }
 
 func test_server_ready_success() {
