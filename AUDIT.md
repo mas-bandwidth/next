@@ -65,8 +65,26 @@ are small, and it took genuine digging to find even those, which is itself a sta
 5. **Cosmetic HTTP handler issues** — `statusHandlerFunc`, `versionHandlerFunc`, and
    `databaseHandlerFunc` in service.go set headers or status codes after writing the body
    (no-ops), and `versionHandlerFunc` takes an `allowedOrigins` parameter it never uses.
+   (FIXED 2026-07-13: headers set before the body write; `/version` now actually sends
+   `Content-Type: application/json`, `/database` sends its type; unused param removed.)
 
-Items 1-4 fixed 2026-07-13; item 5 is cosmetic and deliberately left alone.
+All five items fixed 2026-07-13.
+
+### Terraform provider-pin defect (found 2026-07-13 while validating the MAGIC_KEY wiring)
+
+`terraform validate` passes for dev but fails for **staging and prod**:
+`google_redis_cluster.major_version = "REDIS_7_2"`
+([staging main.tf:303](terraform/staging/backend/main.tf#L303), same in prod) is not a
+recognized argument under the `hashicorp/google` provider pin `~> 6.0.0` (which resolves to
+6.0.x — `major_version` was added to that resource much later in the 6.x line). dev has no
+redis *cluster* so it validates. Because `.terraform.lock.hcl` is gitignored, a real
+`terraform plan` on staging/prod resolves providers fresh against that pin and hits the same
+error — so a staging/prod deploy would fail here. Pre-existing and unrelated to any change
+this session; consistent with the "nothing currently deployed" state (the config was never
+applied after `major_version` was added). Fix is to widen the google provider pin (e.g.
+`~> 6.14`) — but that pulls the whole 6.0→6.14 range for every google resource, so it needs
+a real `terraform plan` against GCP to vet, which is an operator action, not a blind edit.
+Flagged, deliberately not auto-fixed.
 
 ## Honest observations (design, not defects)
 
