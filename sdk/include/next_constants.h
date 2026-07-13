@@ -125,6 +125,11 @@
 
 #define NEXT_SECRET_KEY_BYTES                                          32
 
+// IMPORTANT: the 300-600s base+variation retry after a relay request cycle times out
+// is DELIBERATE, so a fleet of servers cannot stampede the backend when it recovers.
+// A server whose cycle got no response pings nothing until the retry -- by design.
+// (This is why the functional tests wait for relay registration before starting the
+// client and server: see cmd/func_test_sdk.)
 #define NEXT_SERVER_RELAYS_TIMEOUT                                      5
 #define NEXT_SERVER_RELAYS_UPDATE_TIME_BASE                           300
 #define NEXT_SERVER_RELAYS_UPDATE_TIME_VARIATION                      300
