@@ -165,7 +165,7 @@ func CreateService(serviceName string) *Service {
 		}
 	}
 
-	service.Router.HandleFunc("/version", versionHandlerFunc(buildTime, commitMessage, commitHash, tag, []string{}))
+	service.Router.HandleFunc("/version", versionHandlerFunc(buildTime, commitMessage, commitHash, tag))
 	service.Router.HandleFunc("/status", service.statusHandlerFunc())
 	service.Router.HandleFunc("/database", service.databaseHandlerFunc())
 	service.Router.HandleFunc("/lb_health", service.lbHealthHandlerFunc())
@@ -397,7 +397,7 @@ func (service *Service) readyHandlerFunc() func(w http.ResponseWriter, r *http.R
 	}
 }
 
-func versionHandlerFunc(buildTime string, commitMessage string, commitHash string, tag string, allowedOrigins []string) func(w http.ResponseWriter, r *http.Request) {
+func versionHandlerFunc(buildTime string, commitMessage string, commitHash string, tag string) func(w http.ResponseWriter, r *http.Request) {
 
 	version := map[string]string{
 		"build_time":     buildTime,
@@ -407,10 +407,11 @@ func versionHandlerFunc(buildTime string, commitMessage string, commitHash strin
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(version); err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
+			// headers are already sent once the body write starts, so a status
+			// change here is impossible -- just log it
+			core.Error("could not write version data to json: %v", err)
 		}
 	}
 }
@@ -935,8 +936,9 @@ func (service *Service) statusHandlerFunc() func(w http.ResponseWriter, r *http.
 
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(*data); err != nil {
+			// headers are already sent once the body write starts, so a status
+			// change here is impossible -- just log it
 			core.Error("could not write status data to json: %v", err)
-			w.WriteHeader(http.StatusInternalServerError)
 		}
 	}
 }
@@ -949,12 +951,13 @@ func (service *Service) databaseHandlerFunc() func(w http.ResponseWriter, r *htt
 			database = service.routeMatrixDatabase
 			service.routeMatrixMutex.RUnlock()
 		}
+		// headers must be set BEFORE the first body write, or they are silently dropped
 		if database != nil {
-			database.WriteHTML(w)
 			w.Header().Set("Content-Type", "text/html")
+			database.WriteHTML(w)
 		} else {
-			fmt.Fprintf(w, "no database\n")
 			w.Header().Set("Content-Type", "text/plain")
+			fmt.Fprintf(w, "no database\n")
 		}
 	}
 }
