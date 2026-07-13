@@ -5,8 +5,8 @@ package packets_test
 // data), so an accidental future wire-format change fails here. Run with -update to
 // recapture.
 //
-// The golden bytes are the goserialize (== canonical C++ serialize) output. They match
-// the pre-goserialize modules/encoding output exactly EXCEPT for empty strings: the old
+// The golden bytes are the serialize.go (== canonical C++ serialize) output. They match
+// the pre-serialize.go modules/encoding output exactly EXCEPT for empty strings: the old
 // Go encoding skipped the byte-align after a zero-length string, which was a latent
 // incompatibility with the C++ serialize lib (its SerializeBytes always aligns). The
 // migration corrected this. Verified during the migration: 45 of 46 corpus messages
@@ -21,7 +21,7 @@ import (
 
 	"github.com/networknext/next/modules/common"
 
-	serialize "github.com/mas-bandwidth/goserialize"
+	serialize "github.com/mas-bandwidth/serialize.go"
 	"github.com/networknext/next/modules/packets"
 
 	"github.com/stretchr/testify/assert"

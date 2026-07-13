@@ -16,7 +16,7 @@ require (
 	github.com/huandu/go-clone v1.7.3
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.12.3
-	github.com/mas-bandwidth/goserialize v1.2.2
+	github.com/mas-bandwidth/serialize.go v1.4.1
 	github.com/modood/table v0.0.0-20220527013332-8d47e76dad33
 	github.com/oschwald/maxminddb-golang/v2 v2.4.1
 	github.com/peterbourgon/ff/v3 v3.4.0

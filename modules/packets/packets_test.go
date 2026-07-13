@@ -10,7 +10,7 @@ import (
 	"github.com/networknext/next/modules/core"
 	"github.com/networknext/next/modules/crypto"
 
-	serialize "github.com/mas-bandwidth/goserialize"
+	serialize "github.com/mas-bandwidth/serialize.go"
 	"github.com/networknext/next/modules/packets"
 
 	"github.com/stretchr/testify/assert"

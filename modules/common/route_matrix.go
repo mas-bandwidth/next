@@ -9,7 +9,7 @@ import (
 	"github.com/networknext/next/modules/core"
 	"github.com/networknext/next/modules/encoding"
 
-	serialize "github.com/mas-bandwidth/goserialize"
+	serialize "github.com/mas-bandwidth/serialize.go"
 )
 
 const (
@@ -58,7 +58,7 @@ func (m *RouteMatrix) GetCostMatrix() *CostMatrix {
 }
 
 func (m *RouteMatrix) GetMaxSize() int {
-	// IMPORTANT: This must be an upper bound. goserialize requires the write buffer to be
+	// IMPORTANT: This must be an upper bound. serialize.go requires the write buffer to be
 	// a multiple of 8 bytes, so round up (a larger buffer does not change the wire bytes).
 	numRelays := len(m.RelayIds)
 	size := 1024

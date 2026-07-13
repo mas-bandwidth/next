@@ -14,7 +14,7 @@ import (
 	"github.com/networknext/next/modules/crypto"
 	db "github.com/networknext/next/modules/database"
 
-	serialize "github.com/mas-bandwidth/goserialize"
+	serialize "github.com/mas-bandwidth/serialize.go"
 	"github.com/networknext/next/modules/envvar"
 	"github.com/networknext/next/modules/handlers"
 	"github.com/networknext/next/modules/packets"

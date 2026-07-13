@@ -111,7 +111,9 @@ that fact is stale — reverify.
   (`sdk/serialize/README.md`). `next_bitpacker.h`/`next_stream.h`/`next_serialize.h` are thin
   adapters over it; the only SDK-specific serialize helper is `serialize_address`. Any wire-format
   change here breaks every deployed relay/backend — the functional suite is the wire-compat check.
-- **The Go backend bitpacker is `github.com/mas-bandwidth/goserialize`** (the Go port of the
+- **The Go backend bitpacker is `github.com/mas-bandwidth/serialize.go`** (renamed from
+  `goserialize` upstream at v1.4; import path migrated 2026-07-13, wire format unchanged —
+  TestWireFormatGolden pinned the bytes across the upgrade) (the Go port of the
   canonical C++ serialize; bit-for-bit identical). Used directly via `serialize.Stream` /
   `serialize.NewWriteStream` / `NewReadStream` — NOT wrapped. `modules/encoding` is now just the
   fixed-layout byte helpers (`WriteUint64` at an offset, etc.) plus `encoding.SerializeAddress`,

@@ -3,7 +3,7 @@ package packets
 import (
 	"fmt"
 
-	serialize "github.com/mas-bandwidth/goserialize"
+	serialize "github.com/mas-bandwidth/serialize.go"
 )
 
 const (

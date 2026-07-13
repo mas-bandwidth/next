@@ -1,7 +1,7 @@
 package packets
 
 import (
-	serialize "github.com/mas-bandwidth/goserialize"
+	serialize "github.com/mas-bandwidth/serialize.go"
 )
 
 type Packet interface {

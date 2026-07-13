@@ -30,7 +30,7 @@ import (
 	"github.com/networknext/next/modules/crypto"
 	"github.com/networknext/next/modules/encoding"
 
-	serialize "github.com/mas-bandwidth/goserialize"
+	serialize "github.com/mas-bandwidth/serialize.go"
 	"github.com/networknext/next/modules/packets"
 )
 
