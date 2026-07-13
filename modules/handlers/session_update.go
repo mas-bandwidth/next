@@ -188,7 +188,11 @@ func SessionUpdate_Pre(state *SessionUpdateState) bool {
 			core.Debug("fallback to direct: session_id = %016x, datacenter = %016x", state.Request.SessionId, state.Request.DatacenterId)
 		}
 		if state.FallbackToDirectChannel != nil {
-			state.FallbackToDirectChannel <- state.Request.SessionId
+			select {
+			case state.FallbackToDirectChannel <- state.Request.SessionId:
+			default:
+				DroppedFallbackToDirect.MessageDropped()
+			}
 		}
 		return true
 	}
@@ -1162,8 +1166,12 @@ func sendPortalSessionUpdateMessage(state *SessionUpdateState) {
 	message.SendToPortal = !state.PortalNextSessionsOnly || (state.PortalNextSessionsOnly && state.Output.DurationOnNext > 0)
 
 	if state.PortalSessionUpdateMessageChannel != nil {
-		state.PortalSessionUpdateMessageChannel <- &message
-		state.SentPortalSessionUpdateMessage = true
+		select {
+		case state.PortalSessionUpdateMessageChannel <- &message:
+			state.SentPortalSessionUpdateMessage = true
+		default:
+			DroppedPortalSessionUpdateMessages.MessageDropped()
+		}
 	}
 }
 
@@ -1187,8 +1195,12 @@ func sendPortalClientRelayUpdateMessage(state *SessionUpdateState) {
 	}
 
 	if state.PortalClientRelayUpdateMessageChannel != nil {
-		state.PortalClientRelayUpdateMessageChannel <- &message
-		state.SentPortalClientRelayUpdateMessage = true
+		select {
+		case state.PortalClientRelayUpdateMessageChannel <- &message:
+			state.SentPortalClientRelayUpdateMessage = true
+		default:
+			DroppedPortalClientRelayUpdateMessages.MessageDropped()
+		}
 	}
 }
 
@@ -1212,8 +1224,12 @@ func sendPortalServerRelayUpdateMessage(state *SessionUpdateState) {
 	}
 
 	if state.PortalServerRelayUpdateMessageChannel != nil {
-		state.PortalServerRelayUpdateMessageChannel <- &message
-		state.SentPortalServerRelayUpdateMessage = true
+		select {
+		case state.PortalServerRelayUpdateMessageChannel <- &message:
+			state.SentPortalServerRelayUpdateMessage = true
+		default:
+			DroppedPortalServerRelayUpdateMessages.MessageDropped()
+		}
 	}
 }
 
@@ -1245,8 +1261,12 @@ func sendAnalyticsClientRelayPingMessages(state *SessionUpdateState) {
 		message.ClientRelayPacketLoss = state.Request.ClientRelayPacketLoss[i]
 
 		if state.AnalyticsClientRelayPingMessageChannel != nil {
-			state.AnalyticsClientRelayPingMessageChannel <- &message
-			state.SentAnalyticsClientRelayPingMessage = true
+			select {
+			case state.AnalyticsClientRelayPingMessageChannel <- &message:
+				state.SentAnalyticsClientRelayPingMessage = true
+			default:
+				DroppedAnalyticsClientRelayPingMessages.MessageDropped()
+			}
 		}
 
 	}
@@ -1272,8 +1292,12 @@ func sendAnalyticsServerRelayPingMessages(state *SessionUpdateState) {
 		message.ServerRelayPacketLoss = state.Request.ServerRelayPacketLoss[i]
 
 		if state.AnalyticsServerRelayPingMessageChannel != nil {
-			state.AnalyticsServerRelayPingMessageChannel <- &message
-			state.SentAnalyticsServerRelayPingMessage = true
+			select {
+			case state.AnalyticsServerRelayPingMessageChannel <- &message:
+				state.SentAnalyticsServerRelayPingMessage = true
+			default:
+				DroppedAnalyticsServerRelayPingMessages.MessageDropped()
+			}
 		}
 
 	}
@@ -1342,8 +1366,12 @@ func sendAnalyticsSessionUpdateMessage(state *SessionUpdateState) {
 	// send message
 
 	if state.AnalyticsSessionUpdateMessageChannel != nil {
-		state.AnalyticsSessionUpdateMessageChannel <- &message
-		state.SentAnalyticsSessionUpdateMessage = true
+		select {
+		case state.AnalyticsSessionUpdateMessageChannel <- &message:
+			state.SentAnalyticsSessionUpdateMessage = true
+		default:
+			DroppedAnalyticsSessionUpdateMessages.MessageDropped()
+		}
 	}
 }
 
@@ -1414,8 +1442,12 @@ func sendAnalyticsSessionSummaryMessage(state *SessionUpdateState) {
 	// send it
 
 	if state.AnalyticsSessionSummaryMessageChannel != nil {
-		state.AnalyticsSessionSummaryMessageChannel <- &message
-		state.SentAnalyticsSessionSummaryMessage = true
+		select {
+		case state.AnalyticsSessionSummaryMessageChannel <- &message:
+			state.SentAnalyticsSessionSummaryMessage = true
+		default:
+			DroppedAnalyticsSessionSummaryMessages.MessageDropped()
+		}
 	}
 }
 

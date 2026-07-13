@@ -343,9 +343,12 @@ func SDK_ProcessServerInitRequestPacket(handler *SDK_Handler, conn *net.UDPConn,
 		message.ServerAddress = from.String()
 		message.ServerId = int64(common.HashString(from.String()))
 
-		handler.AnalyticsServerInitMessageChannel <- &message
-
-		handler.Events[SDK_HandlerEvent_SentAnalyticsServerInitMessage] = true
+		select {
+		case handler.AnalyticsServerInitMessageChannel <- &message:
+			handler.Events[SDK_HandlerEvent_SentAnalyticsServerInitMessage] = true
+		default:
+			DroppedAnalyticsServerInitMessages.MessageDropped()
+		}
 	}
 }
 
@@ -387,9 +390,12 @@ func SDK_ProcessServerUpdateRequestPacket(handler *SDK_Handler, conn *net.UDPCon
 			message.DeltaTimeMax = requestPacket.DeltaTimeMax
 			message.DeltaTimeAvg = requestPacket.DeltaTimeAvg
 
-			handler.AnalyticsServerUpdateMessageChannel <- &message
-
-			handler.Events[SDK_HandlerEvent_SentAnalyticsServerUpdateMessage] = true
+			select {
+			case handler.AnalyticsServerUpdateMessageChannel <- &message:
+				handler.Events[SDK_HandlerEvent_SentAnalyticsServerUpdateMessage] = true
+			default:
+				DroppedAnalyticsServerUpdateMessages.MessageDropped()
+			}
 		}
 	}()
 
@@ -409,9 +415,12 @@ func SDK_ProcessServerUpdateRequestPacket(handler *SDK_Handler, conn *net.UDPCon
 			message.NumSessions = requestPacket.NumSessions
 			message.Uptime = requestPacket.Uptime
 
-			handler.PortalServerUpdateMessageChannel <- &message
-
-			handler.Events[SDK_HandlerEvent_SentPortalServerUpdateMessage] = true
+			select {
+			case handler.PortalServerUpdateMessageChannel <- &message:
+				handler.Events[SDK_HandlerEvent_SentPortalServerUpdateMessage] = true
+			default:
+				DroppedPortalServerUpdateMessages.MessageDropped()
+			}
 		}
 	}()
 
