@@ -300,6 +300,12 @@ resource "google_redis_cluster" "portal" {
   }
   region = "us-central1"
   replica_count = 1
+  # IMPORTANT: portal keys are written with NO TTL by design -- memory is bounded
+  # entirely by allkeys-lru eviction. without this the cluster fills until writes
+  # OOM under load test. (activedefrag is not in the memorystore cluster modifiable
+  # config list, so only the eviction policy is set here.) NOTE: ignore_changes=all
+  # below means this only takes effect on cluster creation, not on an existing one.
+  redis_configs = { "maxmemory-policy" = "allkeys-lru" }
   # NOTE: the intent was redis 7.2 (was: major_version = "REDIS_7_2"), but
   # google_redis_cluster has no version attribute in ANY provider release
   # (checked hashicorp/google + google-beta schemas through 6.50 and 7.39),
@@ -337,6 +343,7 @@ resource "google_redis_instance" "redis_relay_backend" {
   memory_size_gb          = 1
   region                  = "us-central1"
   redis_version           = "REDIS_7_2"
+  redis_configs           = { "activedefrag" = "yes", "maxmemory-policy" = "allkeys-lru" }
   authorized_network      = google_compute_network.staging.id
 }
 

@@ -339,6 +339,7 @@ resource "google_redis_instance" "redis_relay_backend" {
   memory_size_gb     = 1
   region             = local.google_region
   redis_version      = "REDIS_7_2"
+  redis_configs      = { "activedefrag" = "yes", "maxmemory-policy" = "allkeys-lru" }
   authorized_network = google_compute_network.development.id
 }
 
@@ -348,6 +349,7 @@ resource "google_redis_instance" "redis_server_backend" {
   memory_size_gb     = 1
   region             = local.google_region
   redis_version      = "REDIS_7_2"
+  redis_configs      = { "activedefrag" = "yes", "maxmemory-policy" = "allkeys-lru" }
   authorized_network = google_compute_network.development.id
 }
 
