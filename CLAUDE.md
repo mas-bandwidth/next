@@ -70,6 +70,16 @@ Rules learned the hard way:
   can print after the "terminal" one (see the sdk server_ready tests).
 - Scenario-timing sleeps (session durations, mid-session kills, ping-stats warmup) are
   intentional — do not convert those to polls.
+- SDK tests that spawn relays MUST start relays+backend first and wait for
+  "Relay initialized" x3 before starting client/server (fixed 2026-07-12, test-286
+  flake). If the server's relay request cycle (5s) expires before relays register,
+  the SDK does not retry for 300-600s — that backoff is DELIBERATE anti-stampede
+  design (comment on the constants in sdk/include/next_constants.h), so a server that
+  misses the window never pings, is never whitelisted, and every next route to it
+  dies. Never "fix" the backoff; fix the test ordering.
+- The relay fake-packet-loss clock starts at RELAY process start — if a test's relay
+  start moves relative to the client, recalibrate fake_packet_loss_start_time (see
+  test_next_packet_loss).
 
 ## State as of 2026-07-11
 
