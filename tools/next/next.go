@@ -17,8 +17,6 @@ import (
 	"fmt"
 	"golang.org/x/crypto/nacl/box"
 	"io"
-	"math"
-	math_rand "math/rand"
 	"net/http"
 	"os"
 	"os/exec"
@@ -265,10 +263,7 @@ func main() {
 		ShortUsage: "next ssh [regex...]",
 		ShortHelp:  "SSH into the specified relay(s)",
 		Exec: func(_ context.Context, args []string) error {
-			regexes := []string{".*"}
-			if len(args) > 0 {
-				regexes = args
-			}
+			regexes := relayRegexes(args)
 
 			ssh(env, regexes)
 
@@ -297,10 +292,7 @@ func main() {
 		ShortUsage: "next setup [regex...]",
 		ShortHelp:  "Setup the specified relay(s)",
 		Exec: func(_ context.Context, args []string) error {
-			regexes := []string{".*"}
-			if len(args) > 0 {
-				regexes = args
-			}
+			regexes := relayRegexes(args)
 
 			setupRelays(env, regexes)
 
@@ -313,10 +305,7 @@ func main() {
 		ShortUsage: "next start [regex...]",
 		ShortHelp:  "Start the specified relay(s)",
 		Exec: func(_ context.Context, args []string) error {
-			regexes := []string{".*"}
-			if len(args) > 0 {
-				regexes = args
-			}
+			regexes := relayRegexes(args)
 
 			startRelays(env, regexes)
 
@@ -329,10 +318,7 @@ func main() {
 		ShortUsage: "next stop [regex...]",
 		ShortHelp:  "Stop the specified relay(s)",
 		Exec: func(_ context.Context, args []string) error {
-			regexes := []string{".*"}
-			if len(args) > 0 {
-				regexes = args
-			}
+			regexes := relayRegexes(args)
 
 			stopRelays(env, regexes)
 
@@ -345,10 +331,7 @@ func main() {
 		ShortUsage: "next restart [regex...]",
 		ShortHelp:  "Stop and then start the specified relay(s)",
 		Exec: func(_ context.Context, args []string) error {
-			regexes := []string{".*"}
-			if len(args) > 0 {
-				regexes = args
-			}
+			regexes := relayRegexes(args)
 
 			stopRelays(env, regexes)
 			startRelays(env, regexes)
@@ -362,10 +345,7 @@ func main() {
 		ShortUsage: "next reboot [regex...]",
 		ShortHelp:  "Reboot the specified relay(s)",
 		Exec: func(_ context.Context, args []string) error {
-			regexes := []string{".*"}
-			if len(args) > 0 {
-				regexes = args
-			}
+			regexes := relayRegexes(args)
 
 			rebootRelays(env, regexes)
 
@@ -379,7 +359,7 @@ func main() {
 		ShortHelp:  "Load the specific relay binary version onto one or more relays",
 		Exec: func(_ context.Context, args []string) error {
 			if len(args) < 1 {
-				handleRunTimeError(fmt.Sprintf("Please provide a version"), 0)
+				handleRunTimeError("Please provide a version", 0)
 			}
 			version := args[0]
 			regexes := []string{".*"}
@@ -461,7 +441,7 @@ func main() {
 		ShortHelp:  "Print list of routes from one relay to another",
 		Exec: func(ctx context.Context, args []string) error {
 			if len(args) != 2 {
-				handleRunTimeError(fmt.Sprintf("Please provide source and destination relay names"), 0)
+				handleRunTimeError("Please provide source and destination relay names", 0)
 			}
 			src := args[0]
 			dest := args[1]
@@ -592,32 +572,29 @@ func generateBuyerKeypair() (buyerPublicKey []byte, buyerPrivateKey []byte) {
 	return
 }
 
-func writeGlobalSecret(name string, value string) {
+// secretPath maps a secret name to ~/secrets/<name>.txt, converting underscores to
+// dashes (e.g. "relay_backend_public_key" -> ~/secrets/relay-backend-public-key.txt).
+// It also prints the relative path, since every caller did.
+func secretPath(name string) string {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		fmt.Printf("\nerror: could not get user home dir: %v\n\n", err)
 		os.Exit(1)
 	}
 	adjustedName := strings.Replace(name, "_", "-", -1)
-	filename := fmt.Sprintf("%s/secrets/%s.txt", homeDir, adjustedName)
 	fmt.Printf("   ~/secrets/%s.txt\n", adjustedName)
-	err = os.WriteFile(filename, []byte(value), 0666)
-	if err != nil {
+	return fmt.Sprintf("%s/secrets/%s.txt", homeDir, adjustedName)
+}
+
+func writeGlobalSecret(name string, value string) {
+	if err := os.WriteFile(secretPath(name), []byte(value), 0666); err != nil {
 		fmt.Printf("\nerror: failed to write global secret: %v\n\n", err)
 		os.Exit(1)
 	}
 }
 
 func readGlobalSecret(name string) string {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		fmt.Printf("\nerror: could not get user home dir: %v\n\n", err)
-		os.Exit(1)
-	}
-	adjustedName := strings.Replace(name, "_", "-", -1)
-	filename := fmt.Sprintf("%s/secrets/%s.txt", homeDir, adjustedName)
-	fmt.Printf("   ~/secrets/%s.txt\n", adjustedName)
-	data, err := os.ReadFile(filename)
+	data, err := os.ReadFile(secretPath(name))
 	if err != nil {
 		fmt.Printf("\nerror: failed to read global secret: %v\n\n", err)
 		os.Exit(1)
@@ -626,33 +603,16 @@ func readGlobalSecret(name string) string {
 }
 
 func writeEnvSecret(env string, keypairs map[string]string, name string) {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		fmt.Printf("\nerror: could not get user home dir: %v\n\n", err)
-		os.Exit(1)
-	}
-	adjustedName := strings.Replace(name, "_", "-", -1)
-	filename := fmt.Sprintf("%s/secrets/%s-%s.txt", homeDir, env, adjustedName)
-	fmt.Printf("   ~/secrets/%s-%s.txt\n", env, adjustedName)
-	err = os.WriteFile(filename, []byte(keypairs[name]), 0666)
-	if err != nil {
+	if err := os.WriteFile(secretPath(env+"_"+name), []byte(keypairs[name]), 0666); err != nil {
 		fmt.Printf("\nerror: failed to write env secret: %v\n\n", err)
 		os.Exit(1)
 	}
 }
 
 func readEnvSecret(env string, keypairs map[string]string, name string) {
-	homeDir, err := os.UserHomeDir()
+	data, err := os.ReadFile(secretPath(env + "_" + name))
 	if err != nil {
-		fmt.Printf("\nerror: could not get user home dir: %v\n\n", err)
-		os.Exit(1)
-	}
-	adjustedName := strings.Replace(name, "_", "-", -1)
-	filename := fmt.Sprintf("%s/secrets/%s-%s.txt", homeDir, env, adjustedName)
-	fmt.Printf("   ~/secrets/%s-%s.txt\n", env, adjustedName)
-	data, err := os.ReadFile(filename)
-	if err != nil {
-		fmt.Printf("\nerror: failed to write env secret: %v\n\n", err)
+		fmt.Printf("\nerror: failed to read env secret: %v\n\n", err)
 		os.Exit(1)
 	}
 	keypairs[name] = strings.TrimSpace(string(data))
@@ -740,8 +700,6 @@ func selectEnvironment(args []string) error {
 }
 
 func keygen(env Environment, regexes []string) {
-
-	math_rand.Seed(time.Now().UnixNano())
 
 	if secretsAlreadyExist() {
 		reader := bufio.NewReader(os.Stdin)
@@ -1023,70 +981,30 @@ func config(env Environment, regexes []string) {
 
 		devTerraformVars := string(dev_terraform_data)
 
-		// global_test_relay_public_key
-		{
-			r := regexp.MustCompile(`RELAY_PUBLIC_KEY\s*=\s*"(.*)"`)
-			matches := r.FindStringSubmatch(localEnv)
-			if len(matches) != 2 {
-				fmt.Printf("\nerror: could not find RELAY_PUBLIC_KEY in envs/local.env\n\n")
-				os.Exit(1)
-			}
-			writeGlobalSecret("global_test_relay_public_key", matches[1])
+		// each global secret is scraped out of a committed source file by regex. the key
+		// label is the token as it appears in that file, and doubles as the error message.
+		backGen := []struct {
+			secretName string
+			keyLabel   string
+			source     string
+			sourceName string
+		}{
+			{"global_test_relay_public_key", "RELAY_PUBLIC_KEY", localEnv, "envs/local.env"},
+			{"global_test_relay_private_key", "RELAY_PRIVATE_KEY", localEnv, "envs/local.env"},
+			{"global_test_buyer_public_key", "test_buyer_public_key", devTerraformVars, "terraform/dev/backend/main.tf"},
+			{"global_test_buyer_private_key", "test_buyer_private_key", devTerraformVars, "terraform/dev/backend/main.tf"},
+			{"global_raspberry_buyer_public_key", "raspberry_buyer_public_key", devTerraformVars, "terraform/dev/backend/main.tf"},
+			{"global_raspberry_buyer_private_key", "raspberry_buyer_private_key", devTerraformVars, "terraform/dev/backend/main.tf"},
 		}
 
-		// global_test_relay_private_key
-		{
-			r := regexp.MustCompile(`RELAY_PRIVATE_KEY\s*=\s*"(.*)"`)
-			matches := r.FindStringSubmatch(localEnv)
+		for _, g := range backGen {
+			pattern := regexp.MustCompile(g.keyLabel + `\s*=\s*"(.*)"`)
+			matches := pattern.FindStringSubmatch(g.source)
 			if len(matches) != 2 {
-				fmt.Printf("\nerror: could not find RELAY_PRIVATE_KEY in envs/local.env\n\n")
+				fmt.Printf("\nerror: could not find %s in %s\n\n", g.keyLabel, g.sourceName)
 				os.Exit(1)
 			}
-			writeGlobalSecret("global_test_relay_private_key", matches[1])
-		}
-
-		// global_test_buyer_public_key
-		{
-			r := regexp.MustCompile(`test_buyer_public_key\s*=\s*"(.*)"`)
-			matches := r.FindStringSubmatch(devTerraformVars)
-			if len(matches) != 2 {
-				fmt.Printf("\nerror: could not find test_buyer_public_key in terraform/dev/backend/main.tf\n\n")
-				os.Exit(1)
-			}
-			writeGlobalSecret("global_test_buyer_public_key", matches[1])
-		}
-
-		// global_test_buyer_private_key
-		{
-			r := regexp.MustCompile(`test_buyer_private_key\s*=\s*"(.*)"`)
-			matches := r.FindStringSubmatch(devTerraformVars)
-			if len(matches) != 2 {
-				fmt.Printf("\nerror: could not find test_buyer_private_key in terraform/dev/backend/main.tf\n\n")
-				os.Exit(1)
-			}
-			writeGlobalSecret("global_test_buyer_private_key", matches[1])
-		}
-
-		// global_raspberry_buyer_public_key
-		{
-			r := regexp.MustCompile(`raspberry_buyer_public_key\s*=\s*"(.*)"`)
-			matches := r.FindStringSubmatch(devTerraformVars)
-			if len(matches) != 2 {
-				fmt.Printf("\nerror: could not find raspberry_buyer_public_key in terraform/dev/backend/main.tf\n\n")
-				os.Exit(1)
-			}
-			writeGlobalSecret("global_raspberry_buyer_public_key", matches[1])
-		}
-
-		// global_raspberry_buyer_private_key
-		{
-			r := regexp.MustCompile(`raspberry_buyer_private_key\s*=\s*"(.*)"`)
-			matches := r.FindStringSubmatch(devTerraformVars)
-			if len(matches) != 2 {
-				fmt.Printf("\nerror: could not find raspberry_buyer_private_key in terraform/dev/backend/main.tf\n\n")
-				os.Exit(1)
-			}
-			writeGlobalSecret("global_raspberry_buyer_private_key", matches[1])
+			writeGlobalSecret(g.secretName, matches[1])
 		}
 
 		fmt.Printf("\n")
@@ -1765,7 +1683,10 @@ func secrets() {
 
 // -------------------------------------------------------------------------------------------------------
 
-func GetJSON(apiKey string, url string, object any) {
+// apiGet issues an authenticated GET, retrying transient failures for up to 30 seconds,
+// and returns the response with its body still open. it exits the process on total
+// failure or a 401. callers own the status check and body read.
+func apiGet(apiKey string, url string) *http.Response {
 
 	var err error
 	var response *http.Response
@@ -1789,14 +1710,7 @@ func GetJSON(apiKey string, url string, object any) {
 	}
 
 	if response == nil {
-		core.Error("no response for %s", url)
-		fmt.Printf("\n")
-		os.Exit(1)
-	}
-
-	if response.Body == nil {
-		core.Error("no response body for %s", url)
-		fmt.Printf("\n")
+		core.Error("no response from %s", url)
 		os.Exit(1)
 	}
 
@@ -1805,111 +1719,42 @@ func GetJSON(apiKey string, url string, object any) {
 		os.Exit(1)
 	}
 
-	body, error := io.ReadAll(response.Body)
-	if error != nil {
+	return response
+}
+
+func readResponseBody(response *http.Response, url string) []byte {
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
 		panic(fmt.Sprintf("could not read response body for %s: %v", url, err))
 	}
-
 	response.Body.Close()
+	return body
+}
 
-	err = json.Unmarshal([]byte(body), &object)
-	if err != nil {
+// GetJSON does not fail on non-200: several admin endpoints return their error in the
+// JSON body, so the caller inspects the decoded object's Error field.
+func GetJSON(apiKey string, url string, object any) {
+	response := apiGet(apiKey, url)
+	body := readResponseBody(response, url)
+	if err := json.Unmarshal(body, &object); err != nil {
 		panic(fmt.Sprintf("could not parse json response for %s: %v", url, err))
 	}
 }
 
 func GetText(apiKey string, url string) string {
-
-	var err error
-	var response *http.Response
-	for range 30 {
-		var req *http.Request
-		req, err = http.NewRequest("GET", url, bytes.NewBuffer(nil))
-		if err != nil {
-			break
-		}
-		req.Header.Set("Authorization", "Bearer "+apiKey)
-		client := &http.Client{}
-		response, err = client.Do(req)
-		if err == nil {
-			break
-		}
-		time.Sleep(time.Second)
-	}
-
-	if err != nil {
-		panic(fmt.Sprintf("failed to read %s: %v", url, err))
-	}
-
-	if response == nil {
-		core.Error("no response from %s", url)
-		os.Exit(1)
-	}
-
-	if response.StatusCode == 401 {
-		fmt.Printf("error: not authorized\n\n")
-		os.Exit(1)
-	}
-
+	response := apiGet(apiKey, url)
 	if response.StatusCode != 200 {
 		panic(fmt.Sprintf("got %d response for %s", response.StatusCode, url))
 	}
-
-	body, error := io.ReadAll(response.Body)
-	if error != nil {
-		panic(fmt.Sprintf("could not read response body for %s: %v", url, err))
-	}
-
-	response.Body.Close()
-
-	return string(body)
+	return string(readResponseBody(response, url))
 }
 
 func GetBinary(apiKey string, url string) []byte {
-
-	var err error
-	var response *http.Response
-	for range 30 {
-		var req *http.Request
-		req, err = http.NewRequest("GET", url, bytes.NewBuffer(nil))
-		if err != nil {
-			break
-		}
-		req.Header.Set("Authorization", "Bearer "+apiKey)
-		client := &http.Client{}
-		response, err = client.Do(req)
-		if err == nil {
-			break
-		}
-		time.Sleep(time.Second)
-	}
-
-	if err != nil {
-		panic(fmt.Sprintf("failed to read %s: %v", url, err))
-	}
-
-	if response == nil {
-		core.Error("no response from %s", url)
-		os.Exit(1)
-	}
-
-	if response.StatusCode == 401 {
-		fmt.Printf("error: not authorized\n\n")
-		os.Exit(1)
-	}
-
+	response := apiGet(apiKey, url)
 	if response.StatusCode != 200 {
 		panic(fmt.Sprintf("got %d response for %s", response.StatusCode, url))
 	}
-
-	body, error := io.ReadAll(response.Body)
-	if error != nil {
-		panic(fmt.Sprintf("could not read response body for %s: %v", url, err))
-	}
-
-	response.Body.Close()
-
-	return body
+	return readResponseBody(response, url)
 }
 
 func PutJSON(apiKey string, url string, requestData any, responseData any) error {
@@ -2103,10 +1948,10 @@ func niceUptime(uptimeString string) string {
 		return fmt.Sprintf("%dd", value/86400)
 	}
 	if value > 3600 {
-		return fmt.Sprintf("%dh", int(math.Floor(float64(value/3600))))
+		return fmt.Sprintf("%dh", value/3600)
 	}
 	if value > 60 {
-		return fmt.Sprintf("%dm", int(math.Floor(float64(value/60))))
+		return fmt.Sprintf("%dm", value/60)
 	}
 	return fmt.Sprintf("%ds", value)
 }
@@ -2478,14 +2323,18 @@ project "server"
 
 	LoadRelayScript = `sudo journalctl --vacuum-size 10M && rm -rf relay && wget https://storage.googleapis.com/%s/%s?ts=%d -O relay --no-cache && chmod +x relay && sudo mv relay /app/relay && exit`
 
-	UpgradeRelayScript = `sudo journalctl --vacuum-size 10M && sudo systemctl stop relay; sudo DEBIAN_FRONTEND=noninteractive apt update -y && sudo DEBIAN_FRONTEND=noninteractive apt upgrade -y && sudo DEBIAN_FRONTEND=noninteractive apt dist-upgrade -y && sudo DEBIAN_FRONTEND=noninteractive apt autoremove -y && sudo reboot`
-
 	RebootRelayScript = `sudo reboot`
-
-	ConfigRelayScript = `sudo vi /app/relay.env && exit`
 )
 
 var SetupRelayScript string
+
+// relayRegexes defaults to matching every relay when no filter is given.
+func relayRegexes(args []string) []string {
+	if len(args) > 0 {
+		return args
+	}
+	return []string{".*"}
+}
 
 func getRelayInfo(env Environment, regex string) []admin.RelayData {
 
@@ -2584,8 +2433,11 @@ func setupRelays(env Environment, regexes []string) {
 	fmt.Printf("\n")
 }
 
-func startRelays(env Environment, regexes []string) {
-	quiet = true
+// forEachRelayParallel runs action against every relay matching each regex, in parallel,
+// skipping relays with no SSH address. IMPORTANT: wait.Done() is deferred -- the previous
+// hand-rolled copies returned early on a missing SSH address without calling Done(), which
+// deadlocked wait.Wait() forever if any matched relay lacked an SSH address.
+func forEachRelayParallel(env Environment, regexes []string, action func(relay admin.RelayData, con SSHConn)) {
 	for _, regex := range regexes {
 		relays := getRelayInfo(env, regex)
 		if len(relays) == 0 {
@@ -2595,102 +2447,50 @@ func startRelays(env Environment, regexes []string) {
 		var wait sync.WaitGroup
 		for i := range relays {
 			wait.Add(1)
-			go func(index int) {
-				if relays[index].SSH_IP == "0.0.0.0" {
-					fmt.Printf("relay %s does not have an SSH address :(\n", relays[index].RelayName)
+			go func(relay admin.RelayData) {
+				defer wait.Done()
+				if relay.SSH_IP == "0.0.0.0" {
+					fmt.Printf("relay %s does not have an SSH address :(\n", relay.RelayName)
 					return
 				}
-				fmt.Printf("starting relay %s\n", relays[i].RelayName)
-				con := NewSSHConn(relays[i].SSH_User, relays[i].SSH_IP, fmt.Sprintf("%d", relays[i].SSH_Port), env.SSHKeyFile)
-				con.ConnectAndIssueCmd(StartRelayScript)
-				wait.Done()
-			}(i)
+				con := NewSSHConn(relay.SSH_User, relay.SSH_IP, fmt.Sprintf("%d", relay.SSH_Port), env.SSHKeyFile)
+				action(relay, con)
+			}(relays[i])
 		}
 		wait.Wait()
 		fmt.Printf("\n")
 	}
+}
+
+func startRelays(env Environment, regexes []string) {
+	quiet = true
+	forEachRelayParallel(env, regexes, func(relay admin.RelayData, con SSHConn) {
+		fmt.Printf("starting relay %s\n", relay.RelayName)
+		con.ConnectAndIssueCmd(StartRelayScript)
+	})
 }
 
 func stopRelays(env Environment, regexes []string) {
 	quiet = true
-	script := StopRelayScript
-	for _, regex := range regexes {
-		relays := getRelayInfo(env, regex)
-		if len(relays) == 0 {
-			fmt.Printf("no relays matched the regex '%s'\n", regex)
-			continue
-		}
-		var wait sync.WaitGroup
-		for i := range relays {
-			wait.Add(1)
-			go func(index int) {
-				if relays[index].SSH_IP == "0.0.0.0" {
-					fmt.Printf("relay %s does not have an SSH address :(\n", relays[index].RelayName)
-					return
-				}
-				fmt.Printf("stopping relay %s\n", relays[index].RelayName)
-				con := NewSSHConn(relays[index].SSH_User, relays[index].SSH_IP, fmt.Sprintf("%d", relays[index].SSH_Port), env.SSHKeyFile)
-				con.ConnectAndIssueCmd(script)
-				wait.Done()
-			}(i)
-		}
-		wait.Wait()
-		fmt.Printf("\n")
-	}
+	forEachRelayParallel(env, regexes, func(relay admin.RelayData, con SSHConn) {
+		fmt.Printf("stopping relay %s\n", relay.RelayName)
+		con.ConnectAndIssueCmd(StopRelayScript)
+	})
 }
 
 func rebootRelays(env Environment, regexes []string) {
-	script := RebootRelayScript
-	for _, regex := range regexes {
-		relays := getRelayInfo(env, regex)
-		if len(relays) == 0 {
-			fmt.Printf("no relays matched the regex '%s'\n", regex)
-			continue
-		}
-		var wait sync.WaitGroup
-		for i := range relays {
-			wait.Add(1)
-			go func(index int) {
-				if relays[index].SSH_IP == "0.0.0.0" {
-					fmt.Printf("relay %s does not have an SSH address :(\n", relays[index].RelayName)
-					return
-				}
-				fmt.Printf("rebooting relay %s\n", relays[i].RelayName)
-				con := NewSSHConn(relays[i].SSH_User, relays[i].SSH_IP, fmt.Sprintf("%d", relays[i].SSH_Port), env.SSHKeyFile)
-				con.ConnectAndIssueCmd(script)
-				wait.Done()
-			}(i)
-		}
-		wait.Wait()
-		fmt.Printf("\n")
-	}
+	forEachRelayParallel(env, regexes, func(relay admin.RelayData, con SSHConn) {
+		fmt.Printf("rebooting relay %s\n", relay.RelayName)
+		con.ConnectAndIssueCmd(RebootRelayScript)
+	})
 }
 
 func loadRelays(env Environment, regexes []string, version string) {
 	quiet = true
-	for _, regex := range regexes {
-		relays := getRelayInfo(env, regex)
-		if len(relays) == 0 {
-			fmt.Printf("no relays matched the regex '%s'\n", regex)
-			continue
-		}
-		var wait sync.WaitGroup
-		for i := range relays {
-			wait.Add(1)
-			go func(index int) {
-				if relays[index].SSH_IP == "0.0.0.0" {
-					fmt.Printf("relay %s does not have an SSH address :(\n", relays[index].RelayName)
-					return
-				}
-				fmt.Printf("loading %s onto %s\n", version, relays[i].RelayName)
-				con := NewSSHConn(relays[i].SSH_User, relays[i].SSH_IP, fmt.Sprintf("%d", relays[i].SSH_Port), env.SSHKeyFile)
-				con.ConnectAndIssueCmd(fmt.Sprintf(LoadRelayScript, env.RelayArtifactsBucketName, version, time.Now().Unix()))
-				wait.Done()
-			}(i)
-		}
-		wait.Wait()
-		fmt.Printf("\n")
-	}
+	forEachRelayParallel(env, regexes, func(relay admin.RelayData, con SSHConn) {
+		fmt.Printf("loading %s onto %s\n", version, relay.RelayName)
+		con.ConnectAndIssueCmd(fmt.Sprintf(LoadRelayScript, env.RelayArtifactsBucketName, version, time.Now().Unix()))
+	})
 }
 
 func relayLog(env Environment, regexes []string) {
@@ -2872,7 +2672,7 @@ func getCostMatrix(env Environment, fileName string) {
 			costString := ""
 			index := core.TriMatrixIndex(i, j)
 			cost := costMatrix.Costs[index]
-			if cost >= 0 && cost < 255 {
+			if cost < 255 {
 				costString = fmt.Sprintf("%d", cost)
 			} else {
 				nope = true
@@ -3093,11 +2893,7 @@ func runCommand(command string, args []string) bool {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
-	err := cmd.Run()
-	if err != nil {
-		return false
-	}
-	return true
+	return cmd.Run() == nil
 }
 
 func runCommandEnv(command string, args []string, env map[string]string) bool {
@@ -3129,13 +2925,7 @@ func runCommandEnv(command string, args []string, env map[string]string) bool {
 		os.Exit(1)
 	}()
 
-	err := cmd.Run()
-
-	if err != nil {
-		return false
-	}
-
-	return true
+	return cmd.Run() == nil
 }
 
 // stdout is the string return value
