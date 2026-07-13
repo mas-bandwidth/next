@@ -173,7 +173,7 @@ func GenerateRandomSessionData() *SessionData {
 
 type SliceData struct {
 	Timestamp         uint64  `json:"timestamp,string"`
-	SliceNumber       uint32  `json:"session_id"`
+	SliceNumber       uint32  `json:"slice_number"`
 	DirectRTT         uint32  `json:"direct_rtt"`
 	NextRTT           uint32  `json:"next_rtt"`
 	PredictedRTT      uint32  `json:"predicted_rtt"`
