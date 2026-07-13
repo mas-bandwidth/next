@@ -339,9 +339,12 @@ was only skimmed.
   2026-07-12 (`ac6fafa6b` formatted the two long-unformatted files admin.go and crypto.go —
   keep it clean). The SDK C++ style is locked in by `sdk/.clang-format` (pinned
   clang-format 22.1.8 via pip; `make format` applies it, `make format-check-sdk` is a CI
-  gate in the Build SDK block). Vendored `sdk/serialize` and `sdk/sodium` are exempt via
-  DisableFormat configs; the hand-aligned constant tables and the next.h export ladder
-  are fenced with `// clang-format off`.
+  gate in the Build SDK block, and the `.githooks/pre-commit` hook auto-formats staged
+  SDK files on every commit — `./commit` wires `core.hooksPath` itself, so the standard
+  is applied before anything is checked in, PRs included via the CI gate). Vendored
+  `sdk/serialize` and `sdk/sodium` are exempt via DisableFormat configs; the
+  hand-aligned constant tables and the next.h export ladder are fenced with
+  `// clang-format off`.
 - **Test culture.** 86 unit tests in core alone, ~155 parallel functional-test CI jobs, soak
   tests, load-test harnesses, seeded/reproducible functional tests with watchdogs. The
   functional-test hardening (see above) shows real maintenance discipline.

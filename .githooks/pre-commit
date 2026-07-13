@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# Pre-commit hook: apply the SDK coding standard (sdk/.clang-format) to every staged
+# SDK C++ file, so unformatted code can never be checked in. Wired automatically the
+# first time you run ./commit (it sets core.hooksPath to .githooks); wire it manually
+# with: git config core.hooksPath .githooks
+#
+# The formatter version is pinned to match the CI Format Check job byte for byte:
+#     pip3 install clang-format==22.1.8
+#
+# Vendored sdk/serialize and sdk/sodium are excluded (their DisableFormat configs make
+# this belt and braces). NOTE: formatted files are re-staged whole -- if you partially
+# staged hunks of an SDK file, the rest of the file is staged too.
+
+files=$(git diff --cached --name-only --diff-filter=ACMR -- 'sdk/*.h' 'sdk/*.cpp' 'sdk/**/*.h' 'sdk/**/*.cpp' | grep -Ev '^sdk/(serialize|sodium)/' | sort -u)
+
+if [ -z "$files" ]; then
+    exit 0
+fi
+
+if ! command -v clang-format > /dev/null 2>&1; then
+    echo "pre-commit: clang-format not found, but staged SDK files need formatting."
+    echo "pre-commit: install the pinned version:  pip3 install clang-format==22.1.8"
+    exit 1
+fi
+
+version=$(clang-format --version | grep -oE '[0-9]+' | head -1)
+if [ "$version" != "22" ]; then
+    echo "pre-commit: warning: clang-format major version $version != 22 (the CI pin)."
+    echo "pre-commit: formatting anyway -- the CI Format Check is the byte-exact gate."
+fi
+
+echo "$files" | while read -r f; do
+    [ -f "$f" ] && clang-format -i "$f"
+done
+
+echo "$files" | while read -r f; do
+    [ -f "$f" ] && git add "$f"
+done
+
+exit 0

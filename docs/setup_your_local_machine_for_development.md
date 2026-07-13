@@ -179,6 +179,15 @@ verifying client ... OK
 
 ```
 
+Finally, wire up the repo git hooks so the SDK coding standard is applied to every
+commit automatically (`./commit` does this for you the first time it runs; this covers
+plain `git commit` too):
+
+```console
+pip3 install clang-format==22.1.8
+git config core.hooksPath .githooks
+```
+
 Next step: [Setup Prerequisites](setup_prerequisites.md).
 
 # Setup on MacOS
@@ -346,6 +355,15 @@ verifying client ... OK
 
 *** SUCCESS! ***
 
+```
+
+Finally, wire up the repo git hooks so the SDK coding standard is applied to every
+commit automatically (`./commit` does this for you the first time it runs; this covers
+plain `git commit` too):
+
+```console
+pip3 install clang-format==22.1.8
+git config core.hooksPath .githooks
 ```
 
 Next step: [setup prerequisites](setup_prerequisites.md).

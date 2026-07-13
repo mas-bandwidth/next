@@ -30,6 +30,11 @@ func main() {
 		fmt.Printf("\nCommitting\n\n")
 	}
 
+	// wire the repo git hooks (idempotent). the .githooks/pre-commit hook applies the
+	// SDK coding standard (sdk/.clang-format) to staged SDK files before every commit,
+	// so unformatted SDK code cannot be checked in -- including via plain git commit.
+	Bash("git config core.hooksPath .githooks")
+
 	Bash(fmt.Sprintf("git pull && git commit -am \"%s\" && git push origin", message))
 
 	fmt.Printf("\n")
