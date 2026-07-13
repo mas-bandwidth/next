@@ -300,7 +300,11 @@ resource "google_redis_cluster" "portal" {
   }
   region = "us-central1"
   replica_count = 1
-  major_version = "REDIS_7_2"
+  # NOTE: the intent was redis 7.2 (was: major_version = "REDIS_7_2"), but
+  # google_redis_cluster has no version attribute in ANY provider release
+  # (checked hashicorp/google + google-beta schemas through 6.50 and 7.39),
+  # so this config never passed terraform validate. the cluster gets the
+  # memorystore service default version at apply time.
   transit_encryption_mode = "TRANSIT_ENCRYPTION_MODE_DISABLED"
   authorization_mode = "AUTH_MODE_DISABLED"
   depends_on = [

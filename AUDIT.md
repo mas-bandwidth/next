@@ -70,21 +70,19 @@ are small, and it took genuine digging to find even those, which is itself a sta
 
 All five items fixed 2026-07-13.
 
-### Terraform provider-pin defect (found 2026-07-13 while validating the MAGIC_KEY wiring)
+### Terraform: invalid redis cluster attribute (found 2026-07-13 validating MAGIC_KEY wiring)
 
-`terraform validate` passes for dev but fails for **staging and prod**:
-`google_redis_cluster.major_version = "REDIS_7_2"`
-([staging main.tf:303](terraform/staging/backend/main.tf#L303), same in prod) is not a
-recognized argument under the `hashicorp/google` provider pin `~> 6.0.0` (which resolves to
-6.0.x — `major_version` was added to that resource much later in the 6.x line). dev has no
-redis *cluster* so it validates. Because `.terraform.lock.hcl` is gitignored, a real
-`terraform plan` on staging/prod resolves providers fresh against that pin and hits the same
-error — so a staging/prod deploy would fail here. Pre-existing and unrelated to any change
-this session; consistent with the "nothing currently deployed" state (the config was never
-applied after `major_version` was added). Fix is to widen the google provider pin (e.g.
-`~> 6.14`) — but that pulls the whole 6.0→6.14 range for every google resource, so it needs
-a real `terraform plan` against GCP to vet, which is an operator action, not a blind edit.
-Flagged, deliberately not auto-fixed.
+`terraform validate` failed for **staging only** (dev and prod validate clean — an earlier
+draft of this note wrongly claimed prod failed too; prod has no redis cluster resource):
+`google_redis_cluster.major_version = "REDIS_7_2"` in staging's portal redis cluster. First
+diagnosis (stale provider pin) was also wrong — schema dumps show `google_redis_cluster` has
+**no version attribute in any provider release** (checked `hashicorp/google` and
+`google-beta` through 6.50 and 7.39), so the line never validated under any resolvable
+provider: a staging `terraform plan` would have failed at this line since the resource was
+added. Pre-existing, unrelated to this session's changes, consistent with nothing being
+deployed. (FIXED 2026-07-13: line removed, intent preserved as a comment — the cluster gets
+the memorystore default version at apply; the resource is `ignore_changes = all` anyway.
+All three envs now pass `terraform validate`, which also confirms the MAGIC_KEY wiring.)
 
 ## Honest observations (design, not defects)
 
