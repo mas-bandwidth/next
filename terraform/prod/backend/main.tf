@@ -727,8 +727,6 @@ module "api" {
     SESSION_CRUNCHER_URL="http://${module.session_cruncher.address}"
     SERVER_CRUNCHER_URL="http://${module.server_cruncher.address}"
     GOOGLE_PROJECT_ID=${local.google_project_id}
-    RELAY_BACKEND_URL="http://${module.relay_backend.address}"
-    ROUTE_MATRIX_URL="http://${module.relay_backend.address}/route_matrix"
     DATABASE_URL="${local.google_database_bucket}/prod.bin"
     DATABASE_PATH="/app/database.bin"
     PGSQL_CONFIG="host=${google_sql_database_instance.postgres.ip_address.0.ip_address} port=5432 user=developer password=developer dbname=database sslmode=disable"

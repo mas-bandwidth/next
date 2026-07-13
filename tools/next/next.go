@@ -1465,6 +1465,20 @@ func config(env Environment, regexes []string) {
 				}
 			}
 		}
+
+		// staging keeps its buckets in terraform.tfvars (as variables) rather than in
+		// main.tf locals like dev/prod, so the main.tf rewrites above miss it. rewrite
+		// the tfvars too, or a company_name change re-diverges staging every config run
+		// (that is exactly how staging ended up pointing at gs://next_... buckets).
+		tfvars := fmt.Sprintf("terraform/%s/backend/terraform.tfvars", envs[i])
+		if fileExists(tfvars) {
+			fmt.Printf("%s\n", tfvars)
+			replace(tfvars, "^\\s*google_artifacts_bucket\\s*=.*$", fmt.Sprintf("google_artifacts_bucket     = \"gs://%s_network_next_backend_artifacts\"", config.CompanyName))
+			replace(tfvars, "^\\s*google_database_bucket\\s*=.*$", fmt.Sprintf("google_database_bucket      = \"gs://%s_network_next_database_files\"", config.CompanyName))
+			replace(tfvars, "^\\s*ip2location_bucket_name\\s*=.*$", fmt.Sprintf("ip2location_bucket_name     = \"%s_network_next_%s\"", config.CompanyName, envs[i]))
+			replace(tfvars, "^\\s*cloudflare_zone_id\\s*=.*$", fmt.Sprintf("cloudflare_zone_id          = \"%s\"", config.CloudflareZoneId))
+			replace(tfvars, "^\\s*cloudflare_domain\\s*=.*$", fmt.Sprintf("cloudflare_domain           = \"%s\"", config.CloudflareDomain))
+		}
 	}
 
 	fmt.Printf("terraform/projects/main.tf\n")

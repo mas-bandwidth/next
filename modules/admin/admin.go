@@ -39,7 +39,7 @@ type RouteShaderData struct {
 	BandwidthEnvelopeDownKbps int     `json:"bandwidth_envelope_down_kbps"`
 	DisableNetworkNext        bool    `json:"disable_network_next"`
 	LatencyReductionThreshold int     `json:"latency_reduction_threshold"`
-	SelectionPercent          float64 `json:"selection_percent"`
+	SelectionPercent          int     `json:"selection_percent"`
 	MaxLatencyTradeOff        int     `json:"max_latency_trade_off"`
 	RouteSwitchThreshold      int     `json:"route_switch_threshold"`
 	RouteSelectThreshold      int     `json:"route_select_threshold"`
@@ -151,6 +151,9 @@ FROM
 		}
 		routeShaders = append(routeShaders, row)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("route shader rows error: %v\n", err)
+	}
 	return routeShaders, nil
 }
 
@@ -203,6 +206,9 @@ WHERE
 		}
 		routeShader.RouteShaderId = routeShaderId
 		return routeShader, nil
+	}
+	if err := rows.Err(); err != nil {
+		return routeShader, fmt.Errorf("rows error: %v\n", err)
 	}
 	return routeShader, fmt.Errorf("route shader %x not found", routeShaderId)
 }
@@ -295,6 +301,9 @@ func (controller *Controller) ReadBuyers() ([]BuyerData, error) {
 		}
 		buyers = append(buyers, row)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("buyer rows error: %v\n", err)
+	}
 	return buyers, nil
 }
 
@@ -311,6 +320,9 @@ func (controller *Controller) ReadBuyer(buyerId uint64) (BuyerData, error) {
 		}
 		buyer.BuyerId = buyerId
 		return buyer, nil
+	}
+	if err := rows.Err(); err != nil {
+		return buyer, fmt.Errorf("rows error: %v\n", err)
 	}
 	return buyer, fmt.Errorf("buyer %x not found", buyerId)
 }
@@ -368,6 +380,9 @@ func (controller *Controller) ReadSellers() ([]SellerData, error) {
 		}
 		sellers = append(sellers, row)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("seller rows error: %v\n", err)
+	}
 	return sellers, nil
 }
 
@@ -384,6 +399,9 @@ func (controller *Controller) ReadSeller(sellerId uint64) (SellerData, error) {
 		}
 		seller.SellerId = sellerId
 		return seller, nil
+	}
+	if err := rows.Err(); err != nil {
+		return seller, fmt.Errorf("rows error: %v\n", err)
 	}
 	return seller, fmt.Errorf("seller %x not found", sellerId)
 }
@@ -438,6 +456,9 @@ func (controller *Controller) ReadDatacenters() ([]DatacenterData, error) {
 		}
 		datacenters = append(datacenters, row)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("datacenter rows error: %v\n", err)
+	}
 	return datacenters, nil
 }
 
@@ -454,6 +475,9 @@ func (controller *Controller) ReadDatacenter(datacenterId uint64) (DatacenterDat
 		}
 		datacenter.DatacenterId = datacenterId
 		return datacenter, nil
+	}
+	if err := rows.Err(); err != nil {
+		return datacenter, fmt.Errorf("rows error: %v\n", err)
 	}
 	return datacenter, fmt.Errorf("datacenter %x not found", datacenterId)
 }
@@ -645,6 +669,9 @@ FROM
 		}
 		relays = append(relays, row)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("relay rows error: %v\n", err)
+	}
 	return relays, nil
 }
 
@@ -707,6 +734,9 @@ WHERE
 		}
 		relay.RelayId = relayId
 		return relay, nil
+	}
+	if err := rows.Err(); err != nil {
+		return relay, fmt.Errorf("rows error: %v\n", err)
 	}
 	return relay, fmt.Errorf("relay %x not found", relayId)
 }
@@ -808,6 +838,9 @@ func (controller *Controller) ReadBuyerDatacenterSettingsList() ([]BuyerDatacent
 		}
 		settings = append(settings, row)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("buyer datacenter settings rows error: %v\n", err)
+	}
 	return settings, nil
 }
 
@@ -824,6 +857,9 @@ func (controller *Controller) ReadBuyerDatacenterSettings(buyerId uint64, datace
 		}
 		return settings, nil
 	} else {
+		if err := rows.Err(); err != nil {
+			return settings, fmt.Errorf("rows error: %v\n", err)
+		}
 		return settings, fmt.Errorf("buyer datacenter settings %x.%x not found", buyerId, datacenterId)
 	}
 }
@@ -879,6 +915,9 @@ func (controller *Controller) ReadRelayKeypairs() ([]RelayKeypairData, error) {
 		}
 		relayKeypairs = append(relayKeypairs, row)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("relay keypair rows error: %v\n", err)
+	}
 	return relayKeypairs, nil
 }
 
@@ -894,6 +933,9 @@ func (controller *Controller) ReadRelayKeypair(relayKeypairId uint64) (RelayKeyp
 			return relayKeypair, fmt.Errorf("could not scan relay keypair row: %v\n", err)
 		}
 		return relayKeypair, nil
+	}
+	if err := rows.Err(); err != nil {
+		return relayKeypair, fmt.Errorf("rows error: %v\n", err)
 	}
 	return relayKeypair, fmt.Errorf("relay keypair %x not found", relayKeypairId)
 }

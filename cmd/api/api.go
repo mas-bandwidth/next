@@ -436,8 +436,8 @@ func isPortalAuthorized(endpoint func(http.ResponseWriter, *http.Request)) func(
 // ---------------------------------------------------------------------------------------------------------------------
 
 func pingHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "text/plain")
+	w.WriteHeader(http.StatusOK)
 	if service.Tag != "" {
 		w.Write(fmt.Appendf(nil, "pong [%s]", service.Tag))
 	} else {
@@ -464,8 +464,8 @@ func portalSessionCountsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	response.TotalSessionCount = int(math.Ceil(sessionUpdate * 10.0 / 60.0))
 	response.NextSessionCount = int(math.Ceil(nextSessionUpdate * 10.0 / 60.0))
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -571,8 +571,8 @@ func portalSessionsHandler(w http.ResponseWriter, r *http.Request) {
 	response.Sessions = upgradedSessions
 	response.OutputPage = outputPage
 	response.NumPages = numPages
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -745,8 +745,8 @@ func portalServersHandler(w http.ResponseWriter, r *http.Request) {
 	for i := range servers {
 		upgradeServer(database, servers[i], &response.Servers[i])
 	}
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -823,8 +823,8 @@ type PortalRelayCountResponse struct {
 func portalRelayCountHandler(w http.ResponseWriter, r *http.Request) {
 	response := PortalRelayCountResponse{}
 	response.RelayCount = portal.GetRelayCount(service.Context, redisPortalClient, time.Now().Unix()/60)
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -915,8 +915,8 @@ func portalRelaysHandler(w http.ResponseWriter, r *http.Request) {
 	for i := range response.Relays {
 		upgradeRelayData(database, relays[i], &response.Relays[i], false)
 	}
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -931,8 +931,8 @@ func portalAllRelaysHandler(w http.ResponseWriter, r *http.Request) {
 	for i := range response.Relays {
 		upgradeRelayData(database, relays[i], &response.Relays[i], false)
 	}
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -1165,8 +1165,8 @@ func portalSellersHandler(w http.ResponseWriter, r *http.Request) {
 	response.Sellers = sellers
 	response.OutputPage = outputPage
 	response.NumPages = numPages
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -1358,8 +1358,8 @@ func portalDatacenterDataHandler(w http.ResponseWriter, r *http.Request) {
 // ---------------------------------------------------------------------------------------------------------------------
 
 func portalMapDataHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/octet-stream")
+	w.WriteHeader(http.StatusOK)
 	data := mapDataWatcher.GetMapData()
 	w.Write(data)
 }
@@ -1367,8 +1367,8 @@ func portalMapDataHandler(w http.ResponseWriter, r *http.Request) {
 // ---------------------------------------------------------------------------------------------------------------------
 
 func portalCostMatrixHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/octet-stream")
+	w.WriteHeader(http.StatusOK)
 	data := common.LoadMasterServiceData(service.Context, redisRelayBackendClient, "relay_backend", "cost_matrix")
 	w.Write(data)
 }
@@ -1467,8 +1467,8 @@ func adminDatabaseHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		response.Database = base64.StdEncoding.EncodeToString(database.GetBinary())
 	}
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -1524,6 +1524,7 @@ func adminCommitHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	defer os.Remove(tempFileA)
 	database, err := db.LoadDatabase(tempFileA)
 	if err != nil {
 		core.Error("could not load database from binary data in temp file '%s'", tempFileA)
@@ -1532,13 +1533,17 @@ func adminCommitHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	err = database.Validate()
 	if err != nil {
+		// IMPORTANT: the return below is what makes validation actually gate the
+		// commit. without it we fell through and uploaded the invalid database anyway
 		response.Error = fmt.Sprintf("error: database did not validate: %v\n", err)
-		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(response)
+		return
 	}
 	database.Creator = request.User
 	tempFileB := fmt.Sprintf("/tmp/database-%s.bin", common.RandomString(64))
+	defer os.Remove(tempFileB)
 	err = database.Save(tempFileB)
 	if err != nil {
 		core.Error("could not save database to temp file '%s'", tempFileB)
@@ -1551,8 +1556,8 @@ func adminCommitHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	core.Log("committed database to %s for %s at time %s", databaseURL, request.User, database.CreationTime)
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -1581,8 +1586,8 @@ func adminCreateSellerHandler(w http.ResponseWriter, r *http.Request) {
 		core.Debug("create seller %d -> %+v", sellerId, sellerData)
 		response.Seller = sellerData
 	}
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -1647,8 +1652,8 @@ func adminUpdateSellerHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		core.Debug("update seller %d -> %+v", seller.SellerId, seller)
 	}
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -1671,8 +1676,8 @@ func adminDeleteSellerHandler(w http.ResponseWriter, r *http.Request) {
 		core.Error("failed to delete seller: %v", err)
 		response.Error = err.Error()
 	}
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -1701,8 +1706,8 @@ func adminCreateBuyerHandler(w http.ResponseWriter, r *http.Request) {
 		core.Debug("create buyer %d -> %+v", buyerId, buyerData)
 		response.Buyer = buyerData
 	}
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -1768,8 +1773,8 @@ func adminUpdateBuyerHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		core.Debug("update buyer %d -> %+v", buyer.BuyerId, buyer)
 	}
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -1792,8 +1797,8 @@ func adminDeleteBuyerHandler(w http.ResponseWriter, r *http.Request) {
 		core.Error("failed to delete buyer: %v", err)
 		response.Error = err.Error()
 	}
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -1822,8 +1827,8 @@ func adminCreateDatacenterHandler(w http.ResponseWriter, r *http.Request) {
 		core.Debug("create datacenter %d -> %+v", datacenterId, datacenterData)
 		response.Datacenter = datacenterData
 	}
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -1841,8 +1846,8 @@ func adminReadDatacentersHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		core.Debug("read datacenters -> %+v", datacenters)
 	}
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -1867,8 +1872,8 @@ func adminReadDatacenterHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		core.Debug("read datacenter %d -> %+v", datacenterId, datacenter)
 	}
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -1893,8 +1898,8 @@ func adminUpdateDatacenterHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		core.Debug("update datacenter %d -> %+v", datacenter.DatacenterId, datacenter)
 	}
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -1917,8 +1922,8 @@ func adminDeleteDatacenterHandler(w http.ResponseWriter, r *http.Request) {
 		core.Error("failed to delete datacenter: %v", err)
 		response.Error = err.Error()
 	}
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -1947,8 +1952,8 @@ func adminCreateRelayHandler(w http.ResponseWriter, r *http.Request) {
 		core.Debug("create relay %d -> %+v", relayId, relayData)
 		response.Relay = relayData
 	}
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -1966,8 +1971,8 @@ func adminReadRelaysHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		core.Debug("read relays -> %+v", relays)
 	}
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -1992,8 +1997,8 @@ func adminReadRelayHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		core.Debug("read relay %d -> %+v", relayId, relay)
 	}
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -2018,8 +2023,8 @@ func adminUpdateRelayHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		core.Debug("update relay %d -> %+v", relay.RelayId, relay)
 	}
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -2042,8 +2047,8 @@ func adminDeleteRelayHandler(w http.ResponseWriter, r *http.Request) {
 		core.Error("failed to delete relay: %v", err)
 		response.Error = err.Error()
 	}
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -2072,8 +2077,8 @@ func adminCreateRouteShaderHandler(w http.ResponseWriter, r *http.Request) {
 		core.Debug("create route shader %d -> %+v", routeShaderId, routeShaderData)
 		response.RouteShader = routeShaderData
 	}
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -2091,8 +2096,8 @@ func adminReadRouteShadersHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		core.Debug("read route shaders -> %+v", routeShaders)
 	}
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -2117,8 +2122,8 @@ func adminReadRouteShaderHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		core.Debug("read route shader %d -> %+v", routeShaderId, routeShader)
 	}
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -2143,8 +2148,8 @@ func adminUpdateRouteShaderHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		core.Debug("update route shader %d -> %+v", routeShader.RouteShaderId, routeShader)
 	}
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -2167,8 +2172,8 @@ func adminDeleteRouteShaderHandler(w http.ResponseWriter, r *http.Request) {
 		core.Error("failed to delete route shader: %v", err)
 		response.Error = err.Error()
 	}
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -2198,8 +2203,8 @@ func adminCreateBuyerDatacenterSettingsHandler(w http.ResponseWriter, r *http.Re
 		core.Debug("create buyer datacenter settings %d.%d -> %+v", buyerId, datacenterId, settings)
 		response.Settings = settings
 	}
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -2245,8 +2250,8 @@ func adminReadBuyerDatacenterSettingsHandler(w http.ResponseWriter, r *http.Requ
 	} else {
 		core.Debug("read buyer datacenter settings %d.%d -> %+v", buyerId, datacenterId, settings)
 	}
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -2271,8 +2276,8 @@ func adminUpdateBuyerDatacenterSettingsHandler(w http.ResponseWriter, r *http.Re
 	} else {
 		core.Debug("update buyer datacenter settings %d.%d -> %+v", settings.BuyerId, settings.DatacenterId, settings)
 	}
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -2299,8 +2304,8 @@ func adminDeleteBuyerDatacenterSettingsHandler(w http.ResponseWriter, r *http.Re
 		core.Error("failed to delete buyer datacenter settings: %v", err)
 		response.Error = err.Error()
 	}
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -2321,8 +2326,8 @@ func adminCreateRelayKeypairHandler(w http.ResponseWriter, r *http.Request) {
 		core.Debug("create relay keypair -> %+v", relayKeypairData)
 		response.RelayKeypair = relayKeypairData
 	}
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -2340,8 +2345,8 @@ func adminReadRelayKeypairsHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		core.Debug("get relay keypairs -> %+v", relayKeypairs)
 	}
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -2366,8 +2371,8 @@ func adminReadRelayKeypairHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		core.Debug("read relay keypair %d -> %+v", relayKeypairId, relayKeypair)
 	}
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -2392,8 +2397,8 @@ func adminUpdateRelayKeypairHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		core.Debug("update relay keypair %d -> %+v", relayKeypair.RelayKeypairId, relayKeypair)
 	}
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -2416,8 +2421,8 @@ func adminDeleteRelayKeypairHandler(w http.ResponseWriter, r *http.Request) {
 		core.Error("failed to delete relay keypair: %v", err)
 		response.Error = err.Error()
 	}
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 

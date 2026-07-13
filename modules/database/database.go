@@ -3,6 +3,7 @@ package database
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	"database/sql"
 	"encoding/base64"
 	"encoding/binary"
@@ -968,6 +969,21 @@ func ExtractDatabase(config string) (*Database, error) {
 
 	fmt.Printf("successfully connected to postgres\n")
 
+	defer pgsql.Close()
+
+	// IMPORTANT: read all six tables inside one REPEATABLE READ (snapshot) read-only
+	// transaction. the extraction queries run one after another, and without a shared
+	// snapshot a concurrent admin write between queries produces a cross-table
+	// inconsistent extract (e.g. a relay row referencing a datacenter deleted moments
+	// earlier), which fails the build step below or bakes a broken database.bin
+
+	tx, err := pgsql.BeginTx(context.Background(), &sql.TxOptions{Isolation: sql.LevelRepeatableRead, ReadOnly: true})
+	if err != nil {
+		return nil, fmt.Errorf("could not begin postgres transaction: %v\n", err)
+	}
+
+	defer tx.Rollback()
+
 	// relays
 
 	type RelayRow struct {
@@ -993,7 +1009,7 @@ func ExtractDatabase(config string) (*Database, error) {
 
 	relayRows := make([]RelayRow, 0)
 	{
-		rows, err := pgsql.Query("SELECT relay_id, relay_name, datacenter_id, public_ip, public_port, internal_ip, internal_port, internal_group, ssh_ip, ssh_port, ssh_user, public_key_base64, private_key_base64, version, mrc, port_speed, max_sessions, bandwidth_price FROM relays")
+		rows, err := tx.Query("SELECT relay_id, relay_name, datacenter_id, public_ip, public_port, internal_ip, internal_port, internal_group, ssh_ip, ssh_port, ssh_user, public_key_base64, private_key_base64, version, mrc, port_speed, max_sessions, bandwidth_price FROM relays")
 		if err != nil {
 			return nil, fmt.Errorf("could not extract relays: %v\n", err)
 		}
@@ -1006,6 +1022,10 @@ func ExtractDatabase(config string) (*Database, error) {
 				return nil, fmt.Errorf("failed to scan relay row: %v\n", err)
 			}
 			relayRows = append(relayRows, row)
+		}
+
+		if err := rows.Err(); err != nil {
+			return nil, fmt.Errorf("relay rows error: %v\n", err)
 		}
 	}
 
@@ -1022,7 +1042,7 @@ func ExtractDatabase(config string) (*Database, error) {
 
 	datacenterRows := make([]DatacenterRow, 0)
 	{
-		rows, err := pgsql.Query("SELECT datacenter_id, datacenter_name, native_name, latitude, longitude, seller_id FROM datacenters")
+		rows, err := tx.Query("SELECT datacenter_id, datacenter_name, native_name, latitude, longitude, seller_id FROM datacenters")
 		if err != nil {
 			return nil, fmt.Errorf("could not extract datacenters: %v\n", err)
 		}
@@ -1035,6 +1055,10 @@ func ExtractDatabase(config string) (*Database, error) {
 				return nil, fmt.Errorf("failed to scan datacenter row: %v\n", err)
 			}
 			datacenterRows = append(datacenterRows, row)
+		}
+
+		if err := rows.Err(); err != nil {
+			return nil, fmt.Errorf("datacenter rows error: %v\n", err)
 		}
 	}
 
@@ -1052,7 +1076,7 @@ func ExtractDatabase(config string) (*Database, error) {
 
 	buyerRows := make([]BuyerRow, 0)
 	{
-		rows, err := pgsql.Query("SELECT buyer_id, buyer_name, buyer_code, public_key_base64, route_shader_id, live, debug FROM buyers")
+		rows, err := tx.Query("SELECT buyer_id, buyer_name, buyer_code, public_key_base64, route_shader_id, live, debug FROM buyers")
 		if err != nil {
 			return nil, fmt.Errorf("could not extract buyers: %v\n", err)
 		}
@@ -1066,6 +1090,10 @@ func ExtractDatabase(config string) (*Database, error) {
 			}
 			buyerRows = append(buyerRows, row)
 		}
+
+		if err := rows.Err(); err != nil {
+			return nil, fmt.Errorf("buyer rows error: %v\n", err)
+		}
 	}
 
 	// sellers
@@ -1078,7 +1106,7 @@ func ExtractDatabase(config string) (*Database, error) {
 
 	sellerRows := make([]SellerRow, 0)
 	{
-		rows, err := pgsql.Query("SELECT seller_id, seller_name, seller_code FROM sellers")
+		rows, err := tx.Query("SELECT seller_id, seller_name, seller_code FROM sellers")
 		if err != nil {
 			return nil, fmt.Errorf("could not extract sellers: %v\n", err)
 		}
@@ -1091,6 +1119,10 @@ func ExtractDatabase(config string) (*Database, error) {
 				return nil, fmt.Errorf("failed to scan seller row: %v\n", err)
 			}
 			sellerRows = append(sellerRows, row)
+		}
+
+		if err := rows.Err(); err != nil {
+			return nil, fmt.Errorf("seller rows error: %v\n", err)
 		}
 	}
 
@@ -1114,7 +1146,7 @@ func ExtractDatabase(config string) (*Database, error) {
 
 	routeShaderRows := make([]RouteShaderRow, 0)
 	{
-		rows, err := pgsql.Query("SELECT route_shader_id, ab_test, acceptable_latency, acceptable_packet_loss, bandwidth_envelope_down_kbps, bandwidth_envelope_up_kbps, disable_network_next, latency_reduction_threshold, selection_percent, max_latency_trade_off, route_switch_threshold, route_select_threshold, force_next FROM route_shaders")
+		rows, err := tx.Query("SELECT route_shader_id, ab_test, acceptable_latency, acceptable_packet_loss, bandwidth_envelope_down_kbps, bandwidth_envelope_up_kbps, disable_network_next, latency_reduction_threshold, selection_percent, max_latency_trade_off, route_switch_threshold, route_select_threshold, force_next FROM route_shaders")
 		if err != nil {
 			return nil, fmt.Errorf("could not extract route shaders: %v\n", err)
 		}
@@ -1128,6 +1160,10 @@ func ExtractDatabase(config string) (*Database, error) {
 			}
 			routeShaderRows = append(routeShaderRows, row)
 		}
+
+		if err := rows.Err(); err != nil {
+			return nil, fmt.Errorf("route shader rows error: %v\n", err)
+		}
 	}
 
 	// buyer datacenter settings
@@ -1140,7 +1176,7 @@ func ExtractDatabase(config string) (*Database, error) {
 
 	buyerDatacenterSettingsRows := make([]BuyerDatacenterSettingsRow, 0)
 	{
-		rows, err := pgsql.Query("SELECT buyer_id, datacenter_id, enable_acceleration FROM buyer_datacenter_settings")
+		rows, err := tx.Query("SELECT buyer_id, datacenter_id, enable_acceleration FROM buyer_datacenter_settings")
 		if err != nil {
 			return nil, fmt.Errorf("could not extract buyer datacenter settings: %v\n", err)
 		}
@@ -1153,6 +1189,10 @@ func ExtractDatabase(config string) (*Database, error) {
 				return nil, fmt.Errorf("failed to scan buyer datacenter settings row: %v\n", err)
 			}
 			buyerDatacenterSettingsRows = append(buyerDatacenterSettingsRows, row)
+		}
+
+		if err := rows.Err(); err != nil {
+			return nil, fmt.Errorf("buyer datacenter settings rows error: %v\n", err)
 		}
 	}
 
