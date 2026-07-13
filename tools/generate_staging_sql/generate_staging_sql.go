@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
 	"os"
 
 	"github.com/networknext/next/modules/common"
@@ -64,8 +63,11 @@ VALUES(
 );
 `
 
-	// IMPORTANT: Set random seed because I don't want different random lat/longs generated each time you run "next config". It's annoying!
-	rand.Seed(0x12345)
+	// IMPORTANT: Seed so the random lat/longs are the same each time you run "next config",
+	// otherwise staging.sql churns on every run. It's annoying! NOTE: randomLatitude/Longitude
+	// draw from the common package random source, so it must be common.SeedRandom here --
+	// the old global rand.Seed never affected them and the output churned anyway.
+	common.SeedRandom(0x12345)
 
 	for i := range NumRelays {
 		fmt.Fprintf(file, datacenter_format, i, randomLatitude(), randomLongitude())

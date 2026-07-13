@@ -270,16 +270,13 @@ func RunHandlerThreads(threadCount int, updateChannels []chan *Update, numSessio
 
 			updateChannel := updateChannels[thread]
 
-			for {
-				select {
-				case update := <-updateChannel:
-					routeMatrix.CreatedAt = uint64(time.Now().Unix())
-					handlers.SDK_PacketHandler(&handler, nil, &update.from, update.packetData)
-					if !handler.Events[handlers.SDK_HandlerEvent_SentSessionUpdateResponsePacket] {
-						panic("failed to process session update")
-					}
-					atomic.AddUint64(numSessionUpdatesProcessed, 1)
+			for update := range updateChannel {
+				routeMatrix.CreatedAt = uint64(time.Now().Unix())
+				handlers.SDK_PacketHandler(&handler, nil, &update.from, update.packetData)
+				if !handler.Events[handlers.SDK_HandlerEvent_SentSessionUpdateResponsePacket] {
+					panic("failed to process session update")
 				}
+				atomic.AddUint64(numSessionUpdatesProcessed, 1)
 			}
 
 		}(k)
@@ -296,13 +293,10 @@ func RunWatcherThread(numSessionUpdatesProcessed *uint64) {
 
 		start := time.Now()
 
-		for {
-			select {
-			case <-ticker.C:
-				numUpdates := atomic.LoadUint64(numSessionUpdatesProcessed)
-				fmt.Printf("iteration %d: %8d session updates | %7d session updates per-second\n", iteration, numUpdates, uint64(float64(numUpdates)/time.Since(start).Seconds()))
-				iteration++
-			}
+		for range ticker.C {
+			numUpdates := atomic.LoadUint64(numSessionUpdatesProcessed)
+			fmt.Printf("iteration %d: %8d session updates | %7d session updates per-second\n", iteration, numUpdates, uint64(float64(numUpdates)/time.Since(start).Seconds()))
+			iteration++
 		}
 	}()
 }

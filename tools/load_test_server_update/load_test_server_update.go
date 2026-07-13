@@ -116,15 +116,12 @@ func RunHandlerThreads(threadCount int, updateChannels []chan *Update, numServer
 
 			updateChannel := updateChannels[thread]
 
-			for {
-				select {
-				case update := <-updateChannel:
-					handlers.SDK_PacketHandler(&handler, nil, &update.from, update.packetData)
-					if !handler.Events[handlers.SDK_HandlerEvent_SentServerUpdateResponsePacket] {
-						panic("failed to process server update")
-					}
-					atomic.AddUint64(numServerUpdatesProcessed, 1)
+			for update := range updateChannel {
+				handlers.SDK_PacketHandler(&handler, nil, &update.from, update.packetData)
+				if !handler.Events[handlers.SDK_HandlerEvent_SentServerUpdateResponsePacket] {
+					panic("failed to process server update")
 				}
+				atomic.AddUint64(numServerUpdatesProcessed, 1)
 			}
 
 		}(k)
@@ -141,13 +138,10 @@ func RunWatcherThread(numServerUpdatesProcessed *uint64) {
 
 		start := time.Now()
 
-		for {
-			select {
-			case <-ticker.C:
-				numUpdates := atomic.LoadUint64(numServerUpdatesProcessed)
-				fmt.Printf("iteration %d: %8d server updates | %7d server updates per-second\n", iteration, numUpdates, uint64(float64(numUpdates)/time.Since(start).Seconds()))
-				iteration++
-			}
+		for range ticker.C {
+			numUpdates := atomic.LoadUint64(numServerUpdatesProcessed)
+			fmt.Printf("iteration %d: %8d server updates | %7d server updates per-second\n", iteration, numUpdates, uint64(float64(numUpdates)/time.Since(start).Seconds()))
+			iteration++
 		}
 	}()
 }

@@ -35,9 +35,7 @@ func run(action string, log string, env ...string) *bytes.Buffer {
 	}
 
 	cmd.Env = os.Environ()
-	for i := range env {
-		cmd.Env = append(cmd.Env, env[i])
-	}
+	cmd.Env = append(cmd.Env, env...)
 
 	var stdout bytes.Buffer
 	stdout_pipe, err := cmd.StdoutPipe()

@@ -30,5 +30,5 @@ func main() {
 		}
 	}
 
-	bash(fmt.Sprintf("cd portal && yarn build-local"))
+	bash("cd portal && yarn build-local")
 }
