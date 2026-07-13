@@ -839,6 +839,9 @@ func keygen(env Environment, regexes []string) {
 		pingKey := [32]byte{}
 		common.RandomBytes(pingKey[:])
 
+		magicKey := [32]byte{}
+		common.RandomBytes(magicKey[:])
+
 		fmt.Printf("	Relay backend public key       = %s\n", base64.StdEncoding.EncodeToString(relayBackendPublicKey[:]))
 		fmt.Printf("	Relay backend private key      = %s\n", base64.StdEncoding.EncodeToString(relayBackendPrivateKey[:]))
 		fmt.Printf("	Server backend public key      = %s\n", base64.StdEncoding.EncodeToString(serverBackendPublicKey[:]))
@@ -846,7 +849,8 @@ func keygen(env Environment, regexes []string) {
 		fmt.Printf("	API private key                = %s\n", apiPrivateKey)
 		fmt.Printf("	Admin API key                  = %s\n", adminAPIKey)
 		fmt.Printf("	Portal API key                 = %s\n", portalAPIKey)
-		fmt.Printf("	Ping key                       = %s\n\n", base64.StdEncoding.EncodeToString(pingKey[:]))
+		fmt.Printf("	Ping key                       = %s\n", base64.StdEncoding.EncodeToString(pingKey[:]))
+		fmt.Printf("	Magic key                      = %s\n\n", base64.StdEncoding.EncodeToString(magicKey[:]))
 
 		m := make(map[string]string)
 
@@ -858,6 +862,7 @@ func keygen(env Environment, regexes []string) {
 		m["admin_api_key"] = adminAPIKey
 		m["portal_api_key"] = portalAPIKey
 		m["ping_key"] = base64.StdEncoding.EncodeToString(pingKey[:])
+		m["magic_key"] = base64.StdEncoding.EncodeToString(magicKey[:])
 
 		keypairs[envs[i]] = m
 	}
@@ -897,6 +902,7 @@ func keygen(env Environment, regexes []string) {
 		writeEnvSecret(k, v, "admin_api_key")
 		writeEnvSecret(k, v, "portal_api_key")
 		writeEnvSecret(k, v, "ping_key")
+		writeEnvSecret(k, v, "magic_key")
 
 		fmt.Printf("\n")
 	}
@@ -976,6 +982,24 @@ func config(env Environment, regexes []string) {
 	}
 
 	fmt.Printf("========================\nconfiguring network next\n========================\n\n")
+
+	// magic keys were added after keygen first shipped, so back generate any that are
+	// missing -- otherwise terraform fails on file("~/secrets/<env>-magic-key.txt")
+	// for installs that ran keygen before magic keys existed
+
+	for _, env := range []string{"local", "dev", "staging", "prod"} {
+		filename := fmt.Sprintf("%s/%s-magic-key.txt", secretsDir, env)
+		if !fileExists(filename) {
+			magicKey := [32]byte{}
+			common.RandomBytes(magicKey[:])
+			err := os.WriteFile(filename, []byte(base64.StdEncoding.EncodeToString(magicKey[:])), 0666)
+			if err != nil {
+				fmt.Printf("\nerror: failed to write %s: %v\n\n", filename, err)
+				os.Exit(1)
+			}
+			fmt.Printf("back generated ~/secrets/%s-magic-key.txt\n\n", env)
+		}
+	}
 
 	// IMPORTANT: if we don't have the global secrets yet (1.0 version of network next), we need to back generate them from the source code...
 

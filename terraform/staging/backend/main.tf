@@ -42,6 +42,7 @@ locals {
   server_backend_private_key = file("~/secrets/staging-server-backend-private-key.txt")
   api_private_key            = file("~/secrets/staging-api-private-key.txt")
   ping_key                   = file("~/secrets/staging-ping-key.txt")
+  magic_key                  = file("~/secrets/staging-magic-key.txt")
 }
 
 # ----------------------------------------------------------------------------------------
@@ -533,6 +534,7 @@ module "magic_backend" {
     sudo ./bootstrap.sh -t ${var.tag} -b ${var.google_artifacts_bucket} -a magic_backend.tar.gz
     cat <<EOF > /app/app.env
     ENV=staging
+    MAGIC_KEY=${local.magic_key}
     EOF
     sudo systemctl start app.service
   EOF1

@@ -15,6 +15,8 @@ import (
 
 var magicUpdateSeconds int
 
+var magicKey []byte
+
 func main() {
 
 	service := common.CreateService("magic_backend")
@@ -28,6 +30,24 @@ func main() {
 
 	core.Debug("magic update seconds: %d", magicUpdateSeconds)
 
+	// mix an optional per-install secret into the magic derivation. without it the magic
+	// values are a pure function of wall clock time and constants committed to this
+	// (source available) repo, so anyone who has read the source can compute them offline
+	// and craft packets that pass the advanced packet filter. with it, magic stays
+	// unpredictable to everyone but the operator. IMPORTANT: every magic_backend instance
+	// in an env must share the same MAGIC_KEY (they already share app.env via terraform)
+	// -- the stateless zero-coordination derivation depends on it. empty is deliberately
+	// allowed: local dev and functional tests run without a key and fall back to the
+	// constants-only derivation.
+
+	magicKey = envvar.GetBase64("MAGIC_KEY", nil)
+
+	if len(magicKey) > 0 {
+		core.Log("magic key is set")
+	} else if service.Env == "dev" || service.Env == "staging" || service.Env == "prod" {
+		core.Warn("MAGIC_KEY is not set: magic values are deterministic and computable from source. run 'next config' to generate one")
+	}
+
 	service.Router.HandleFunc("/magic", magicHandler).Methods("GET")
 
 	service.StartWebServer()
@@ -37,6 +57,9 @@ func main() {
 
 func hashCounter(counter int64) []byte {
 	hash := fnv.New64a()
+	if len(magicKey) > 0 {
+		hash.Write(magicKey)
+	}
 	var inputValue [8]byte
 	binary.LittleEndian.PutUint64(inputValue[:], uint64(counter))
 	hash.Write(inputValue[:])

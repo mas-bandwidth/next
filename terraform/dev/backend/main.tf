@@ -53,6 +53,7 @@ locals {
   server_backend_private_key  = file("~/secrets/dev-server-backend-private-key.txt")
   api_private_key             = file("~/secrets/dev-api-private-key.txt")
   ping_key                    = file("~/secrets/dev-ping-key.txt")
+  magic_key                   = file("~/secrets/dev-magic-key.txt")
 }
 
 # ----------------------------------------------------------------------------------------
@@ -554,6 +555,7 @@ module "magic_backend" {
     cat <<EOF > /app/app.env
     ENV=dev
     DEBUG_LOGS=1
+    MAGIC_KEY=${local.magic_key}
     EOF
     systemctl start app.service
   EOF1

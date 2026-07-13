@@ -33,15 +33,17 @@ are small, and it took genuine digging to find even those, which is itself a sta
    [service.go:456](modules/common/service.go#L456) reads `UDP_SOCKET_READ_BUFFER` for the
    write buffer (copy-paste). Currently harmless because terraform sets both vars to the same
    104857600 in all three envs, but the knob is dead: setting the write buffer independently
-   does nothing, with no error.
+   does nothing, with no error. (FIXED 2026-07-13.)
 
 2. **Missing printf argument** — [service.go:499](modules/common/service.go#L499):
    `core.Error("could not create redis leader election: %v")` has no argument and will print
-   `%!v(MISSING)` right when you need the actual error. Related: `go vet`'s printf checker
-   does not know `core.Log/Error/Warn/Debug` are printf-style. Adding
-   `-printf.funcs=Log,Error,Warn,Debug` to the vet invocation in CI would make this whole bug
-   class impossible. (I ran it across the repo — this is the only instance, which says
-   something good about the discipline.)
+   `%!v(MISSING)` right when you need the actual error. This is the only instance repo-wide,
+   which says something good about the discipline. (FIXED 2026-07-13, plus a permanent gate.
+   Correction to the original writeup: `go vet -printf.funcs` can NOT check these wrappers —
+   the printf analyzer only treats registered names ending in `f` as formatting functions,
+   and `core.Error`/`core.Log` don't qualify. The gate is a unit test instead:
+   `modules/core/log_format_test.go` scans the tree for log calls whose format string has
+   verbs but no arguments, and runs in the existing CI unit test job.)
 
 3. **Leaked HTTP response bodies on error paths in the route matrix poll loop** —
    [service.go:559-576](modules/common/service.go#L559): on a non-200 status or a body read
@@ -49,7 +51,8 @@ are small, and it took genuine digging to find even those, which is itself a sta
    in server_backend; a relay_backend stuck returning 500s would leak connections/fds for as
    long as the outage lasts. Same pattern in `getMagic`
    ([service.go:959](modules/common/service.go#L959)), which also never checks the status
-   code — it accepts any 32-byte body as magic.
+   code — it accepts any 32-byte body as magic. (FIXED 2026-07-13: bodies read+closed on
+   every path, and getMagic now checks the status code.)
 
 4. **Ineffective sanity check** — [core.go:995](modules/core/core.go#L995):
    `len(routeRelays) == 0` in `GetCurrentRouteCost` is always false because `routeRelays` is
@@ -57,13 +60,13 @@ are small, and it took genuine digging to find even those, which is itself a sta
    (`routeNumRelays == 0`) would panic at `routeRelays[routeNumRelays-1]` below. Not
    exploitable today — the only caller path guards it at
    [session_update.go:699](modules/handlers/session_update.go#L699) — but the check documents
-   an intent it doesn't implement.
+   an intent it doesn't implement. (FIXED 2026-07-13: checks `routeNumRelays <= 0`.)
 
 5. **Cosmetic HTTP handler issues** — `statusHandlerFunc`, `versionHandlerFunc`, and
    `databaseHandlerFunc` in service.go set headers or status codes after writing the body
    (no-ops), and `versionHandlerFunc` takes an `allowedOrigins` parameter it never uses.
 
-None of these are worth an emergency; 1-3 are worth fixing when convenient.
+Items 1-4 fixed 2026-07-13; item 5 is cosmetic and deliberately left alone.
 
 ## Honest observations (design, not defects)
 
@@ -83,7 +86,10 @@ None of these are worth an emergency; 1-3 are worth fixing when convenient.
   `next keygen` like every other key, delivered as an env var) would close it without
   giving up the stateless design: magic_backend is the only component that derives magic —
   everything else receives it over the wire — so all instances in an env still agree with
-  zero coordination.
+  zero coordination. (CLOSED 2026-07-13: `MAGIC_KEY` is now mixed into the derivation when
+  set — generated per-env by `next keygen`, back-filled for existing installs by
+  `next config`, and passed to magic_backend by terraform in all three envs. Empty keeps
+  the constants-only derivation for local dev and functional tests.)
 
 - **Telemetry backpressure: deep buffers, but no shed valve.** The UDP path is bounded
   (semaphore, 16384 in-flight handlers — good, and the comment explaining that a goroutine

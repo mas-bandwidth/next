@@ -57,6 +57,8 @@ locals {
   api_private_key             = file("~/secrets/prod-api-private-key.txt")
 
   ping_key                    = file("~/secrets/prod-ping-key.txt")
+
+  magic_key                   = file("~/secrets/prod-magic-key.txt")
 }
 
 # ----------------------------------------------------------------------------------------
@@ -559,6 +561,7 @@ module "magic_backend" {
     sudo ./bootstrap.sh -t ${var.tag} -b ${local.google_artifacts_bucket} -a magic_backend.tar.gz
     cat <<EOF > /app/app.env
     ENV=prod
+    MAGIC_KEY=${local.magic_key}
     EOF
     sudo systemctl start app.service
   EOF1

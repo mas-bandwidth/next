@@ -453,7 +453,7 @@ func (service *Service) StartUDPServer(packetHandler func(conn *net.UDPConn, fro
 	config.Port = envvar.GetInt("UDP_PORT", 40000)
 	config.NumThreads = envvar.GetInt("UDP_NUM_THREADS", 16)
 	config.SocketReadBuffer = envvar.GetInt("UDP_SOCKET_READ_BUFFER", 1024*1024)
-	config.SocketWriteBuffer = envvar.GetInt("UDP_SOCKET_READ_BUFFER", 1024*1024)
+	config.SocketWriteBuffer = envvar.GetInt("UDP_SOCKET_WRITE_BUFFER", 1024*1024)
 	config.MaxPacketSize = envvar.GetInt("UDP_MAX_PACKET_SIZE", 1384)
 	config.MaxConcurrent = envvar.GetInt("UDP_MAX_CONCURRENT_PACKETS", 16384)
 	config.BindAddress = envvar.GetAddress("UDP_BIND_ADDRESS", core.ParseAddress(fmt.Sprintf("0.0.0.0:%d", config.Port)))
@@ -496,7 +496,7 @@ func (service *Service) LeaderElection(initialDelay int) {
 	var err error
 	service.leaderElection, err = CreateRedisLeaderElection(redisClient, config)
 	if err != nil {
-		core.Error("could not create redis leader election: %v")
+		core.Error("could not create redis leader election: %v", err)
 		os.Exit(1)
 	}
 
@@ -562,18 +562,23 @@ func (service *Service) UpdateRouteMatrix(relayBackendPublicKey []byte, relayBac
 					continue
 				}
 
+				// IMPORTANT: read and close the body on every path, including errors.
+				// this loop runs every second forever -- leaking the body on the error
+				// paths leaks a connection per second for as long as the source is down
+
+				buffer, err := io.ReadAll(response.Body)
+
+				response.Body.Close()
+
 				if response.StatusCode != 200 {
 					core.Error("http response %d when getting route matrix", response.StatusCode)
 					continue
 				}
 
-				buffer, err := io.ReadAll(response.Body)
 				if err != nil {
 					core.Error("failed to read response body: %v", err)
 					continue
 				}
-
-				response.Body.Close()
 
 				if len(buffer) == 0 {
 					core.Debug("route matrix is empty")
@@ -964,11 +969,16 @@ func getMagic(httpClient *http.Client, uri string) ([]byte, error) {
 	}
 
 	buffer, err := io.ReadAll(response.Body)
+
+	response.Body.Close()
+
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("failed to read magic data: %v", err))
 	}
 
-	response.Body.Close()
+	if response.StatusCode != 200 {
+		return nil, errors.New(fmt.Sprintf("http response %d when getting magic values", response.StatusCode))
+	}
 
 	if len(buffer) != 32 {
 		return nil, errors.New(fmt.Sprintf("expected magic data to be 32 bytes, got %d", len(buffer)))
